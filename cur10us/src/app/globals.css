@@ -1,4 +1,14 @@
 @import "tailwindcss";
+/* Tailwind já importa os utilitários */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Estilos globais adicionais */
+html, body {
+  transition: background-color 0.3s, color 0.3s; /* transição suave entre temas */
+  font-family: 'Inter', sans-serif; /* sua fonte padrão */
+}
 
 @theme {
   /* Configuração das Fontes */
