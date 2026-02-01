@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "lucide-react": "^0.563.0",
+    "moment": "^2.30.1",
     "next": "16.1.6",
     "react": "19.2.3",
     "react-calendar": "^6.0.0",
@@ -18,6 +19,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/moment": "^2.11.29",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-big-calendar": "^1.16.3",
