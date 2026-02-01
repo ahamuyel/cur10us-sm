@@ -26,7 +26,7 @@ export default function Home() {
 
         <div className="flex gap-4 flex-wrap justify-center">
           <Link
-            href="/login"
+            href="/admin"
             className="px-6 py-3 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition"
           >
             Acessar plataforma
