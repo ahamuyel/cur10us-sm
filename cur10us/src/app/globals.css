@@ -1,27 +1,33 @@
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
+@import "tailwindcss";
 
-/* Variáveis de tema */
+@theme {
+  /* Configuração das Fontes */
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* Suas Cores Customizadas */
+  --color-background: var(--color-background);
+  --color-foreground: var(--color-foreground);
+  
+  --color-primary: #4f46e5;
+  --color-primary-dark: #4338ca;
+  --color-accent: #6366f1;
+}
+
+/* Configuração de Dark Mode por Classe */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --primary: #4F46E5;
-  --accent: #6366F1;
-  --card-bg: #f9fafb;
+  --color-background: #ffffff;
+  --color-foreground: #09090b;
 }
 
 .dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-  --primary: #6366F1;
-  --accent: #4F46E5;
-  --card-bg: #1a1a1a;
+  --color-background: #000000;
+  --color-foreground: #fafafa;
 }
 
 body {
-  background-color: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
-  transition: background-color 0.3s, color 0.3s;
+  background-color: var(--color-background);
+  color: var(--color-foreground);
 }
