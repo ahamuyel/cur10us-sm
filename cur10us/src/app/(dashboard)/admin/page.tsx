@@ -13,7 +13,7 @@ const AdminPage = () => {
             <main className="lg:col-span-8 flex flex-col gap-8">
 
                 {/* KPIs */}
-                <section className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                     <UserCard type="students" />
                     <UserCard type="teachers" />
                     <UserCard type="parents" />

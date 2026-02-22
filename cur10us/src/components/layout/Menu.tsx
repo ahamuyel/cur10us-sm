@@ -41,13 +41,13 @@ const menuItems = [
             {
                 icon: Users,
                 label: "Student",
-                href: "/students",
+                href: "/list/students",
                 visible: ["admin", "teacher"]
             },
             {
                 icon: UserCheck,
                 label: "Parent",
-                href: "/parents",
+                href: "/list/parents",
                 visible: ["admin", "teacher"]
             },
             {
