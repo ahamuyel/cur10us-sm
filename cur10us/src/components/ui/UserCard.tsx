@@ -68,9 +68,9 @@ const UserCard = ({ type }: { type: string }) => {
 
         <div className="flex flex-col">
           <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-            1,345
+            0 
           </h1>
-          <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+          <p className="hidden sm:block text-sm font-medium text-zinc-700 dark:text-zinc-300">
             {config.label}
           </p>
         </div>

@@ -1,13 +1,29 @@
-const Table = ({ columns, }: { columns: { header: string; accessor: string; className?: string }[]}) => {
+const Table = ({ 
+  columns, 
+  renderRow, 
+  data 
+}: { 
+  columns: { header: string; accessor: string; className?: string }[];
+  renderRow: (item: any) => React.ReactNode;
+  data: any[];
+}) => {
     return (
-        <table className="w-full mt-4">
+        <table className="w-full mt-4 border-separate border-spacing-0">
             <thead>
-                <tr className="text-left text-gray-500 text-sm">
-                    {columns.map(col=>(
-                        <th key={col.accessor}>{col.header}</th>
+                <tr className="text-left text-zinc-400 dark:text-zinc-500 text-xs font-semibold uppercase tracking-wider">
+                    {columns.map((col) => (
+                        <th 
+                            key={col.accessor} 
+                            className={`pb-4 px-2 ${col.className}`}
+                        >
+                            {col.header}
+                        </th>
                     ))}
                 </tr>
             </thead>
+            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
+                {data.map((item) => renderRow(item))}
+            </tbody>
         </table>
     )
 }

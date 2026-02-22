@@ -1,0 +1,44 @@
+
+/* Header */
+.cur10us-calendar .rbc-toolbar {
+  padding: 1rem;
+  border-bottom: 1px solid #e4e4e7;
+  font-weight: 600;
+}
+
+.cur10us-calendar .rbc-toolbar button {
+  border-radius: 9999px;
+  padding: 0.4rem 0.75rem;
+  border: none;
+  background: #f4f4f5;
+  color: #18181b;
+}
+
+.cur10us-calendar .rbc-toolbar button.rbc-active {
+  background: #6366f1;
+  color: white;
+}
+
+/* Time gutter */
+.cur10us-calendar .rbc-time-gutter {
+  font-size: 0.75rem;
+  color: #71717a;
+}
+
+/* Events */
+.cur10us-calendar .rbc-event {
+  background: #6366f1;
+  border-radius: 0.75rem;
+  border: none;
+  padding: 4px 6px;
+  font-size: 0.75rem;
+}
+
+.cur10us-calendar .rbc-event-label {
+  display: none;
+}
+
+/* Today highlight */
+.cur10us-calendar .rbc-today {
+  background: #eef2ff;
+}
