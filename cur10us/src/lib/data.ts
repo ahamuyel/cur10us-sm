@@ -352,6 +352,97 @@ export const examsData = [
   // ...
 ];
 
+export const classesData = [
+  { id: 1, name: "1A", capacity: 30, grade: 1, supervisor: "João Silva" },
+  { id: 2, name: "1B", capacity: 28, grade: 1, supervisor: "Joana Santos" },
+  { id: 3, name: "2A", capacity: 32, grade: 2, supervisor: "Miguel Geller" },
+  { id: 4, name: "2B", capacity: 30, grade: 2, supervisor: "Jayme Franco" },
+  { id: 5, name: "3A", capacity: 25, grade: 3, supervisor: "Jane Smith" },
+  { id: 6, name: "3B", capacity: 27, grade: 3, supervisor: "Ana Santiago" },
+  { id: 7, name: "3C", capacity: 30, grade: 3, supervisor: "Allan Preto" },
+  { id: 8, name: "4A", capacity: 28, grade: 4, supervisor: "Ofélia Castro" },
+  { id: 9, name: "4B", capacity: 30, grade: 4, supervisor: "Derek Briggs" },
+  { id: 10, name: "5A", capacity: 26, grade: 5, supervisor: "João Glover" },
+];
+
+export const lessonsData = [
+  { id: 1, subject: "Matemática", class: "1A", teacher: "João Silva", day: "Segunda", startTime: "07:30", endTime: "08:50" },
+  { id: 2, subject: "Inglês", class: "1A", teacher: "Allan Preto", day: "Segunda", startTime: "09:00", endTime: "09:45" },
+  { id: 3, subject: "Biologia", class: "2A", teacher: "Miguel Geller", day: "Terça", startTime: "07:30", endTime: "08:50" },
+  { id: 4, subject: "Física", class: "2A", teacher: "Joana Santos", day: "Terça", startTime: "09:00", endTime: "10:20" },
+  { id: 5, subject: "Química", class: "3C", teacher: "Joana Santos", day: "Quarta", startTime: "07:30", endTime: "08:50" },
+  { id: 6, subject: "História", class: "1B", teacher: "Jayme Franco", day: "Quarta", startTime: "09:00", endTime: "10:20" },
+  { id: 7, subject: "Geografia", class: "3A", teacher: "Jane Smith", day: "Quinta", startTime: "07:30", endTime: "08:50" },
+  { id: 8, subject: "Literatura", class: "4B", teacher: "Derek Briggs", day: "Quinta", startTime: "09:00", endTime: "10:20" },
+  { id: 9, subject: "Música", class: "5A", teacher: "Jane Smith", day: "Sexta", startTime: "07:30", endTime: "08:50" },
+  { id: 10, subject: "Arte", class: "3B", teacher: "Ana Santiago", day: "Sexta", startTime: "09:00", endTime: "10:20" },
+];
+
+export const assignmentsData = [
+  { id: 1, subject: "Matemática", class: "1A", teacher: "João Silva", dueDate: "2026-03-10" },
+  { id: 2, subject: "Inglês", class: "2A", teacher: "Allan Preto", dueDate: "2026-03-12" },
+  { id: 3, subject: "Biologia", class: "3C", teacher: "Miguel Geller", dueDate: "2026-03-15" },
+  { id: 4, subject: "Física", class: "1B", teacher: "Joana Santos", dueDate: "2026-03-18" },
+  { id: 5, subject: "História", class: "2A", teacher: "Jayme Franco", dueDate: "2026-03-20" },
+  { id: 6, subject: "Química", class: "3A", teacher: "Joana Santos", dueDate: "2026-03-22" },
+  { id: 7, subject: "Geografia", class: "4B", teacher: "Jane Smith", dueDate: "2026-03-25" },
+  { id: 8, subject: "Literatura", class: "5A", teacher: "Derek Briggs", dueDate: "2026-03-28" },
+  { id: 9, subject: "Música", class: "1A", teacher: "Jane Smith", dueDate: "2026-04-01" },
+  { id: 10, subject: "Arte", class: "3B", teacher: "Ana Santiago", dueDate: "2026-04-05" },
+];
+
+export const resultsData = [
+  { id: 1, student: "Joãozinho Silva", subject: "Matemática", score: 85, type: "Prova", date: "2026-02-15" },
+  { id: 2, student: "Maria Oliveira", subject: "Inglês", score: 92, type: "Prova", date: "2026-02-15" },
+  { id: 3, student: "Pedro Santos", subject: "Biologia", score: 78, type: "Tarefa", date: "2026-02-18" },
+  { id: 4, student: "Ana Costa", subject: "Física", score: 95, type: "Prova", date: "2026-02-20" },
+  { id: 5, student: "Lucas Ferreira", subject: "História", score: 67, type: "Tarefa", date: "2026-02-22" },
+  { id: 6, student: "Camila Rocha", subject: "Química", score: 88, type: "Prova", date: "2026-02-25" },
+  { id: 7, student: "Gabriel Lima", subject: "Geografia", score: 73, type: "Tarefa", date: "2026-02-28" },
+  { id: 8, student: "Isabela Mendes", subject: "Literatura", score: 91, type: "Prova", date: "2026-03-01" },
+  { id: 9, student: "Rafael Almeida", subject: "Música", score: 86, type: "Tarefa", date: "2026-03-05" },
+  { id: 10, student: "Larissa Souza", subject: "Arte", score: 94, type: "Prova", date: "2026-03-08" },
+];
+
+export const attendanceData = [
+  { id: 1, student: "Joãozinho Silva", date: "2026-02-27", status: "Presente" as const, class: "1B" },
+  { id: 2, student: "Maria Oliveira", date: "2026-02-27", status: "Presente" as const, class: "2A" },
+  { id: 3, student: "Pedro Santos", date: "2026-02-27", status: "Ausente" as const, class: "1B" },
+  { id: 4, student: "Ana Costa", date: "2026-02-27", status: "Presente" as const, class: "3C" },
+  { id: 5, student: "Lucas Ferreira", date: "2026-02-27", status: "Atrasado" as const, class: "2A" },
+  { id: 6, student: "Camila Rocha", date: "2026-02-26", status: "Presente" as const, class: "1B" },
+  { id: 7, student: "Gabriel Lima", date: "2026-02-26", status: "Presente" as const, class: "3C" },
+  { id: 8, student: "Isabela Mendes", date: "2026-02-26", status: "Ausente" as const, class: "2A" },
+  { id: 9, student: "Rafael Almeida", date: "2026-02-26", status: "Presente" as const, class: "1B" },
+  { id: 10, student: "Larissa Souza", date: "2026-02-26", status: "Atrasado" as const, class: "3C" },
+];
+
+export const messagesData = [
+  { id: 1, from: "João Silva", to: "Admin", subject: "Reunião pedagógica", message: "Precisamos agendar a reunião pedagógica do mês.", date: "2026-02-27", read: false },
+  { id: 2, from: "Fernanda Oliveira", to: "João Silva", subject: "Nota da Maria", message: "Gostaria de entender a nota da Maria na última prova.", date: "2026-02-26", read: true },
+  { id: 3, from: "Admin", to: "Todos", subject: "Feriado escolar", message: "A escola estará fechada no dia 03/03.", date: "2026-02-25", read: true },
+  { id: 4, from: "Miguel Geller", to: "Admin", subject: "Material de laboratório", message: "Precisamos repor os materiais do laboratório de biologia.", date: "2026-02-24", read: false },
+  { id: 5, from: "Carlos Silva", to: "Jayme Franco", subject: "Desempenho do filho", message: "Como está o desempenho do Joãozinho em história?", date: "2026-02-23", read: true },
+  { id: 6, from: "Admin", to: "Professores", subject: "Conselho de classe", message: "O conselho de classe será na sexta-feira às 14h.", date: "2026-02-22", read: true },
+  { id: 7, from: "Ana Santiago", to: "Admin", subject: "Projeto de artes", message: "Vou precisar de um espaço extra para o projeto de artes.", date: "2026-02-21", read: false },
+  { id: 8, from: "Patrícia Costa", to: "Admin", subject: "Transporte escolar", message: "Há mudança nos horários do transporte escolar?", date: "2026-02-20", read: true },
+  { id: 9, from: "Derek Briggs", to: "Admin", subject: "Excursão literária", message: "Proposta de excursão à Feira do Livro para turmas 4B e 5A.", date: "2026-02-19", read: false },
+  { id: 10, from: "Admin", to: "Responsáveis", subject: "Calendário 2026", message: "Segue o calendário escolar atualizado para 2026.", date: "2026-02-18", read: true },
+];
+
+export const announcementsData = [
+  { id: 1, title: "Início do semestre", description: "As aulas do segundo semestre começam no dia 10 de março.", date: "2026-02-27", class: "Todas" },
+  { id: 2, title: "Feira de ciências", description: "A feira de ciências acontecerá no dia 20 de março. Inscrições abertas.", date: "2026-02-25", class: "3° ano" },
+  { id: 3, title: "Reunião de pais", description: "Reunião de pais e mestres no dia 15 de março às 19h.", date: "2026-02-24", class: "Todas" },
+  { id: 4, title: "Campeonato esportivo", description: "Campeonato inter-turmas de futsal e vôlei. Inscrições na secretaria.", date: "2026-02-22", class: "4° e 5° ano" },
+  { id: 5, title: "Atualização do sistema", description: "O sistema ficará em manutenção no sábado das 22h às 06h.", date: "2026-02-20", class: "Todas" },
+  { id: 6, title: "Prova de recuperação", description: "As provas de recuperação acontecerão entre 25 e 28 de março.", date: "2026-02-18", class: "Todas" },
+  { id: 7, title: "Excursão ao museu", description: "Excursão ao Museu de História Natural para turmas do 2° ano.", date: "2026-02-15", class: "2° ano" },
+  { id: 8, title: "Uniforme novo", description: "O novo uniforme escolar já está disponível na secretaria.", date: "2026-02-12", class: "Todas" },
+  { id: 9, title: "Vacinação", description: "Campanha de vacinação na escola no dia 05 de março.", date: "2026-02-10", class: "Todas" },
+  { id: 10, title: "Matrículas abertas", description: "Matrículas para o próximo ano já estão abertas.", date: "2026-02-08", class: "Todas" },
+];
+
 export const calendarEvents = [
   // === SEGUNDA-FEIRA – 02/02/2026 ===
   {

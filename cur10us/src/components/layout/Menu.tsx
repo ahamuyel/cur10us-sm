@@ -49,49 +49,49 @@ const menuItems = [
             {
                 icon: Presentation,
                 label: "Turmas",
-                href: "/list/teachers",
+                href: "/list/classes",
                 visible: ["admin", "teacher"]
             },
             {
                 icon: BookOpen,
                 label: "Aulas",
-                href: "/list/teachers",
+                href: "/list/lessons",
                 visible: ["admin", "teacher"]
             },
             {
                 icon: FileText,
                 label: "Provas",
-                href: "/list/teachers",
+                href: "/list/exams",
                 visible: ["admin", "teacher", "student", "parent"]
             },
             {
                 icon: ClipboardList,
                 label: "Tarefas",
-                href: "/list/teachers",
+                href: "/list/assignments",
                 visible: ["admin", "teacher", "student", "parent"]
             },
             {
                 icon: GraduationCap,
                 label: "Resultados",
-                href: "/list/teachers",
+                href: "/list/results",
                 visible: ["admin", "teacher", "student", "parent"]
             },
             {
                 icon: CalendarCheck,
                 label: "Frequência",
-                href: "/list/teachers",
+                href: "/list/attendance",
                 visible: ["admin", "teacher", "student", "parent"]
             },
             {
                 icon: MessageSquare,
                 label: "Mensagens",
-                href: "/list/teachers",
+                href: "/list/messages",
                 visible: ["admin", "teacher", "student", "parent"]
             },
             {
                 icon: Megaphone,
                 label: "Avisos",
-                href: "/list/teachers",
+                href: "/list/announcements",
                 visible: ["admin", "teacher", "student", "parent"]
             },
         ]
@@ -102,13 +102,13 @@ const menuItems = [
             {
                 icon: CircleUser,
                 label: "Perfil",
-                href: "/list/teachers",
+                href: "/profile",
                 visible: ["admin", "teacher", "student", "parent"]
             },
             {
                 icon: Settings,
                 label: "Configurações",
-                href: "/list/teachers",
+                href: "/settings",
                 visible: ["admin", "teacher", "student", "parent"]
             },
             {
