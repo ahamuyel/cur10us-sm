@@ -2,9 +2,11 @@
 
 import { useState } from "react"
 import { Moon, Sun, Bell, Shield, Globe } from "lucide-react"
+import { useTheme } from "@/provider/theme"
 
 const SettingsPage = () => {
-  const [darkMode, setDarkMode] = useState(false)
+  const { theme, toggleTheme } = useTheme()
+  const darkMode = theme === "dark"
   const [notifications, setNotifications] = useState(true)
   const [emailNotifs, setEmailNotifs] = useState(false)
 
@@ -30,7 +32,7 @@ const SettingsPage = () => {
             <p className="text-xs text-zinc-500 dark:text-zinc-400">Alternar entre tema claro e escuro</p>
           </div>
           <button
-            onClick={() => setDarkMode(!darkMode)}
+            onClick={toggleTheme}
             className={`relative w-11 h-6 rounded-full transition-colors ${darkMode ? "bg-indigo-600" : "bg-zinc-300 dark:bg-zinc-600"}`}
           >
             <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${darkMode ? "translate-x-5" : ""}`} />

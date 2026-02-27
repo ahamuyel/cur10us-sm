@@ -42,3 +42,51 @@
 .cur10us-calendar .rbc-today {
   background: #eef2ff;
 }
+
+/* Dark mode */
+.dark .cur10us-calendar .rbc-toolbar {
+  border-bottom-color: #27272a;
+}
+
+.dark .cur10us-calendar .rbc-toolbar button {
+  background: #27272a;
+  color: #fafafa;
+}
+
+.dark .cur10us-calendar .rbc-toolbar button.rbc-active {
+  background: #6366f1;
+  color: white;
+}
+
+.dark .cur10us-calendar .rbc-time-gutter {
+  color: #a1a1aa;
+}
+
+.dark .cur10us-calendar .rbc-today {
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.dark .cur10us-calendar .rbc-off-range-bg {
+  background: #18181b;
+}
+
+.dark .cur10us-calendar .rbc-header,
+.dark .cur10us-calendar .rbc-day-bg + .rbc-day-bg,
+.dark .cur10us-calendar .rbc-month-row + .rbc-month-row,
+.dark .cur10us-calendar .rbc-header + .rbc-header,
+.dark .cur10us-calendar .rbc-time-content > * + * > * {
+  border-color: #27272a;
+}
+
+.dark .cur10us-calendar .rbc-month-view,
+.dark .cur10us-calendar .rbc-time-view {
+  border-color: #27272a;
+}
+
+.dark .cur10us-calendar .rbc-date-cell {
+  color: #d4d4d8;
+}
+
+.dark .cur10us-calendar .rbc-off-range {
+  color: #52525b;
+}
