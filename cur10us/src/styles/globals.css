@@ -42,13 +42,23 @@ body {
   color: var(--color-foreground);
 }
 
+/* Safe area for mobile bottom nav */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 /* Calendar */
 .react-calendar__month-view__weekdays {
-  border-bottom: none !important; /* Remove underline */
+  border-bottom: none !important;
 }
 
 .react-calendar__month-view__weekdays__weekday abbr {
-  text-decoration: none !important; /* Remove as haspas */
+  text-decoration: none !important;
+}
+
+/* Prevent horizontal overflow on mobile */
+html, body {
+  overflow-x: hidden;
 }
 
 

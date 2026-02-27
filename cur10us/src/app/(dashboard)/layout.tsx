@@ -2,29 +2,40 @@ import Link from "next/link";
 import Image from "next/image";
 import Menu from "@/components/layout/Menu"
 import NavBar from "@/components/layout/Navbar"
+import MobileNav from "@/components/layout/MobileNav"
 
-export default function DasboardLayout({
+export default function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <div className="h-screen flex">
-      {/* {children} */}
-      {/* LEFT */}
-      <div className="w-1/6 md:w-[8%]  lg:w-[18%] xl:w-[14%] p-4 bg-white">
-        <Link href="/" className="flex items-center justify-content lg:justify-start gap-2">
-          <Image src="/logo.png" width={32} height={32} alt="logo" />
-          <span className="hidden lg:block font-bold">cur10usx</span>
-        </Link>
-        <Menu />
-      </div>
-      {/* RIGHT */}
-      <div className="w-[89%] md:w-[92%] lg:w-[94%] xl:w-[92%] bg-[#f7f8fa] overflow-scroll">
-        {/* Search bar */}
+    <div className="h-screen flex flex-col md:flex-row">
+      {/* SIDEBAR — hidden on mobile, visible md+ */}
+      <aside className="hidden md:flex md:flex-col md:w-[72px] lg:w-[220px] xl:w-[200px] shrink-0 bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800">
+        <div className="p-4">
+          <Link href="/" className="flex items-center justify-center lg:justify-start gap-2">
+            <Image src="/logo.png" width={32} height={32} alt="logo" />
+            <span className="hidden lg:block font-bold text-zinc-900 dark:text-zinc-100">
+              cur10us<span className="text-indigo-600 dark:text-indigo-400">x</span>
+            </span>
+          </Link>
+        </div>
+        <div className="flex-1 overflow-y-auto px-2 pb-4">
+          <Menu />
+        </div>
+      </aside>
+
+      {/* MAIN CONTENT */}
+      <div className="flex-1 flex flex-col min-w-0 bg-[#f7f8fa] dark:bg-zinc-950">
         <NavBar />
-        {children}
+        <main className="flex-1 overflow-y-auto pb-20 md:pb-0">
+          {children}
+        </main>
       </div>
+
+      {/* MOBILE BOTTOM NAV — visible on mobile only */}
+      <MobileNav />
     </div>
   );
 }

@@ -19,9 +19,8 @@ moment.locale("pt-br");
 
 const localizer = momentLocalizer(moment);
 
-/* ---------- Evento compatível com a lib ---------- */
 type CalendarEvent = {
-  title?: string; // ✅ agora compatível
+  title?: string;
   start: Date;
   end: Date;
   type?: string;
@@ -29,7 +28,6 @@ type CalendarEvent = {
   room?: string;
 };
 
-/* ---------- Cores ---------- */
 const EVENT_COLORS: Record<string, string> = {
   math: "#6366f1",
   physics: "#22c55e",
@@ -37,13 +35,11 @@ const EVENT_COLORS: Record<string, string> = {
   default: "#64748b",
 };
 
-/* ---------- Views ---------- */
 const views = [
   { key: Views.WORK_WEEK, label: "Semana" },
   { key: Views.DAY, label: "Dia" },
 ];
 
-/* ---------- Toolbar tipado corretamente ---------- */
 const CalendarHeader: React.FC<ToolbarProps<CalendarEvent, object>> = ({
   date,
   view,
@@ -51,47 +47,47 @@ const CalendarHeader: React.FC<ToolbarProps<CalendarEvent, object>> = ({
   onNavigate,
 }) => {
   return (
-    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-4 px-2">
-      {/* Navegação */}
-      <div className="flex items-center gap-3">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-3 sm:mb-4">
+      {/* Navigation */}
+      <div className="flex items-center gap-2">
         <button
           onClick={() => onNavigate("PREV")}
-          className="p-2 rounded-full hover:bg-zinc-100"
+          className="p-1.5 sm:p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
         >
-          <ChevronLeft size={18} />
+          <ChevronLeft size={16} className="sm:w-[18px] sm:h-[18px]" />
         </button>
 
-        <h2 className="text-lg font-semibold capitalize">
+        <h2 className="text-sm sm:text-lg font-semibold capitalize text-zinc-900 dark:text-zinc-100">
           {moment(date).format("MMMM YYYY")}
         </h2>
 
         <button
           onClick={() => onNavigate("NEXT")}
-          className="p-2 rounded-full hover:bg-zinc-100"
+          className="p-1.5 sm:p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
         >
-          <ChevronRight size={18} />
+          <ChevronRight size={16} className="sm:w-[18px] sm:h-[18px]" />
         </button>
       </div>
 
-      {/* Controles */}
+      {/* Controls */}
       <div className="flex items-center gap-2">
         <button
           onClick={() => onNavigate("TODAY")}
-          className="px-3 py-1.5 text-sm rounded-lg border hover:bg-zinc-50"
+          className="px-2.5 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition text-zinc-700 dark:text-zinc-300"
         >
           Hoje
         </button>
 
-        <div className="flex bg-zinc-100 rounded-xl p-1">
+        <div className="flex bg-zinc-100 dark:bg-zinc-800 rounded-xl p-0.5 sm:p-1">
           {views.map((v) => (
             <button
               key={v.key}
               onClick={() => onView(v.key)}
-              className={`px-3 py-1.5 text-sm rounded-lg transition
+              className={`px-2.5 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm rounded-lg transition
                 ${
                   view === v.key
-                    ? "bg-white shadow text-indigo-600 font-medium"
-                    : "text-zinc-500"
+                    ? "bg-white dark:bg-zinc-700 shadow text-indigo-600 dark:text-indigo-400 font-medium"
+                    : "text-zinc-500 dark:text-zinc-400"
                 }`}
             >
               {v.label}
@@ -103,36 +99,46 @@ const CalendarHeader: React.FC<ToolbarProps<CalendarEvent, object>> = ({
   );
 };
 
-/* ---------- Componente ---------- */
 const BigCalendar = () => {
   const [view, setView] = useState<View>(Views.WORK_WEEK);
-  const [selectedEvent, setSelectedEvent] =
-    useState<CalendarEvent | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [calendarHeight, setCalendarHeight] = useState(500);
 
   useEffect(() => {
-    if (window.innerWidth < 768) {
-      setView(Views.DAY);
-    }
+    const updateSize = () => {
+      const width = window.innerWidth;
+      if (width < 640) {
+        setView(Views.DAY);
+        setCalendarHeight(400);
+      } else if (width < 1024) {
+        setCalendarHeight(500);
+      } else {
+        setCalendarHeight(600);
+      }
+    };
+
+    updateSize();
+    window.addEventListener("resize", updateSize);
+    return () => window.removeEventListener("resize", updateSize);
   }, []);
 
   const eventStyleGetter = (event: CalendarEvent) => {
     const bg = EVENT_COLORS[event.type || "default"];
-
     return {
       style: {
         backgroundColor: bg,
-        borderRadius: "10px",
+        borderRadius: "8px",
         border: "none",
         color: "#fff",
-        fontSize: "0.75rem",
-        padding: "4px 6px",
+        fontSize: "0.7rem",
+        padding: "2px 4px",
       },
     };
   };
 
   return (
     <>
-      <div className="bg-white rounded-2xl border border-gray-100 p-4">
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-2 sm:p-4 overflow-hidden">
         <Calendar<CalendarEvent>
           localizer={localizer}
           events={calendarEvents as CalendarEvent[]}
@@ -146,9 +152,7 @@ const BigCalendar = () => {
           formats={{
             timeGutterFormat: "HH:mm",
             eventTimeRangeFormat: ({ start, end }) =>
-              `${moment(start).format("HH:mm")} – ${moment(end).format(
-                "HH:mm"
-              )}`,
+              `${moment(start).format("HH:mm")} – ${moment(end).format("HH:mm")}`,
           }}
           dayLayoutAlgorithm="no-overlap"
           scrollToTime={new Date(2025, 0, 1, 7, 30)}
@@ -156,25 +160,31 @@ const BigCalendar = () => {
           eventPropGetter={eventStyleGetter}
           onSelectEvent={(event) => setSelectedEvent(event)}
           components={{ toolbar: CalendarHeader }}
-          style={{ height: 600 }}
+          style={{ height: calendarHeight }}
         />
       </div>
 
       {/* Modal */}
       {selectedEvent && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 w-[90%] max-w-md">
-            <h2 className="text-lg font-semibold">
+        <div
+          className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 p-4"
+          onClick={() => setSelectedEvent(null)}
+        >
+          <div
+            className="bg-white dark:bg-zinc-900 rounded-2xl p-5 sm:p-6 w-full max-w-md shadow-xl border border-zinc-200 dark:border-zinc-800"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
               {selectedEvent.title}
             </h2>
 
-            <p className="text-sm text-zinc-500 mb-4">
-              {selectedEvent.teacher} • {selectedEvent.room}
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+              {selectedEvent.teacher} {selectedEvent.room ? `• ${selectedEvent.room}` : ""}
             </p>
 
             <button
               onClick={() => setSelectedEvent(null)}
-              className="mt-6 w-full rounded-xl bg-indigo-600 text-white py-2"
+              className="mt-6 w-full rounded-xl bg-indigo-600 text-white py-2.5 font-medium hover:bg-indigo-700 transition active:scale-[0.98]"
             >
               Fechar
             </button>

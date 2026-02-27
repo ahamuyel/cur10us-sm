@@ -5,39 +5,38 @@ import Table from "@/components/ui/Table"
 import TableSearch from "@/components/ui/TableSearch"
 import Image from "next/image"
 import Link from "next/link"
-import { teachersData } from "@/lib/data"
+import { studentsData } from "@/lib/data"
 import { Eye, SlidersHorizontal, ArrowUpDown, UserPlus } from "lucide-react"
 
-type Teacher = {
-  id: number;
-  teacherId: string;
-  name: string;
-  email?: string;
-  foto: string;
-  phone: string;
-  subjects: string[];
-  classes: string[];
-  address: string;
+type Student = {
+  id: number
+  studentId: string
+  name: string
+  email?: string
+  foto: string
+  phone: string
+  serie: number
+  turma: string
+  address: string
 }
 
 const columns = [
-  { header: "Professor", accessor: "info" },
-  { header: "ID", accessor: "teacher-id", className: "hidden md:table-cell" },
-  { header: "Disciplinas", accessor: "subjects" },
-  { header: "Turmas", accessor: "classes", className: "hidden lg:table-cell" },
+  { header: "Aluno", accessor: "info" },
+  { header: "ID", accessor: "student-id", className: "hidden md:table-cell" },
+  { header: "Série", accessor: "serie" },
+  { header: "Turma", accessor: "turma", className: "hidden lg:table-cell" },
   { header: "Telefone", accessor: "phone", className: "hidden xl:table-cell" },
   { header: "Ações", accessor: "actions" },
 ]
 
-const renderRow = (item: Teacher) => (
+const renderRow = (item: Student) => (
   <tr key={item.id} className="border-b border-zinc-100 dark:border-zinc-800/50 text-sm hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors">
-    {/* AVATAR + NAME */}
     <td className="py-2.5 sm:py-3 px-1.5 sm:px-2">
       <div className="flex items-center gap-2">
         <div className="relative w-7 h-7 sm:w-8 sm:h-8 shrink-0">
           <Image
             src={item.foto}
-            alt={item.name || "Professor"}
+            alt={item.name || "Aluno"}
             fill
             className="rounded-full object-cover"
           />
@@ -50,36 +49,25 @@ const renderRow = (item: Teacher) => (
       </div>
     </td>
 
-    {/* ID */}
     <td className="hidden md:table-cell text-zinc-600 dark:text-zinc-400 font-mono text-xs">
-      #{item.teacherId}
+      #{item.studentId}
     </td>
 
-    {/* SUBJECTS */}
     <td className="py-2.5 sm:py-3 px-1.5 sm:px-2">
-      <div className="flex flex-wrap gap-0.5 sm:gap-1">
-        {item.subjects?.slice(0, 2).map((s, i) => (
-          <span key={i} className="px-1 sm:px-1.5 py-0.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded text-[8px] sm:text-[10px] font-bold uppercase whitespace-nowrap">
-            {s}
-          </span>
-        ))}
-        {item.subjects?.length > 2 && (
-          <span className="text-[8px] sm:text-[9px] text-zinc-400">+{item.subjects.length - 2}</span>
-        )}
-      </div>
+      <span className="px-1.5 sm:px-2 py-0.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded text-[9px] sm:text-[10px] font-bold">
+        {item.serie}° ano
+      </span>
     </td>
 
-    {/* CLASSES & PHONE */}
     <td className="hidden lg:table-cell text-zinc-600 dark:text-zinc-400 text-xs sm:text-sm">
-      {item.classes?.join(", ")}
+      {item.turma}
     </td>
     <td className="hidden xl:table-cell text-zinc-600 dark:text-zinc-400 text-xs sm:text-sm">
       {item.phone}
     </td>
 
-    {/* ACTIONS */}
     <td className="px-1.5 sm:px-2 text-right">
-      <Link href={`/list/teachers/${item.id}`}>
+      <Link href={`/list/students/${item.id}`}>
         <button className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-indigo-600 hover:text-white transition-all active:scale-90">
           <Eye size={13} />
         </button>
@@ -88,14 +76,14 @@ const renderRow = (item: Teacher) => (
   </tr>
 )
 
-const TeacherListPage = () => {
+const StudentListPage = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 5
 
-  const totalItems = teachersData.length
+  const totalItems = studentsData.length
   const totalPages = Math.ceil(totalItems / itemsPerPage)
 
-  const paginatedData = teachersData.slice(
+  const paginatedData = studentsData.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   )
@@ -106,8 +94,8 @@ const TeacherListPage = () => {
       {/* HEADER */}
       <div className="flex flex-col gap-3 sm:gap-4 lg:gap-0 lg:flex-row lg:items-center justify-between mb-4 sm:mb-6">
         <div>
-          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-zinc-900 dark:text-zinc-100">Professores</h1>
-          <p className="text-[11px] sm:text-xs md:text-sm text-zinc-500 dark:text-zinc-400">Gerencie sua equipe acadêmica</p>
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-zinc-900 dark:text-zinc-100">Alunos</h1>
+          <p className="text-[11px] sm:text-xs md:text-sm text-zinc-500 dark:text-zinc-400">Gerencie os alunos matriculados</p>
         </div>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
@@ -151,4 +139,4 @@ const TeacherListPage = () => {
   )
 }
 
-export default TeacherListPage
+export default StudentListPage

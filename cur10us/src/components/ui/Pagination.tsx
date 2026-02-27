@@ -1,3 +1,5 @@
+import { ChevronLeft, ChevronRight } from "lucide-react"
+
 type PaginationProps = {
   currentPage: number
   totalPages: number
@@ -9,25 +11,42 @@ const Pagination = ({
   totalPages,
   onPageChange,
 }: PaginationProps) => {
+  // Show limited page numbers on mobile
+  const getVisiblePages = () => {
+    const pages: number[] = []
+    const maxVisible = 5
+
+    if (totalPages <= maxVisible) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i)
+    } else {
+      const start = Math.max(1, currentPage - 1)
+      const end = Math.min(totalPages, start + maxVisible - 1)
+      for (let i = start; i <= end; i++) pages.push(i)
+    }
+
+    return pages
+  }
+
   return (
-    <div className="p-4 flex items-center justify-between text-gray-500">
+    <div className="flex items-center justify-between gap-2 py-2 sm:py-4">
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="py-2 px-4 rounded-md bg-slate-200 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+        className="flex items-center gap-1 py-1.5 px-2.5 sm:py-2 sm:px-3 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-xs sm:text-sm font-medium text-zinc-700 dark:text-zinc-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-zinc-200 dark:hover:bg-zinc-700 transition active:scale-95"
       >
-        Prev
+        <ChevronLeft size={14} />
+        <span className="hidden sm:inline">Anterior</span>
       </button>
 
-      <div className="flex items-center gap-2 text-sm">
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+      <div className="flex items-center gap-1">
+        {getVisiblePages().map((page) => (
           <button
             key={page}
             onClick={() => onPageChange(page)}
-            className={`px-2 rounded-sm ${
+            className={`w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium transition ${
               page === currentPage
-                ? "bg-indigo-600 text-white"
-                : "bg-zinc-100"
+                ? "bg-indigo-600 text-white shadow-sm"
+                : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
             }`}
           >
             {page}
@@ -38,11 +57,13 @@ const Pagination = ({
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="py-2 px-4 rounded-md bg-slate-200 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+        className="flex items-center gap-1 py-1.5 px-2.5 sm:py-2 sm:px-3 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-xs sm:text-sm font-medium text-zinc-700 dark:text-zinc-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-zinc-200 dark:hover:bg-zinc-700 transition active:scale-95"
       >
-        Next
+        <span className="hidden sm:inline">Próximo</span>
+        <ChevronRight size={14} />
       </button>
     </div>
   )
 }
+
 export default Pagination
