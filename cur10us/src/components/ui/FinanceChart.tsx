@@ -1,62 +1,81 @@
 "use client"
 
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts'
-import { CreditCard } from "lucide-react" // ícone substituto para finanças
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts'
+import { CreditCard } from "lucide-react"
 
 const data = [
   { name: 'Jan', income: 4000, expense: 2400 },
-  { name: 'Feb', income: 3000, expense: 1398 },
+  { name: 'Fev', income: 3000, expense: 1398 },
   { name: 'Mar', income: 2000, expense: 9800 },
-  { name: 'Apr', income: 2780, expense: 3908 },
-  { name: 'May', income: 2780, expense: 3908 },
+  { name: 'Abr', income: 2780, expense: 3908 },
+  { name: 'Mai', income: 2780, expense: 3908 },
   { name: 'Jun', income: 1890, expense: 4800 },
   { name: 'Jul', income: 2390, expense: 3800 },
-  { name: 'Aug', income: 3490, expense: 4300 },
-  { name: 'Sep', income: 2780, expense: 3908 },
-  { name: 'Oct', income: 1890, expense: 4800 },
+  { name: 'Ago', income: 3490, expense: 4300 },
+  { name: 'Set', income: 2780, expense: 3908 },
+  { name: 'Out', income: 1890, expense: 4800 },
   { name: 'Nov', income: 2390, expense: 3800 },
-  { name: 'Dec', income: 3490, expense: 4300 },
+  { name: 'Dez', income: 3490, expense: 4300 },
 ]
 
 const FinanceChart = () => {
   return (
-    <div className="bg-white dark:bg-zinc-900 rounded-xl p-4 h-full shadow-sm flex flex-col">
-      
+    <div className="bg-white dark:bg-zinc-900 rounded-2xl p-3 sm:p-4 shadow-sm flex flex-col border border-zinc-200 dark:border-zinc-800">
+
       {/* Header */}
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Finance</h1>
-        <CreditCard className="text-zinc-500 dark:text-zinc-400" size={20} />
+      <div className="flex justify-between items-center mb-2 sm:mb-4">
+        <h2 className="text-sm sm:text-base font-semibold text-zinc-900 dark:text-zinc-100">Finanças</h2>
+        <CreditCard className="text-zinc-400" size={18} />
       </div>
 
       {/* Chart */}
-      <div className="flex-1 w-full min-h-[220px]">
+      <div className="w-full min-h-[200px] sm:min-h-[260px]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={data}
-            margin={{ top: 5, right: 20, left: 0, bottom: 0 }}
+            margin={{ top: 5, right: 10, left: -15, bottom: 0 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-            <XAxis dataKey="name" axisLine={false} tick={{ fill: "#9ca3af" }} tickLine={false} tickMargin={10} />
-            <YAxis axisLine={false} tick={{ fill: "#9ca3af" }} tickLine={false} tickMargin={10} />
-            {/* Lines */}
-            <Line type="monotone" dataKey="income" stroke="#4f46e5" strokeWidth={3} />
-            <Line type="monotone" dataKey="expense" stroke="#facc15" strokeWidth={3} />
+            <XAxis
+              dataKey="name"
+              axisLine={false}
+              tick={{ fill: "#9ca3af", fontSize: 10 }}
+              tickLine={false}
+              tickMargin={8}
+              interval="preserveStartEnd"
+            />
+            <YAxis
+              axisLine={false}
+              tick={{ fill: "#9ca3af", fontSize: 10 }}
+              tickLine={false}
+              tickMargin={8}
+              width={40}
+            />
+            <Tooltip
+              contentStyle={{
+                background: "#fff",
+                border: "1px solid #e5e7eb",
+                borderRadius: "12px",
+                fontSize: "12px",
+              }}
+            />
+            <Line type="monotone" dataKey="income" stroke="#4f46e5" strokeWidth={2.5} dot={false} name="Receita" />
+            <Line type="monotone" dataKey="expense" stroke="#facc15" strokeWidth={2.5} dot={false} name="Despesa" />
           </LineChart>
         </ResponsiveContainer>
       </div>
 
-      {/* Fixed legend */}
-      <div className="flex justify-center gap-6 mt-4 text-sm text-zinc-700 dark:text-zinc-300">
-        <div className="flex items-center gap-2">
-          <span className="w-4 h-4 rounded-full bg-indigo-600" />
-          Income
+      {/* Legend */}
+      <div className="flex justify-center gap-4 sm:gap-6 mt-2 sm:mt-4 text-xs sm:text-sm text-zinc-700 dark:text-zinc-300">
+        <div className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-full bg-indigo-600" />
+          <span>Receita</span>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="w-4 h-4 rounded-full bg-amber-400" />
-          Expense
+        <div className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-full bg-amber-400" />
+          <span>Despesa</span>
         </div>
       </div>
-
     </div>
   )
 }
