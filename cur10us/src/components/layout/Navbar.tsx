@@ -8,6 +8,7 @@ import {
   X,
 } from "lucide-react"
 import Image from "next/image"
+import ThemeToggle from "@/components/ui/ThemeToggle"
 
 const NavBar = () => {
   const [searchOpen, setSearchOpen] = useState(false)
@@ -67,6 +68,9 @@ const NavBar = () => {
             1
           </span>
         </button>
+
+        {/* Theme Toggle */}
+        <ThemeToggle />
 
         {/* DIVIDER */}
         <div className="hidden sm:block w-px h-6 bg-zinc-200 dark:bg-zinc-700" />
