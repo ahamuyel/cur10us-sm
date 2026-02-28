@@ -3,6 +3,7 @@ import Menu from "@/components/layout/Menu"
 import NavBar from "@/components/layout/Navbar"
 import MobileNav from "@/components/layout/MobileNav"
 import PendingAccountGate from "@/components/layout/PendingAccountGate"
+import MustChangePasswordGate from "@/components/layout/MustChangePasswordGate"
 
 export default function DashboardLayout({
   children,
@@ -11,6 +12,7 @@ export default function DashboardLayout({
 }>) {
   return (
     <PendingAccountGate>
+    <MustChangePasswordGate>
       <div className="h-screen flex flex-col md:flex-row">
         {/* SIDEBAR — hidden on mobile, visible md+ */}
         <aside className="hidden md:flex md:flex-col md:w-[72px] lg:w-[220px] xl:w-[200px] shrink-0 bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800">
@@ -37,6 +39,7 @@ export default function DashboardLayout({
         {/* MOBILE BOTTOM NAV — visible on mobile only */}
         <MobileNav />
       </div>
+    </MustChangePasswordGate>
     </PendingAccountGate>
   );
 }

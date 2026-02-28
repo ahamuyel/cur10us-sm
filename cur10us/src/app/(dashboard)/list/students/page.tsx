@@ -9,7 +9,7 @@ import DeleteConfirmModal from "@/components/ui/DeleteConfirmModal"
 import StudentForm from "@/components/forms/StudentForm"
 import { useEntityList } from "@/hooks/useEntityList"
 import Image from "next/image"
-import { Pencil, Trash2, SlidersHorizontal, ArrowUpDown, UserPlus, Loader2 } from "lucide-react"
+import { Pencil, Trash2, SlidersHorizontal, ArrowUpDown, UserPlus, UserX, Loader2 } from "lucide-react"
 
 type Student = {
   id: string
@@ -20,6 +20,8 @@ type Student = {
   classId?: string | null
   class?: { id: string; name: string; grade: number } | null
   address: string
+  hasAccount?: boolean
+  userActive?: boolean | null
 }
 
 const columns = [
@@ -38,6 +40,16 @@ const StudentListPage = () => {
   const [createOpen, setCreateOpen] = useState(false)
   const [editItem, setEditItem] = useState<Student | null>(null)
   const [deleteItem, setDeleteItem] = useState<Student | null>(null)
+  const [deactivateItem, setDeactivateItem] = useState<Student | null>(null)
+
+  const handleDeactivate = async () => {
+    if (!deactivateItem) return
+    const res = await fetch(`/api/students/${deactivateItem.id}/deactivate`, { method: "POST" })
+    if (res.ok) {
+      setDeactivateItem(null)
+      refetch()
+    }
+  }
 
   const handleDelete = async () => {
     if (!deleteItem) return
@@ -89,6 +101,18 @@ const StudentListPage = () => {
           >
             <Pencil size={13} />
           </button>
+          {isAdmin && item.hasAccount && item.userActive !== false && (
+            <button
+              onClick={() => setDeactivateItem(item)}
+              title="Desactivar conta"
+              className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-amber-600 hover:text-white transition-all active:scale-90"
+            >
+              <UserX size={13} />
+            </button>
+          )}
+          {isAdmin && item.hasAccount && item.userActive === false && (
+            <span className="px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-400 rounded text-[9px] font-medium">Inactivo</span>
+          )}
           {isAdmin && (
             <button
               onClick={() => setDeleteItem(item)}
@@ -162,6 +186,16 @@ const StudentListPage = () => {
       </FormModal>
 
       <DeleteConfirmModal open={!!deleteItem} onClose={() => setDeleteItem(null)} onConfirm={handleDelete} itemName={deleteItem?.name || ""} />
+
+      <DeleteConfirmModal
+        open={!!deactivateItem}
+        onClose={() => setDeactivateItem(null)}
+        onConfirm={handleDeactivate}
+        itemName={deactivateItem?.name || ""}
+        title="Desactivar conta"
+        message={`Tem a certeza que deseja desactivar a conta de "${deactivateItem?.name}"? O utilizador não conseguirá aceder à plataforma.`}
+        confirmLabel="Desactivar"
+      />
     </div>
   )
 }

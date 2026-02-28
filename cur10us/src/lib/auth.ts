@@ -66,6 +66,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             schoolId: user.schoolId,
             schoolSlug: user.school?.slug ?? null,
             isActive: user.isActive,
+            mustChangePassword: user.mustChangePassword,
             profileComplete: user.profileComplete,
           }
         } catch (error) {
@@ -126,6 +127,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.schoolId = (user as { schoolId?: string | null }).schoolId ?? null
         token.schoolSlug = (user as { schoolSlug?: string | null }).schoolSlug ?? null
         token.isActive = (user as { isActive: boolean }).isActive
+        token.mustChangePassword = (user as { mustChangePassword?: boolean }).mustChangePassword ?? false
         token.profileComplete = (user as { profileComplete: boolean }).profileComplete ?? true
       }
 
@@ -142,6 +144,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           token.schoolId = dbUser.schoolId ?? null
           token.schoolSlug = dbUser.school?.slug ?? null
           token.isActive = dbUser.isActive
+          token.mustChangePassword = dbUser.mustChangePassword
           token.profileComplete = dbUser.profileComplete
           token.adminLevel = dbUser.adminPermission?.level ?? null
           token.permissions = extractPermissions(dbUser.adminPermission as unknown as Record<string, unknown>)
@@ -157,6 +160,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.schoolId = (token.schoolId as string) ?? null
         session.user.schoolSlug = (token.schoolSlug as string) ?? null
         session.user.isActive = token.isActive as boolean
+        session.user.mustChangePassword = (token.mustChangePassword as boolean) ?? false
         session.user.profileComplete = token.profileComplete as boolean
         session.user.adminLevel = (token.adminLevel as string) ?? null
         session.user.permissions = (token.permissions as string[]) ?? []

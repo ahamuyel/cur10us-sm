@@ -12,6 +12,7 @@ export const createTeacherSchema = z.object({
   ...baseFields,
   subjectIds: z.array(z.string()).optional(),
   classIds: z.array(z.string()).optional(),
+  createAccount: z.boolean().optional(),
 })
 
 export const updateTeacherSchema = createTeacherSchema.partial()
@@ -19,6 +20,7 @@ export const updateTeacherSchema = createTeacherSchema.partial()
 export const createStudentSchema = z.object({
   ...baseFields,
   classId: z.string().optional().nullable(),
+  createAccount: z.boolean().optional(),
 })
 
 export const updateStudentSchema = createStudentSchema.partial()
@@ -26,6 +28,7 @@ export const updateStudentSchema = createStudentSchema.partial()
 export const createParentSchema = z.object({
   ...baseFields,
   studentIds: z.array(z.string()).optional(),
+  createAccount: z.boolean().optional(),
 })
 
 export const updateParentSchema = createParentSchema.partial()

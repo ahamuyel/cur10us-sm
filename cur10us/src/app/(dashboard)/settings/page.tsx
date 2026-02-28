@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { Moon, Sun, Bell, Shield, Globe } from "lucide-react"
 import { useTheme } from "@/provider/theme"
 
@@ -101,9 +102,9 @@ const SettingsPage = () => {
             <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Alterar senha</p>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">Atualize sua senha de acesso</p>
           </div>
-          <button className="px-4 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-xs font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition">
+          <Link href="/change-password" className="px-4 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-xs font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition">
             Alterar
-          </button>
+          </Link>
         </div>
         <div className="flex items-center justify-between py-3">
           <div>

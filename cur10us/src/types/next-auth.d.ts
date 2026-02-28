@@ -11,6 +11,7 @@ declare module "next-auth" {
       schoolId?: string | null
       schoolSlug?: string | null
       isActive: boolean
+      mustChangePassword?: boolean
       profileComplete: boolean
       adminLevel?: string | null
       permissions?: string[]
@@ -22,6 +23,7 @@ declare module "next-auth" {
     schoolId?: string | null
     schoolSlug?: string | null
     isActive: boolean
+    mustChangePassword?: boolean
     profileComplete: boolean
     adminLevel?: string | null
     permissions?: string[]
@@ -35,6 +37,7 @@ declare module "next-auth/jwt" {
     schoolId?: string | null
     schoolSlug?: string | null
     isActive: boolean
+    mustChangePassword?: boolean
     profileComplete: boolean
     adminLevel?: string | null
     permissions?: string[]

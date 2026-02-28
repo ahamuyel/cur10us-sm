@@ -39,3 +39,11 @@ export const resetPasswordSchema = z.object({
     .min(8, "Senha deve ter pelo menos 8 caracteres")
     .max(100, "Senha muito longa"),
 })
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, "Palavra-passe actual é obrigatória"),
+  newPassword: z
+    .string()
+    .min(8, "Nova palavra-passe deve ter pelo menos 8 caracteres")
+    .max(100, "Palavra-passe muito longa"),
+})
