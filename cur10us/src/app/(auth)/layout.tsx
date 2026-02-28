@@ -24,6 +24,7 @@ export default function AuthLayout({
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-indigo-400/20 dark:bg-indigo-600/10 blur-3xl" />
           <div className="absolute bottom-[-20%] right-[-10%] w-[400px] h-[400px] rounded-full bg-violet-400/20 dark:bg-violet-600/10 blur-3xl" />
+          <div className="absolute top-[30%] right-[20%] w-[350px] h-[350px] rounded-full bg-fuchsia-400/15 dark:bg-fuchsia-600/8 blur-3xl" />
         </div>
 
         {children}

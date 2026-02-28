@@ -5,8 +5,8 @@ import { Users } from "lucide-react"
 
 const data = [
   { name: 'Total', count: 119, fill: '#4f46e5' },
-  { name: 'Meninas', count: 54, fill: '#facc15' },
-  { name: 'Meninos', count: 65, fill: '#22d3ee' },
+  { name: 'Meninas', count: 54, fill: '#F59E0B' },
+  { name: 'Meninos', count: 65, fill: '#06B6D4' },
 ]
 
 const CountChart = () => {
@@ -42,12 +42,12 @@ const CountChart = () => {
       {/* Legend */}
       <div className="flex justify-around mt-2 sm:mt-4 text-xs sm:text-sm text-zinc-700 dark:text-zinc-300">
         <div className="flex flex-col items-center gap-0.5">
-          <span className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-cyan-400" />
+          <span className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-cyan-500" />
           <span className="font-bold text-xs">65</span>
           <span className="text-[10px] sm:text-xs text-zinc-500">Meninos</span>
         </div>
         <div className="flex flex-col items-center gap-0.5">
-          <span className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-amber-400" />
+          <span className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-amber-500" />
           <span className="font-bold text-xs">54</span>
           <span className="text-[10px] sm:text-xs text-zinc-500">Meninas</span>
         </div>

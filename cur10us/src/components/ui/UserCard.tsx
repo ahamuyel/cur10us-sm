@@ -17,7 +17,7 @@ const typeConfig: Record<
     count: "84",
     trend: "+3%",
     icon: UserRound,
-    color: "text-emerald-600 dark:text-emerald-400",
+    color: "text-emerald-500 dark:text-emerald-400",
     bg: "bg-emerald-50 dark:bg-emerald-950/50",
   },
   parents: {
@@ -25,7 +25,7 @@ const typeConfig: Record<
     count: "932",
     trend: "+8%",
     icon: UserCheck,
-    color: "text-amber-600 dark:text-amber-400",
+    color: "text-amber-500 dark:text-amber-400",
     bg: "bg-amber-50 dark:bg-amber-950/50",
   },
   staffs: {
