@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
-const authPages = ["/signin", "/signup", "/forgot-password", "/reset-password"]
+const authPages = ["/signin", "/signup", "/forgot-password", "/reset-password", "/registar-escola"]
 const publicPaths = ["/", "/aplicacao", "/aplicacao/status", "/complete-profile"]
 
 export function middleware(req: NextRequest) {

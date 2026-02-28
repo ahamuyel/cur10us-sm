@@ -68,8 +68,12 @@ export default function SchoolDetailPage() {
         return
       }
       const data = await res.json()
-      if (action === "activate" && data.adminCreated) {
-        alert(`Escola activada! Conta de administrador criada automaticamente.\n\nE-mail: ${data.adminEmail}\nUma palavra-passe temporária foi enviada para o e-mail da escola.`)
+      if (action === "activate") {
+        if (data.adminCreated) {
+          alert(`Escola activada! Conta de administrador criada automaticamente.\n\nE-mail: ${data.adminEmail}\nUma palavra-passe temporária foi enviada para o e-mail da escola.`)
+        } else if (data.existingAdmin) {
+          alert(`Escola activada! O administrador existente (${data.adminEmail}) foi activado e notificado por e-mail.`)
+        }
       }
       setShowReject(false)
       setRejectReason("")
