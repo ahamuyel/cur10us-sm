@@ -29,8 +29,8 @@ const navItems = [
 
 const moreItems = [
   { icon: Inbox, label: "Solicitações", href: "/list/applications" },
-  { icon: UserCheck, label: "Responsáveis", href: "/list/parents" },
-  { icon: CalendarCheck, label: "Frequência", href: "/list/attendance" },
+  { icon: UserCheck, label: "Encarregados", href: "/list/parents" },
+  { icon: CalendarCheck, label: "Assiduidade", href: "/list/attendance" },
   { icon: MessageSquare, label: "Mensagens", href: "/list/messages" },
   { icon: Megaphone, label: "Avisos", href: "/list/announcements" },
   { icon: Settings, label: "Configurações", href: "/settings" },

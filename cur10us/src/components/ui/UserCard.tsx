@@ -23,7 +23,7 @@ const typeConfig: Record<
     trendColor: "text-emerald-100",
   },
   parents: {
-    label: "Responsáveis",
+    label: "Encarregados",
     count: "932",
     trend: "+8%",
     icon: UserCheck,

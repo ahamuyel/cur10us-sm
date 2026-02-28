@@ -41,7 +41,7 @@ export default function AdminDashboard() {
     { icon: Users, label: "Usuários", value: stats?.totalUsers ?? 0, color: "text-cyan-600 bg-cyan-100 dark:bg-cyan-950 dark:text-cyan-400" },
     { icon: GraduationCap, label: "Alunos", value: stats?.totalStudents ?? 0, color: "text-emerald-600 bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-400" },
     { icon: Users, label: "Professores", value: stats?.totalTeachers ?? 0, color: "text-violet-600 bg-violet-100 dark:bg-violet-950 dark:text-violet-400" },
-    { icon: Users, label: "Responsáveis", value: stats?.totalParents ?? 0, color: "text-rose-600 bg-rose-100 dark:bg-rose-950 dark:text-rose-400" },
+    { icon: Users, label: "Encarregados", value: stats?.totalParents ?? 0, color: "text-rose-600 bg-rose-100 dark:bg-rose-950 dark:text-rose-400" },
     { icon: FileText, label: "Solicitações", value: stats?.totalApplications ?? 0, color: "text-blue-600 bg-blue-100 dark:bg-blue-950 dark:text-blue-400" },
     { icon: FileText, label: "Solicitações pendentes", value: stats?.pendingApplications ?? 0, color: "text-amber-600 bg-amber-100 dark:bg-amber-950 dark:text-amber-400" },
   ]

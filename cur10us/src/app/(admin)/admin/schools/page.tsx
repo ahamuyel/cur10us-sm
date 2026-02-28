@@ -11,7 +11,7 @@ interface School {
   slug: string
   email: string
   city: string
-  state: string
+  provincia: string
   status: string
   _count: { teachers: number; students: number; parents: number }
 }
@@ -144,7 +144,7 @@ export default function SchoolsPage() {
                   <th className="text-left px-4 py-3 text-zinc-500 font-medium">Status</th>
                   <th className="text-right px-4 py-3 text-zinc-500 font-medium">Professores</th>
                   <th className="text-right px-4 py-3 text-zinc-500 font-medium">Alunos</th>
-                  <th className="text-right px-4 py-3 text-zinc-500 font-medium">Responsáveis</th>
+                  <th className="text-right px-4 py-3 text-zinc-500 font-medium">Encarregados</th>
                 </tr>
               </thead>
               <tbody>
@@ -158,7 +158,7 @@ export default function SchoolsPage() {
                       <div className="font-medium text-zinc-900 dark:text-zinc-100">{school.name}</div>
                       <div className="text-xs text-zinc-400">{school.email}</div>
                     </td>
-                    <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{school.city}/{school.state}</td>
+                    <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{school.city}/{school.provincia}</td>
                     <td className="px-4 py-3"><StatusBadge status={school.status} /></td>
                     <td className="px-4 py-3 text-right text-zinc-600 dark:text-zinc-400">{school._count.teachers}</td>
                     <td className="px-4 py-3 text-right text-zinc-600 dark:text-zinc-400">{school._count.students}</td>

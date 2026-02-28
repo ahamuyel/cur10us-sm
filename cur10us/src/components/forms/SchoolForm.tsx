@@ -7,12 +7,12 @@ interface SchoolFormProps {
   initialData?: {
     name?: string
     slug?: string
-    cnpj?: string
+    nif?: string
     email?: string
     phone?: string
     address?: string
     city?: string
-    state?: string
+    provincia?: string
     logo?: string
   }
   onSubmit: (data: Record<string, string>) => Promise<void>
@@ -44,12 +44,12 @@ export default function SchoolForm({ initialData, onSubmit, onCancel }: SchoolFo
   const fields = [
     { name: "name", label: "Nome da escola", required: true },
     { name: "slug", label: "Slug (URL)", required: true, placeholder: "minha-escola" },
-    { name: "cnpj", label: "CNPJ", required: false },
+    { name: "nif", label: "NIF", required: false },
     { name: "email", label: "E-mail", required: true, type: "email" },
     { name: "phone", label: "Telefone", required: true },
     { name: "address", label: "Endereço", required: true },
     { name: "city", label: "Cidade", required: true },
-    { name: "state", label: "Estado (sigla)", required: true, placeholder: "SP", maxLength: 2 },
+    { name: "provincia", label: "Província", required: true, placeholder: "Luanda" },
     { name: "logo", label: "URL do logo", required: false, type: "url" },
   ]
 
@@ -74,7 +74,6 @@ export default function SchoolForm({ initialData, onSubmit, onCancel }: SchoolFo
               required={f.required}
               defaultValue={initialData?.[f.name as keyof typeof initialData] || ""}
               placeholder={f.placeholder}
-              maxLength={f.maxLength}
               disabled={loading}
               className="w-full px-4 py-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
             />

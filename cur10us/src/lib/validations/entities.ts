@@ -18,7 +18,7 @@ export const updateTeacherSchema = createTeacherSchema.partial()
 
 export const createStudentSchema = z.object({
   ...baseFields,
-  serie: z.number().int().min(1, "Série deve ser entre 1 e 9").max(9, "Série deve ser entre 1 e 9"),
+  classe: z.number().int().min(1, "Classe deve ser entre 1 e 13").max(13, "Classe deve ser entre 1 e 13"),
   turma: z.string().min(1, "Turma é obrigatória").max(10, "Turma muito longa"),
 })
 

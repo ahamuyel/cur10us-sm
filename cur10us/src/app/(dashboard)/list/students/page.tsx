@@ -17,7 +17,7 @@ type Student = {
   email: string
   foto: string | null
   phone: string
-  serie: number
+  classe: number
   turma: string
   address: string
 }
@@ -25,7 +25,7 @@ type Student = {
 const columns = [
   { header: "Aluno", accessor: "info" },
   { header: "E-mail", accessor: "email", className: "hidden md:table-cell" },
-  { header: "Série", accessor: "serie" },
+  { header: "Classe", accessor: "classe" },
   { header: "Turma", accessor: "turma", className: "hidden lg:table-cell" },
   { header: "Telefone", accessor: "phone", className: "hidden xl:table-cell" },
   { header: "Ações", accessor: "actions" },
@@ -72,7 +72,7 @@ const StudentListPage = () => {
       </td>
       <td className="py-2.5 sm:py-3 px-1.5 sm:px-2">
         <span className="px-1.5 sm:px-2 py-0.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded text-[9px] sm:text-[10px] font-bold">
-          {item.serie}° ano
+          {item.classe}.ª classe
         </span>
       </td>
       <td className="hidden lg:table-cell text-zinc-600 dark:text-zinc-400 text-xs sm:text-sm">

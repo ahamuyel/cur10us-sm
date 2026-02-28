@@ -4,10 +4,10 @@ import { Megaphone } from "lucide-react"
 
 const announcementsData = [
   {
-    title: "Reunião de pais e mestres",
+    title: "Reunião de encarregados de educação",
     date: "2026-02-27",
     description:
-      "Encontro marcado para discutir o desempenho dos alunos no primeiro bimestre.",
+      "Encontro marcado para discutir o desempenho dos alunos no primeiro trimestre.",
     color: "bg-indigo-50 dark:bg-indigo-950/30 border-indigo-200 dark:border-indigo-800",
   },
   {

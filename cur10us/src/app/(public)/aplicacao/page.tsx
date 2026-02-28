@@ -165,7 +165,7 @@ export default function ApplicationPage() {
             <option value="">Selecione</option>
             <option value="teacher">Professor(a)</option>
             <option value="student">Aluno(a)</option>
-            <option value="parent">Responsável</option>
+            <option value="parent">Encarregado de educação</option>
           </select>
         </div>
 

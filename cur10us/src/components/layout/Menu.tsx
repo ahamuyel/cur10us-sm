@@ -52,7 +52,7 @@ const menuItems = [
             },
             {
                 icon: UserCheck,
-                label: "Responsáveis",
+                label: "Encarregados",
                 href: "/list/parents",
                 visible: ["school_admin", "teacher"]
             },
@@ -88,7 +88,7 @@ const menuItems = [
             },
             {
                 icon: CalendarCheck,
-                label: "Frequência",
+                label: "Assiduidade",
                 href: "/list/attendance",
                 visible: ["school_admin", "teacher", "student", "parent"]
             },

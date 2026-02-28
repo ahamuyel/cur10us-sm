@@ -10,7 +10,7 @@ type StudentData = {
   phone: string
   address: string
   foto?: string | null
-  serie: number
+  classe: number
   turma: string
 }
 
@@ -30,7 +30,7 @@ const StudentForm = ({ mode, initialData, onSuccess, onCancel }: Props) => {
     phone: initialData?.phone || "",
     address: initialData?.address || "",
     foto: initialData?.foto || "",
-    serie: initialData?.serie || 1,
+    classe: initialData?.classe || 1,
     turma: initialData?.turma || "",
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -103,14 +103,14 @@ const StudentForm = ({ mode, initialData, onSuccess, onCancel }: Props) => {
       </FormField>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FormField label="Série" error={errors.serie}>
+        <FormField label="Classe" error={errors.classe}>
           <select
             className={inputClass}
-            value={form.serie}
-            onChange={(e) => setForm((f) => ({ ...f, serie: parseInt(e.target.value) }))}
+            value={form.classe}
+            onChange={(e) => setForm((f) => ({ ...f, classe: parseInt(e.target.value) }))}
           >
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((s) => (
-              <option key={s} value={s}>{s}° ano</option>
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].map((s) => (
+              <option key={s} value={s}>{s}.ª classe</option>
             ))}
           </select>
         </FormField>

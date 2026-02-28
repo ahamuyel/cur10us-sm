@@ -28,9 +28,9 @@ export async function sendApplicationConfirmation(to: string, name: string, trac
     html: wrap(
       "Solicitação recebida!",
       `<p>Olá ${name},</p>
-       <p>Sua solicitação foi recebida com sucesso. Acompanhe o status pelo link abaixo:</p>
-       <p><a href="${statusUrl}" style="color:#6366f1;font-weight:600;">Acompanhar minha solicitação</a></p>
-       <p>Seu código de acompanhamento: <strong>${trackingToken}</strong></p>`
+       <p>A sua solicitação foi recebida com sucesso. Acompanhe o estado pelo link abaixo:</p>
+       <p><a href="${statusUrl}" style="color:#6366f1;font-weight:600;">Acompanhar a minha solicitação</a></p>
+       <p>O seu código de acompanhamento: <strong>${trackingToken}</strong></p>`
     ),
   })
 }
@@ -43,8 +43,8 @@ export async function sendApplicationApproved(to: string, name: string, schoolNa
     html: wrap(
       "Solicitação aprovada!",
       `<p>Olá ${name},</p>
-       <p>Sua solicitação para <strong>${schoolName}</strong> foi aprovada!</p>
-       <p>O próximo passo é aguardar a matrícula pela escola. Você receberá um e-mail quando sua conta estiver ativa.</p>`
+       <p>A sua solicitação para <strong>${schoolName}</strong> foi aprovada!</p>
+       <p>O próximo passo é aguardar a matrícula pela escola. Receberá um e-mail quando a sua conta estiver activa.</p>`
     ),
   })
 }
@@ -57,9 +57,9 @@ export async function sendApplicationRejected(to: string, name: string, reason: 
     html: wrap(
       "Solicitação não aprovada",
       `<p>Olá ${name},</p>
-       <p>Infelizmente sua solicitação não foi aprovada.</p>
+       <p>Infelizmente a sua solicitação não foi aprovada.</p>
        <p><strong>Motivo:</strong> ${reason}</p>
-       <p>Se tiver dúvidas, entre em contato com a escola.</p>`
+       <p>Se tiver dúvidas, entre em contacto com a escola.</p>`
     ),
   })
 }
@@ -73,10 +73,10 @@ export async function sendEnrollmentComplete(to: string, name: string, schoolNam
     html: wrap(
       "Matrícula confirmada!",
       `<p>Olá ${name},</p>
-       <p>Sua matrícula na <strong>${schoolName}</strong> foi confirmada! Sua conta está ativa.</p>
-       <p>Se você já criou sua senha, pode acessar a plataforma:</p>
-       <p><a href="${loginUrl}" style="color:#6366f1;font-weight:600;">Acessar Cur10usX</a></p>
-       <p>Caso ainda não tenha criado uma conta, cadastre-se com este mesmo e-mail (${to}).</p>`
+       <p>A sua matrícula na <strong>${schoolName}</strong> foi confirmada! A sua conta está activa.</p>
+       <p>Se já criou a sua palavra-passe, pode aceder à plataforma:</p>
+       <p><a href="${loginUrl}" style="color:#6366f1;font-weight:600;">Aceder ao Cur10usX</a></p>
+       <p>Caso ainda não tenha criado uma conta, registe-se com este mesmo e-mail (${to}).</p>`
     ),
   })
 }
@@ -89,7 +89,7 @@ export async function sendSchoolApproved(to: string, schoolName: string) {
     html: wrap(
       "Escola aprovada!",
       `<p>A escola <strong>${schoolName}</strong> foi aprovada na plataforma Cur10usX.</p>
-       <p>O próximo passo é a ativação pela equipe da plataforma. Você receberá um e-mail quando a escola estiver ativa.</p>`
+       <p>O próximo passo é a activação pela equipa da plataforma. Receberá um e-mail quando a escola estiver activa.</p>`
     ),
   })
 }
@@ -103,7 +103,7 @@ export async function sendSchoolRejected(to: string, schoolName: string, reason:
       "Escola não aprovada",
       `<p>Infelizmente a escola <strong>${schoolName}</strong> não foi aprovada na plataforma.</p>
        <p><strong>Motivo:</strong> ${reason}</p>
-       <p>Se tiver dúvidas, entre em contato conosco.</p>`
+       <p>Se tiver dúvidas, entre em contacto connosco.</p>`
     ),
   })
 }

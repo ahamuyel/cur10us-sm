@@ -20,7 +20,7 @@ interface Application {
 const roleLabels: Record<string, string> = {
   teacher: "Professor(a)",
   student: "Aluno(a)",
-  parent: "Responsável",
+  parent: "Encarregado",
 }
 
 const statusFilters = [
@@ -138,7 +138,7 @@ export default function ApplicationsPage() {
                     </td>
                     <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{roleLabels[app.role] || app.role}</td>
                     <td className="px-4 py-3"><StatusBadge status={app.status} /></td>
-                    <td className="px-4 py-3 text-zinc-500">{new Date(app.createdAt).toLocaleDateString("pt-BR")}</td>
+                    <td className="px-4 py-3 text-zinc-500">{new Date(app.createdAt).toLocaleDateString("pt")}</td>
                   </tr>
                 ))}
                 {applications.length === 0 && (

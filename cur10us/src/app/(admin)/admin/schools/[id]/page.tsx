@@ -9,12 +9,12 @@ interface SchoolDetail {
   id: string
   name: string
   slug: string
-  cnpj?: string
+  nif?: string
   email: string
   phone: string
   address: string
   city: string
-  state: string
+  provincia: string
   status: string
   rejectReason?: string
   createdAt: string
@@ -102,9 +102,9 @@ export default function SchoolDetailPage() {
           <div><span className="text-zinc-500">E-mail:</span> <span className="text-zinc-900 dark:text-zinc-100">{school.email}</span></div>
           <div><span className="text-zinc-500">Telefone:</span> <span className="text-zinc-900 dark:text-zinc-100">{school.phone}</span></div>
           <div><span className="text-zinc-500">Endereço:</span> <span className="text-zinc-900 dark:text-zinc-100">{school.address}</span></div>
-          <div><span className="text-zinc-500">Cidade:</span> <span className="text-zinc-900 dark:text-zinc-100">{school.city}/{school.state}</span></div>
-          {school.cnpj && <div><span className="text-zinc-500">CNPJ:</span> <span className="text-zinc-900 dark:text-zinc-100">{school.cnpj}</span></div>}
-          <div><span className="text-zinc-500">Criada em:</span> <span className="text-zinc-900 dark:text-zinc-100">{new Date(school.createdAt).toLocaleDateString("pt-BR")}</span></div>
+          <div><span className="text-zinc-500">Cidade:</span> <span className="text-zinc-900 dark:text-zinc-100">{school.city}/{school.provincia}</span></div>
+          {school.nif && <div><span className="text-zinc-500">NIF:</span> <span className="text-zinc-900 dark:text-zinc-100">{school.nif}</span></div>}
+          <div><span className="text-zinc-500">Criada em:</span> <span className="text-zinc-900 dark:text-zinc-100">{new Date(school.createdAt).toLocaleDateString("pt")}</span></div>
         </div>
 
         {school.rejectReason && (
@@ -119,7 +119,7 @@ export default function SchoolDetailPage() {
           {[
             { label: "Professores", value: school._count.teachers },
             { label: "Alunos", value: school._count.students },
-            { label: "Responsáveis", value: school._count.parents },
+            { label: "Encarregados", value: school._count.parents },
             { label: "Solicitações", value: school._count.applications },
           ].map((s) => (
             <div key={s.label} className="rounded-xl bg-zinc-50 dark:bg-zinc-800 p-3 text-center">

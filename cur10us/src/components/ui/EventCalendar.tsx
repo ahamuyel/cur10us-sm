@@ -33,12 +33,12 @@ const EventCalendar = () => {
                 prevLabel={<ChevronLeft size={20} className="text-zinc-400 hover:text-indigo-600 transition-colors" />}
                 navigationLabel={({ date }) => (
                     <div className="flex items-center gap-1.5 text-zinc-800 dark:text-zinc-100 font-bold text-base sm:text-xl px-1">
-                        <span className="capitalize">{date.toLocaleString('pt-BR', { month: 'long' })}</span>
+                        <span className="capitalize">{date.toLocaleString('pt', { month: 'long' })}</span>
                         <span className="text-zinc-400 font-medium">{date.getFullYear()}</span>
                     </div>
                 )}
                 formatShortWeekday={(locale, date) =>
-                    date.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '').substring(0, 3)
+                    date.toLocaleDateString('pt', { weekday: 'short' }).replace('.', '').substring(0, 3)
                 }
                 tileClassName={({ date: tileDate, view }) => {
                     if (view !== "month") return ""

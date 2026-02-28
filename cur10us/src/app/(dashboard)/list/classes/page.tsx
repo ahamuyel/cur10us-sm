@@ -16,7 +16,7 @@ type Class = {
 
 const columns = [
   { header: "Turma", accessor: "name" },
-  { header: "Série", accessor: "grade" },
+  { header: "Classe", accessor: "grade" },
   { header: "Capacidade", accessor: "capacity", className: "hidden md:table-cell" },
   { header: "Supervisor", accessor: "supervisor" },
 ]
@@ -28,7 +28,7 @@ const renderRow = (item: Class) => (
     </td>
     <td className="py-2.5 sm:py-3 px-1.5 sm:px-2">
       <span className="px-1.5 sm:px-2 py-0.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded text-[9px] sm:text-[10px] font-bold">
-        {item.grade}° ano
+        {item.grade}.ª classe
       </span>
     </td>
     <td className="hidden md:table-cell text-zinc-600 dark:text-zinc-400 text-xs sm:text-sm">

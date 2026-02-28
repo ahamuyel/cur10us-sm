@@ -8,7 +8,7 @@ const roleLabels: Record<string, string> = {
   admin: "Administrador",
   teacher: "Professor",
   student: "Aluno",
-  parent: "Responsável",
+  parent: "Encarregado",
 }
 
 const ProfilePage = () => {
@@ -38,7 +38,7 @@ const ProfilePage = () => {
               {roleLabels[userRole] || userRole}
             </span>
             <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-3 max-w-md">
-              Responsável pela gestão acadêmica e administrativa da plataforma Cur10usX.
+              Responsável pela gestão académica e administrativa da plataforma Cur10usX.
             </p>
           </div>
         </div>
@@ -48,7 +48,7 @@ const ProfilePage = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Contact */}
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
-          <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 mb-4 uppercase tracking-wider">Contato</h2>
+          <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 mb-4 uppercase tracking-wider">Contacto</h2>
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center">
@@ -60,13 +60,13 @@ const ProfilePage = () => {
               <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center">
                 <Phone className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
               </div>
-              <span className="text-sm text-zinc-600 dark:text-zinc-400">(11) 99999-9999</span>
+              <span className="text-sm text-zinc-600 dark:text-zinc-400">923 456 789</span>
             </div>
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center">
                 <MapPin className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
               </div>
-              <span className="text-sm text-zinc-600 dark:text-zinc-400">São Paulo, SP</span>
+              <span className="text-sm text-zinc-600 dark:text-zinc-400">Luanda</span>
             </div>
           </div>
         </div>

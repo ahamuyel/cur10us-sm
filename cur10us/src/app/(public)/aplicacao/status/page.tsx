@@ -20,7 +20,7 @@ interface ApplicationStatus {
 const roleLabels: Record<string, string> = {
   teacher: "Professor(a)",
   student: "Aluno(a)",
-  parent: "Responsável",
+  parent: "Encarregado de educação",
 }
 
 const statusTimeline = [
@@ -125,7 +125,7 @@ export default function StatusPage() {
           <div className="text-sm mb-6 space-y-1">
             <div><span className="text-zinc-500">Escola:</span> <span className="font-medium">{data.school.name}</span></div>
             <div><span className="text-zinc-500">Perfil:</span> <span className="font-medium">{roleLabels[data.role] || data.role}</span></div>
-            <div><span className="text-zinc-500">Enviada em:</span> <span className="font-medium">{new Date(data.createdAt).toLocaleDateString("pt-BR")}</span></div>
+            <div><span className="text-zinc-500">Enviada em:</span> <span className="font-medium">{new Date(data.createdAt).toLocaleDateString("pt")}</span></div>
           </div>
 
           {isRejected ? (

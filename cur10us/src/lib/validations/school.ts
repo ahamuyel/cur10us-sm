@@ -7,12 +7,12 @@ export const createSchoolSchema = z.object({
     .min(2, "Slug deve ter pelo menos 2 caracteres")
     .max(50, "Slug muito longo")
     .regex(/^[a-z0-9-]+$/, "Slug deve conter apenas letras minúsculas, números e hifens"),
-  cnpj: z.string().optional().or(z.literal("")),
+  nif: z.string().optional().or(z.literal("")),
   email: z.string().min(1, "E-mail é obrigatório").email("E-mail inválido"),
   phone: z.string().min(8, "Telefone deve ter pelo menos 8 dígitos").max(20, "Telefone muito longo"),
   address: z.string().min(3, "Endereço é obrigatório").max(200, "Endereço muito longo"),
   city: z.string().min(2, "Cidade é obrigatória").max(100, "Cidade muito longa"),
-  state: z.string().min(2, "Estado é obrigatório").max(2, "Use a sigla do estado (ex: SP)"),
+  provincia: z.string().min(2, "Província é obrigatória").max(50, "Província muito longa"),
   logo: z.string().url("URL do logo inválida").optional().or(z.literal("")),
 })
 
