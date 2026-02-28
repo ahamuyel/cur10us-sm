@@ -31,6 +31,17 @@ enum ApplicationStatus {
   rejeitada
 }
 
+enum AttendanceStatus {
+  presente
+  ausente
+  atrasado
+}
+
+enum AdminLevel {
+  primary
+  secondary
+}
+
 model School {
   id           String       @id @default(cuid())
   name         String
@@ -47,11 +58,22 @@ model School {
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
 
-  users        User[]
-  teachers     Teacher[]
-  students     Student[]
-  parents      Parent[]
-  applications Application[]
+  users         User[]
+  teachers      Teacher[]
+  students      Student[]
+  parents       Parent[]
+  applications  Application[]
+  subjects      Subject[]
+  courses       Course[]
+  classes       Class[]
+  lessons       Lesson[]
+  exams         Exam[]
+  assignments   Assignment[]
+  results       Result[]
+  attendances   Attendance[]
+  messages         Message[]
+  announcements    Announcement[]
+  adminPermissions AdminPermission[]
 }
 
 model Application {
@@ -68,28 +90,39 @@ model Application {
   school        School            @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   userId        String?           @unique
   user          User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  documentType    String?
+  documentNumber  String?
+  dateOfBirth     DateTime?
+  desiredGrade    Int?
+  desiredCourseId String?
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
 }
 
 model User {
-  id             String   @id @default(cuid())
-  name           String
-  email          String   @unique
-  hashedPassword String
-  role           Role     @default(student)
-  image          String?
-  isActive       Boolean  @default(false)
-  schoolId       String?
-  school         School?  @relation(fields: [schoolId], references: [id], onDelete: SetNull)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id              String   @id @default(cuid())
+  name            String
+  email           String   @unique
+  hashedPassword  String?
+  role            Role     @default(student)
+  image           String?
+  isActive        Boolean  @default(false)
+  provider        String?
+  providerId      String?
+  profileComplete Boolean  @default(true)
+  schoolId        String?
+  school          School?  @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   passwordResetTokens PasswordResetToken[]
   teacher             Teacher?
   student             Student?
   parent              Parent?
   application         Application?
+  sentMessages        Message[]            @relation("SentMessages")
+  receivedMessages    Message[]            @relation("ReceivedMessages")
+  adminPermission     AdminPermission?
 }
 
 model PasswordResetToken {
@@ -107,14 +140,18 @@ model Teacher {
   phone     String
   address   String
   foto      String?
-  subjects  String[]
-  classes   String[]
   userId    String?  @unique
   user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   schoolId  String
   school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  teacherSubjects TeacherSubject[]
+  teacherClasses  TeacherClass[]
+  lessons         Lesson[]
+  exams           Exam[]
+  assignments     Assignment[]
 }
 
 model Student {
@@ -124,8 +161,8 @@ model Student {
   phone     String
   address   String
   foto      String?
-  classe    Int
-  turma     String
+  classId   String?
+  class     Class?   @relation(fields: [classId], references: [id], onDelete: SetNull)
   userId    String?  @unique
   user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   schoolId  String
@@ -133,6 +170,9 @@ model Student {
   parents   Parent[] @relation("ParentStudents")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  results     Result[]
+  attendances Attendance[]
 }
 
 model Parent {
@@ -149,4 +189,215 @@ model Parent {
   students  Student[] @relation("ParentStudents")
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+}
+
+model Subject {
+  id       String @id @default(cuid())
+  name     String
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  courseSubjects  CourseSubject[]
+  teacherSubjects TeacherSubject[]
+  lessons         Lesson[]
+  exams           Exam[]
+  assignments     Assignment[]
+  results         Result[]
+
+  @@unique([name, schoolId])
+}
+
+model Course {
+  id       String @id @default(cuid())
+  name     String
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  courseSubjects CourseSubject[]
+  classes        Class[]
+
+  @@unique([name, schoolId])
+}
+
+model CourseSubject {
+  id        String  @id @default(cuid())
+  courseId   String
+  course    Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  subjectId String
+  subject   Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, subjectId])
+}
+
+model Class {
+  id           String   @id @default(cuid())
+  name         String
+  grade        Int
+  capacity     Int
+  courseId      String?
+  course       Course?  @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  supervisorId String?
+  schoolId     String
+  school       School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  students       Student[]
+  teacherClasses TeacherClass[]
+  lessons        Lesson[]
+  exams          Exam[]
+  assignments    Assignment[]
+  attendances    Attendance[]
+  announcements  Announcement[]
+
+  @@unique([name, schoolId])
+}
+
+model TeacherSubject {
+  id        String  @id @default(cuid())
+  teacherId String
+  teacher   Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  subjectId String
+  subject   Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@unique([teacherId, subjectId])
+}
+
+model TeacherClass {
+  id        String  @id @default(cuid())
+  teacherId String
+  teacher   Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  classId   String
+  class     Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@unique([teacherId, classId])
+}
+
+model Lesson {
+  id        String  @id @default(cuid())
+  day       String
+  startTime String
+  endTime   String
+  room      String?
+  subjectId String
+  subject   Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  classId   String
+  class     Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
+  teacherId String
+  teacher   Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  schoolId  String
+  school    School  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+}
+
+model Exam {
+  id        String   @id @default(cuid())
+  title     String?
+  date      DateTime
+  subjectId String
+  subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  classId   String
+  class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  teacherId String
+  teacher   Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  schoolId  String
+  school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  results Result[]
+}
+
+model Assignment {
+  id        String   @id @default(cuid())
+  title     String?
+  dueDate   DateTime
+  subjectId String
+  subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  classId   String
+  class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  teacherId String
+  teacher   Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  schoolId  String
+  school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+}
+
+model Result {
+  id        String   @id @default(cuid())
+  score     Float
+  type      String
+  date      DateTime
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subjectId String
+  subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  examId    String?
+  exam      Exam?    @relation(fields: [examId], references: [id], onDelete: SetNull)
+  schoolId  String
+  school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+}
+
+model Attendance {
+  id        String           @id @default(cuid())
+  date      DateTime
+  status    AttendanceStatus
+  studentId String
+  student   Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  classId   String
+  class     Class            @relation(fields: [classId], references: [id], onDelete: Cascade)
+  schoolId  String
+  school    School           @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, date, classId])
+}
+
+model Message {
+  id       String  @id @default(cuid())
+  subject  String
+  body     String
+  fromId   String
+  from     User    @relation("SentMessages", fields: [fromId], references: [id], onDelete: Cascade)
+  toId     String?
+  to       User?   @relation("ReceivedMessages", fields: [toId], references: [id], onDelete: SetNull)
+  toAll    Boolean @default(false)
+  read     Boolean @default(false)
+  schoolId String
+  school   School  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}
+
+model Announcement {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  classId     String?
+  class       Class?   @relation(fields: [classId], references: [id], onDelete: SetNull)
+  schoolId    String
+  school      School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AdminPermission {
+  id       String     @id @default(cuid())
+  userId   String     @unique
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  level    AdminLevel
+  schoolId String
+  school   School     @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  canManageApplications  Boolean @default(false)
+  canManageTeachers      Boolean @default(false)
+  canManageStudents      Boolean @default(false)
+  canManageParents       Boolean @default(false)
+  canManageClasses       Boolean @default(false)
+  canManageCourses       Boolean @default(false)
+  canManageSubjects      Boolean @default(false)
+  canManageLessons       Boolean @default(false)
+  canManageExams         Boolean @default(false)
+  canManageResults       Boolean @default(false)
+  canManageAttendance    Boolean @default(false)
+  canManageMessages      Boolean @default(false)
+  canManageAnnouncements Boolean @default(false)
+  canManageAdmins        Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

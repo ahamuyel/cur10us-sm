@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { requireRole, getSchoolId } from "@/lib/api-auth"
+import { requirePermission, getSchoolId } from "@/lib/api-auth"
 import { createStudentSchema } from "@/lib/validations/entities"
 
 export async function GET(req: Request) {
   try {
-    const { error: authError, session } = await requireRole(["school_admin", "teacher", "student", "parent"], { requireSchool: true })
+    const { error: authError, session } = await requirePermission(["school_admin", "teacher", "student", "parent"], undefined, { requireSchool: true })
     if (authError) return authError
 
     const schoolId = getSchoolId(session!)
@@ -32,7 +32,10 @@ export async function GET(req: Request) {
         skip: (page - 1) * limit,
         take: limit,
         orderBy: { name: "asc" },
-        include: { parents: { select: { id: true, name: true } } },
+        include: {
+          class: { select: { id: true, name: true, grade: true } },
+          parents: { select: { id: true, name: true } },
+        },
       }),
       prisma.student.count({ where }),
     ])
@@ -45,7 +48,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const { error: authError, session } = await requireRole(["school_admin"], { requireSchool: true })
+    const { error: authError, session } = await requirePermission(["school_admin"], "canManageStudents", { requireSchool: true })
     if (authError) return authError
 
     const schoolId = getSchoolId(session!)

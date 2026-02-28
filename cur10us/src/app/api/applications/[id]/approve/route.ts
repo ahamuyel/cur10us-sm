@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { requireRole } from "@/lib/api-auth"
+import { requirePermission } from "@/lib/api-auth"
 import { sendApplicationApproved } from "@/lib/email"
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { error: authError, session } = await requireRole(["school_admin"], { requireSchool: true })
+    const { error: authError, session } = await requirePermission(["school_admin"], "canManageApplications", { requireSchool: true })
     if (authError) return authError
 
     const { id } = await params

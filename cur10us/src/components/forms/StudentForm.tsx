@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import FormField from "@/components/ui/FormField"
 import { createStudentSchema } from "@/lib/validations/entities"
 
@@ -10,8 +10,7 @@ type StudentData = {
   phone: string
   address: string
   foto?: string | null
-  classe: number
-  turma: string
+  classId?: string | null
 }
 
 type Props = {
@@ -20,6 +19,8 @@ type Props = {
   onSuccess: () => void
   onCancel: () => void
 }
+
+type ClassOption = { id: string; name: string; grade: number }
 
 const inputClass = "w-full px-3 py-2 rounded-xl text-sm bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-indigo-500 transition"
 
@@ -30,19 +31,24 @@ const StudentForm = ({ mode, initialData, onSuccess, onCancel }: Props) => {
     phone: initialData?.phone || "",
     address: initialData?.address || "",
     foto: initialData?.foto || "",
-    classe: initialData?.classe || 1,
-    turma: initialData?.turma || "",
+    classId: initialData?.classId || "",
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
   const [apiError, setApiError] = useState("")
+  const [classOptions, setClassOptions] = useState<ClassOption[]>([])
+
+  useEffect(() => {
+    fetch("/api/classes?limit=100").then(r => r.json()).then(d => setClassOptions(d.data || []))
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrors({})
     setApiError("")
 
-    const parsed = createStudentSchema.safeParse(form)
+    const submitData = { ...form, classId: form.classId || null }
+    const parsed = createStudentSchema.safeParse(submitData)
     if (!parsed.success) {
       const fieldErrors: Record<string, string> = {}
       parsed.error.issues.forEach((issue) => {
@@ -59,7 +65,7 @@ const StudentForm = ({ mode, initialData, onSuccess, onCancel }: Props) => {
       const res = await fetch(url, {
         method: mode === "edit" ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(submitData),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -102,22 +108,14 @@ const StudentForm = ({ mode, initialData, onSuccess, onCancel }: Props) => {
         <input className={inputClass} value={form.address} onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))} />
       </FormField>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FormField label="Classe" error={errors.classe}>
-          <select
-            className={inputClass}
-            value={form.classe}
-            onChange={(e) => setForm((f) => ({ ...f, classe: parseInt(e.target.value) }))}
-          >
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].map((s) => (
-              <option key={s} value={s}>{s}.ª classe</option>
-            ))}
-          </select>
-        </FormField>
-        <FormField label="Turma" error={errors.turma}>
-          <input className={inputClass} value={form.turma} onChange={(e) => setForm((f) => ({ ...f, turma: e.target.value }))} placeholder="Ex: 1B" />
-        </FormField>
-      </div>
+      <FormField label="Turma" error={errors.classId}>
+        <select className={inputClass} value={form.classId} onChange={(e) => setForm((f) => ({ ...f, classId: e.target.value }))}>
+          <option value="">Sem turma atribuída</option>
+          {classOptions.map((c) => (
+            <option key={c.id} value={c.id}>{c.name} ({c.grade}.ª classe)</option>
+          ))}
+        </select>
+      </FormField>
 
       <div className="flex items-center gap-3 justify-end pt-2">
         <button type="button" onClick={onCancel} className="px-4 py-2 rounded-xl text-sm font-medium text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition">

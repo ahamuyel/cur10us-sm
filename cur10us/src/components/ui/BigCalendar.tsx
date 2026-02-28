@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import {
   Calendar,
   momentLocalizer,
@@ -9,9 +9,8 @@ import {
   ToolbarProps,
 } from "react-big-calendar";
 import moment from "moment";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Loader2 } from "lucide-react";
 
-import { calendarEvents } from "@/lib/data";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "@/styles/big-calendar.css";
 import "moment/locale/pt-br";
@@ -29,31 +28,13 @@ type CalendarEvent = {
   room?: string;
 };
 
-const EVENT_COLORS: Record<string, string> = {
-  math: "#6366f1",
-  physics: "#10B981",
-  chemistry: "#F59E0B",
-  biology: "#06B6D4",
-  history: "#f43f5e",
-  geography: "#8b5cf6",
-  english: "#ec4899",
-  literature: "#14b8a6",
-  music: "#a855f7",
-  art: "#f97316",
-  default: "#64748b",
-};
+const COLORS = [
+  "#6366f1", "#10B981", "#F59E0B", "#06B6D4", "#f43f5e",
+  "#8b5cf6", "#ec4899", "#14b8a6", "#a855f7", "#f97316",
+];
 
-const SUBJECT_LABELS: Record<string, string> = {
-  math: "Matemática",
-  physics: "Física",
-  chemistry: "Química",
-  biology: "Biologia",
-  history: "História",
-  geography: "Geografia",
-  english: "Inglês",
-  literature: "Literatura",
-  music: "Música",
-  art: "Arte",
+const DAY_MAP: Record<string, number> = {
+  "Segunda": 1, "Terça": 2, "Quarta": 3, "Quinta": 4, "Sexta": 5,
 };
 
 const views = [
@@ -70,7 +51,6 @@ const CalendarHeader: React.FC<ToolbarProps<CalendarEvent, object>> = ({
 }) => {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-3 sm:mb-4">
-      {/* Navigation */}
       <div className="flex items-center gap-2">
         <button
           onClick={() => onNavigate("PREV")}
@@ -78,11 +58,9 @@ const CalendarHeader: React.FC<ToolbarProps<CalendarEvent, object>> = ({
         >
           <ChevronLeft size={16} className="sm:w-[18px] sm:h-[18px]" />
         </button>
-
         <h2 className="text-sm sm:text-lg font-semibold capitalize text-zinc-900 dark:text-zinc-100">
           {moment(date).format("MMMM YYYY")}
         </h2>
-
         <button
           onClick={() => onNavigate("NEXT")}
           className="p-1.5 sm:p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
@@ -91,7 +69,6 @@ const CalendarHeader: React.FC<ToolbarProps<CalendarEvent, object>> = ({
         </button>
       </div>
 
-      {/* Controls */}
       <div className="flex items-center gap-2">
         <button
           onClick={() => onNavigate("TODAY")}
@@ -99,7 +76,6 @@ const CalendarHeader: React.FC<ToolbarProps<CalendarEvent, object>> = ({
         >
           Hoje
         </button>
-
         <div className="flex bg-zinc-100 dark:bg-zinc-800 rounded-xl p-0.5 sm:p-1">
           {views.map((v) => (
             <button
@@ -126,6 +102,64 @@ const BigCalendar = () => {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [calendarHeight, setCalendarHeight] = useState(500);
   const [hiddenSubjects, setHiddenSubjects] = useState<Set<string>>(new Set());
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [subjectColors, setSubjectColors] = useState<Record<string, string>>({});
+
+  const fetchLessons = useCallback(async () => {
+    try {
+      const res = await fetch("/api/lessons?limit=200");
+      if (!res.ok) { setLoading(false); return; }
+      const json = await res.json();
+
+      const colorMap: Record<string, string> = {};
+      let colorIdx = 0;
+
+      const mapped: CalendarEvent[] = (json.data || []).map((lesson: { day: string; startTime: string; endTime: string; room?: string; subject?: { name: string }; teacher?: { name: string } }) => {
+        const subjectName = lesson.subject?.name || "Aula";
+        if (!colorMap[subjectName]) {
+          colorMap[subjectName] = COLORS[colorIdx % COLORS.length];
+          colorIdx++;
+        }
+
+        const dayNum = DAY_MAP[lesson.day] || 1;
+        const now = new Date();
+        const monday = new Date(now);
+        monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+
+        const eventDate = new Date(monday);
+        eventDate.setDate(monday.getDate() + (dayNum - 1));
+
+        const [sh, sm] = lesson.startTime.split(":").map(Number);
+        const [eh, em] = lesson.endTime.split(":").map(Number);
+
+        const start = new Date(eventDate);
+        start.setHours(sh, sm, 0, 0);
+        const end = new Date(eventDate);
+        end.setHours(eh, em, 0, 0);
+
+        return {
+          title: subjectName,
+          start,
+          end,
+          type: subjectName,
+          teacher: lesson.teacher?.name,
+          room: lesson.room,
+        };
+      });
+
+      setSubjectColors(colorMap);
+      setEvents(mapped);
+    } catch {
+      // silently fail
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchLessons();
+  }, [fetchLessons]);
 
   useEffect(() => {
     const updateSize = () => {
@@ -158,23 +192,20 @@ const BigCalendar = () => {
   };
 
   const filteredEvents = useMemo(
-    () =>
-      (calendarEvents as CalendarEvent[]).filter(
-        (e) => !hiddenSubjects.has(e.type || "default")
-      ),
-    [hiddenSubjects]
+    () => events.filter((e) => !hiddenSubjects.has(e.type || "")),
+    [hiddenSubjects, events]
   );
 
   const activeSubjects = useMemo(() => {
     const types = new Set<string>();
-    for (const e of calendarEvents as CalendarEvent[]) {
-      types.add(e.type || "default");
+    for (const e of events) {
+      if (e.type) types.add(e.type);
     }
     return Array.from(types).sort();
-  }, []);
+  }, [events]);
 
   const eventStyleGetter = (event: CalendarEvent) => {
-    const bg = EVENT_COLORS[event.type || "default"];
+    const bg = subjectColors[event.type || ""] || "#64748b";
     return {
       style: {
         backgroundColor: bg,
@@ -188,30 +219,39 @@ const BigCalendar = () => {
     };
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 size={24} className="animate-spin text-indigo-500" />
+      </div>
+    );
+  }
+
   return (
     <>
-      {/* Category filter pills */}
-      <div className="flex flex-wrap gap-1.5 mb-3">
-        {activeSubjects.map((subject) => {
-          const color = EVENT_COLORS[subject] || EVENT_COLORS.default;
-          const isHidden = hiddenSubjects.has(subject);
-          return (
-            <button
-              key={subject}
-              onClick={() => toggleSubject(subject)}
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition
-                ${
-                  isHidden
-                    ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500"
-                    : "text-white"
-                }`}
-              style={!isHidden ? { backgroundColor: color } : undefined}
-            >
-              {SUBJECT_LABELS[subject] || subject}
-            </button>
-          );
-        })}
-      </div>
+      {activeSubjects.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mb-3">
+          {activeSubjects.map((subject) => {
+            const color = subjectColors[subject] || "#64748b";
+            const isHidden = hiddenSubjects.has(subject);
+            return (
+              <button
+                key={subject}
+                onClick={() => toggleSubject(subject)}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition
+                  ${
+                    isHidden
+                      ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500"
+                      : "text-white"
+                  }`}
+                style={!isHidden ? { backgroundColor: color } : undefined}
+              >
+                {subject}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       <div className="cur10us-calendar bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-2 sm:p-4 overflow-hidden">
         <Calendar<CalendarEvent>
@@ -239,25 +279,25 @@ const BigCalendar = () => {
         />
       </div>
 
-      {/* Legend */}
-      <div className="flex flex-wrap gap-3 mt-3 px-1">
-        {activeSubjects.map((subject) => {
-          const color = EVENT_COLORS[subject] || EVENT_COLORS.default;
-          return (
-            <div key={subject} className="flex items-center gap-1.5">
-              <span
-                className="w-2.5 h-2.5 rounded-full"
-                style={{ backgroundColor: color }}
-              />
-              <span className="text-xs text-zinc-600 dark:text-zinc-400">
-                {SUBJECT_LABELS[subject] || subject}
-              </span>
-            </div>
-          );
-        })}
-      </div>
+      {activeSubjects.length > 0 && (
+        <div className="flex flex-wrap gap-3 mt-3 px-1">
+          {activeSubjects.map((subject) => {
+            const color = subjectColors[subject] || "#64748b";
+            return (
+              <div key={subject} className="flex items-center gap-1.5">
+                <span
+                  className="w-2.5 h-2.5 rounded-full"
+                  style={{ backgroundColor: color }}
+                />
+                <span className="text-xs text-zinc-600 dark:text-zinc-400">
+                  {subject}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
-      {/* Event Modal */}
       {selectedEvent && (
         <div
           className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 p-4"
@@ -288,10 +328,10 @@ const BigCalendar = () => {
               <span
                 className="inline-block mt-3 px-2.5 py-1 rounded-full text-xs font-medium text-white"
                 style={{
-                  backgroundColor: EVENT_COLORS[selectedEvent.type] || EVENT_COLORS.default,
+                  backgroundColor: subjectColors[selectedEvent.type] || "#64748b",
                 }}
               >
-                {SUBJECT_LABELS[selectedEvent.type] || selectedEvent.type}
+                {selectedEvent.type}
               </span>
             )}
 

@@ -18,7 +18,9 @@ type Teacher = {
   foto: string | null
   phone: string
   subjects: string[]
+  subjectIds: string[]
   classes: string[]
+  classIds: string[]
   address: string
 }
 
@@ -33,7 +35,7 @@ const columns = [
 
 const TeacherListPage = () => {
   const { data: session } = useSession()
-  const isAdmin = session?.user?.role === "admin"
+  const isAdmin = session?.user?.role === "school_admin"
   const { data, totalPages, page, search, setSearch, setPage, loading, refetch } = useEntityList<Teacher>({ endpoint: "/api/teachers", limit: 5 })
 
   const [createOpen, setCreateOpen] = useState(false)

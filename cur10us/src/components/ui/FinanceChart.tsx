@@ -4,20 +4,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tool
 import { CreditCard } from "lucide-react"
 import { useTheme } from "@/provider/theme"
 
-const data = [
-  { name: 'Jan', income: 4000, expense: 2400 },
-  { name: 'Fev', income: 3000, expense: 1398 },
-  { name: 'Mar', income: 2000, expense: 9800 },
-  { name: 'Abr', income: 2780, expense: 3908 },
-  { name: 'Mai', income: 2780, expense: 3908 },
-  { name: 'Jun', income: 1890, expense: 4800 },
-  { name: 'Jul', income: 2390, expense: 3800 },
-  { name: 'Ago', income: 3490, expense: 4300 },
-  { name: 'Set', income: 2780, expense: 3908 },
-  { name: 'Out', income: 1890, expense: 4800 },
-  { name: 'Nov', income: 2390, expense: 3800 },
-  { name: 'Dez', income: 3490, expense: 4300 },
-]
+const data: { name: string; income: number; expense: number }[] = []
 
 const FinanceChart = () => {
   const { theme } = useTheme()
@@ -32,7 +19,11 @@ const FinanceChart = () => {
         <CreditCard className="text-zinc-400" size={18} />
       </div>
 
-      {/* Chart */}
+      {data.length === 0 ? (
+        <div className="flex-1 flex items-center justify-center text-zinc-400 text-sm min-h-[200px]">
+          Módulo financeiro em breve
+        </div>
+      ) : (
       <div className="w-full min-h-[200px] sm:min-h-[260px]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
@@ -70,7 +61,9 @@ const FinanceChart = () => {
         </ResponsiveContainer>
       </div>
 
-      {/* Legend */}
+      )}
+
+      {data.length > 0 && (
       <div className="flex justify-center gap-4 sm:gap-6 mt-2 sm:mt-4 text-xs sm:text-sm text-zinc-700 dark:text-zinc-300">
         <div className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded-full bg-indigo-600" />
@@ -81,6 +74,7 @@ const FinanceChart = () => {
           <span>Despesa</span>
         </div>
       </div>
+      )}
     </div>
   )
 }

@@ -10,16 +10,15 @@ const baseFields = {
 
 export const createTeacherSchema = z.object({
   ...baseFields,
-  subjects: z.array(z.string().min(1)).min(1, "Informe pelo menos uma disciplina"),
-  classes: z.array(z.string().min(1)).min(1, "Informe pelo menos uma turma"),
+  subjectIds: z.array(z.string()).optional(),
+  classIds: z.array(z.string()).optional(),
 })
 
 export const updateTeacherSchema = createTeacherSchema.partial()
 
 export const createStudentSchema = z.object({
   ...baseFields,
-  classe: z.number().int().min(1, "Classe deve ser entre 1 e 13").max(13, "Classe deve ser entre 1 e 13"),
-  turma: z.string().min(1, "Turma é obrigatória").max(10, "Turma muito longa"),
+  classId: z.string().optional().nullable(),
 })
 
 export const updateStudentSchema = createStudentSchema.partial()

@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Eye, EyeOff, UserPlus, Loader2 } from "lucide-react"
 import { useState } from "react"
+import { signIn } from "next-auth/react"
 import { signUpSchema } from "@/lib/validations/auth"
 
 export default function SignUpPage() {
@@ -14,6 +15,7 @@ export default function SignUpPage() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -165,7 +167,12 @@ export default function SignUpPage() {
         {/* Google */}
         <button
           type="button"
-          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-750 transition"
+          disabled={googleLoading || loading}
+          onClick={async () => {
+            setGoogleLoading(true)
+            await signIn("google", { callbackUrl: "/dashboard" })
+          }}
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-750 transition disabled:opacity-50"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24">
             <path
@@ -185,7 +192,7 @@ export default function SignUpPage() {
               fill="#EA4335"
             />
           </svg>
-          Continuar com Google
+          {googleLoading ? "Conectando..." : "Continuar com Google"}
         </button>
       </div>
 

@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { requireRole, getSchoolId } from "@/lib/api-auth"
+import { requirePermission, getSchoolId } from "@/lib/api-auth"
 import { createTeacherSchema } from "@/lib/validations/entities"
 
 export async function GET(req: Request) {
   try {
-    const { error: authError, session } = await requireRole(["school_admin", "teacher", "student", "parent"], { requireSchool: true })
+    const { error: authError, session } = await requirePermission(["school_admin", "teacher", "student", "parent"], undefined, { requireSchool: true })
     if (authError) return authError
 
     const schoolId = getSchoolId(session!)
@@ -32,11 +32,23 @@ export async function GET(req: Request) {
         skip: (page - 1) * limit,
         take: limit,
         orderBy: { name: "asc" },
+        include: {
+          teacherSubjects: { include: { subject: true } },
+          teacherClasses: { include: { class: true } },
+        },
       }),
       prisma.teacher.count({ where }),
     ])
 
-    return NextResponse.json({ data, total, page, totalPages: Math.ceil(total / limit) })
+    const mapped = data.map((t) => ({
+      ...t,
+      subjects: t.teacherSubjects.map((ts) => ts.subject.name),
+      subjectIds: t.teacherSubjects.map((ts) => ts.subjectId),
+      classes: t.teacherClasses.map((tc) => tc.class.name),
+      classIds: t.teacherClasses.map((tc) => tc.classId),
+    }))
+
+    return NextResponse.json({ data: mapped, total, page, totalPages: Math.ceil(total / limit) })
   } catch {
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
@@ -44,7 +56,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const { error: authError, session } = await requireRole(["school_admin"], { requireSchool: true })
+    const { error: authError, session } = await requirePermission(["school_admin"], "canManageTeachers", { requireSchool: true })
     if (authError) return authError
 
     const schoolId = getSchoolId(session!)
@@ -60,7 +72,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Este e-mail já está cadastrado" }, { status: 409 })
     }
 
-    const teacher = await prisma.teacher.create({ data: { ...parsed.data, schoolId } })
+    const { subjectIds, classIds, ...teacherData } = parsed.data
+
+    const teacher = await prisma.teacher.create({
+      data: {
+        ...teacherData,
+        schoolId,
+        teacherSubjects: subjectIds?.length
+          ? { create: subjectIds.map((subjectId) => ({ subjectId })) }
+          : undefined,
+        teacherClasses: classIds?.length
+          ? { create: classIds.map((classId) => ({ classId })) }
+          : undefined,
+      },
+    })
     return NextResponse.json(teacher, { status: 201 })
   } catch {
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })

@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { Loader2, ArrowLeft, CheckCircle2, XCircle, Zap } from "lucide-react"
+import { Loader2, ArrowLeft, CheckCircle2, XCircle, Zap, RotateCcw, Ban, Trash2 } from "lucide-react"
 import StatusBadge from "@/components/ui/StatusBadge"
+import ConfirmActionModal from "@/components/ui/ConfirmActionModal"
 
 interface SchoolDetail {
   id: string
@@ -21,6 +22,13 @@ interface SchoolDetail {
   _count: { users: number; teachers: number; students: number; parents: number; applications: number }
 }
 
+const REVERT_TARGET: Record<string, string> = {
+  ativa: "aprovada",
+  aprovada: "pendente",
+  rejeitada: "pendente",
+  suspensa: "ativa",
+}
+
 export default function SchoolDetailPage() {
   const { id } = useParams()
   const router = useRouter()
@@ -29,6 +37,7 @@ export default function SchoolDetailPage() {
   const [actionLoading, setActionLoading] = useState("")
   const [rejectReason, setRejectReason] = useState("")
   const [showReject, setShowReject] = useState(false)
+  const [confirmAction, setConfirmAction] = useState<"revert" | "suspend" | "delete" | null>(null)
 
   async function fetchSchool() {
     try {
@@ -68,6 +77,38 @@ export default function SchoolDetailPage() {
     }
   }
 
+  async function handleRevert() {
+    const res = await fetch(`/api/admin/schools/${id}/revert`, { method: "POST" })
+    if (!res.ok) {
+      const data = await res.json()
+      alert(data.error || "Erro")
+      return
+    }
+    setConfirmAction(null)
+    fetchSchool()
+  }
+
+  async function handleSuspend() {
+    const res = await fetch(`/api/admin/schools/${id}/suspend`, { method: "POST" })
+    if (!res.ok) {
+      const data = await res.json()
+      alert(data.error || "Erro")
+      return
+    }
+    setConfirmAction(null)
+    fetchSchool()
+  }
+
+  async function handleDelete() {
+    const res = await fetch(`/api/admin/schools/${id}`, { method: "DELETE" })
+    if (!res.ok) {
+      const data = await res.json()
+      alert(data.error || "Erro")
+      return
+    }
+    router.replace("/admin/schools")
+  }
+
   if (loading || !school) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -79,6 +120,9 @@ export default function SchoolDetailPage() {
   const canApprove = school.status === "pendente"
   const canActivate = school.status === "aprovada"
   const canReject = school.status === "pendente" || school.status === "aprovada"
+  const canRevert = !!REVERT_TARGET[school.status]
+  const canSuspend = school.status === "ativa"
+  const revertTarget = REVERT_TARGET[school.status]
 
   return (
     <div className="p-6 max-w-3xl">
@@ -115,8 +159,9 @@ export default function SchoolDetailPage() {
         )}
 
         {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
           {[
+            { label: "Utilizadores", value: school._count.users },
             { label: "Professores", value: school._count.teachers },
             { label: "Alunos", value: school._count.students },
             { label: "Encarregados", value: school._count.parents },
@@ -192,8 +237,75 @@ export default function SchoolDetailPage() {
               </button>
             </>
           )}
+
+          {/* Revert */}
+          {canRevert && !showReject && (
+            <button
+              onClick={() => setConfirmAction("revert")}
+              disabled={!!actionLoading}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-600 text-white text-sm font-medium hover:bg-amber-700 transition disabled:opacity-50"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Reverter para {revertTarget}
+            </button>
+          )}
+
+          {/* Suspend */}
+          {canSuspend && !showReject && (
+            <button
+              onClick={() => setConfirmAction("suspend")}
+              disabled={!!actionLoading}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition disabled:opacity-50"
+            >
+              <Ban className="w-4 h-4" />
+              Suspender
+            </button>
+          )}
+
+          {/* Delete */}
+          {!showReject && (
+            <button
+              onClick={() => setConfirmAction("delete")}
+              disabled={!!actionLoading}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl border border-red-300 dark:border-red-800 text-red-600 text-sm font-medium hover:bg-red-50 dark:hover:bg-red-950/30 transition disabled:opacity-50"
+            >
+              <Trash2 className="w-4 h-4" />
+              Eliminar
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Confirm Modals */}
+      <ConfirmActionModal
+        open={confirmAction === "revert"}
+        onClose={() => setConfirmAction(null)}
+        onConfirm={handleRevert}
+        title="Reverter Estado"
+        message={`Tem certeza que deseja reverter o estado da escola "${school.name}" de "${school.status}" para "${revertTarget}"?`}
+        confirmLabel={`Reverter para ${revertTarget}`}
+        confirmColor="amber"
+      />
+
+      <ConfirmActionModal
+        open={confirmAction === "suspend"}
+        onClose={() => setConfirmAction(null)}
+        onConfirm={handleSuspend}
+        title="Suspender Escola"
+        message={`Tem certeza que deseja suspender a escola "${school.name}"? Todos os ${school._count.users} utilizadores serão desativados.`}
+        confirmLabel="Suspender"
+        confirmColor="red"
+      />
+
+      <ConfirmActionModal
+        open={confirmAction === "delete"}
+        onClose={() => setConfirmAction(null)}
+        onConfirm={handleDelete}
+        title="Eliminar Escola"
+        message={`Tem certeza que deseja eliminar permanentemente a escola "${school.name}"? Todos os dados serão perdidos. Esta ação não pode ser desfeita.`}
+        confirmLabel="Eliminar permanentemente"
+        confirmColor="red"
+      />
     </div>
   )
 }

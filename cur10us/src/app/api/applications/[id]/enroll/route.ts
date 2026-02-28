@@ -1,15 +1,24 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { requireRole } from "@/lib/api-auth"
+import { requirePermission } from "@/lib/api-auth"
 import { sendEnrollmentComplete } from "@/lib/email"
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { error: authError, session } = await requireRole(["school_admin"], { requireSchool: true })
+    const { error: authError, session } = await requirePermission(["school_admin"], "canManageApplications", { requireSchool: true })
     if (authError) return authError
 
     const { id } = await params
     const schoolId = session!.user.schoolId!
+
+    // Accept optional classId from request body
+    let classId: string | undefined
+    try {
+      const body = await _req.json()
+      classId = body.classId || undefined
+    } catch {
+      // No body or invalid JSON — classId remains undefined
+    }
 
     const application = await prisma.application.findUnique({
       where: { id },
@@ -35,11 +44,93 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
         where: { id },
         data: { status: "matriculada", userId: user.id },
       })
+
+      // Create role-specific record if it doesn't exist
+      if (application.role === "student") {
+        const existingStudent = await prisma.student.findUnique({ where: { userId: user.id } })
+        if (!existingStudent) {
+          await prisma.student.create({
+            data: {
+              name: application.name,
+              email: application.email,
+              phone: application.phone,
+              address: "",
+              userId: user.id,
+              schoolId,
+              ...(classId ? { classId } : {}),
+            },
+          })
+        } else if (classId) {
+          await prisma.student.update({ where: { id: existingStudent.id }, data: { classId } })
+        }
+      } else if (application.role === "teacher") {
+        const existingTeacher = await prisma.teacher.findUnique({ where: { userId: user.id } })
+        if (!existingTeacher) {
+          await prisma.teacher.create({
+            data: {
+              name: application.name,
+              email: application.email,
+              phone: application.phone,
+              address: "",
+              userId: user.id,
+              schoolId,
+            },
+          })
+        }
+      } else if (application.role === "parent") {
+        const existingParent = await prisma.parent.findUnique({ where: { userId: user.id } })
+        if (!existingParent) {
+          await prisma.parent.create({
+            data: {
+              name: application.name,
+              email: application.email,
+              phone: application.phone,
+              address: "",
+              userId: user.id,
+              schoolId,
+            },
+          })
+        }
+      }
     } else {
       await prisma.application.update({
         where: { id },
         data: { status: "matriculada" },
       })
+
+      // Create role-specific record without user link
+      if (application.role === "student") {
+        await prisma.student.create({
+          data: {
+            name: application.name,
+            email: application.email,
+            phone: application.phone,
+            address: "",
+            schoolId,
+            ...(classId ? { classId } : {}),
+          },
+        })
+      } else if (application.role === "teacher") {
+        await prisma.teacher.create({
+          data: {
+            name: application.name,
+            email: application.email,
+            phone: application.phone,
+            address: "",
+            schoolId,
+          },
+        })
+      } else if (application.role === "parent") {
+        await prisma.parent.create({
+          data: {
+            name: application.name,
+            email: application.email,
+            phone: application.phone,
+            address: "",
+            schoolId,
+          },
+        })
+      }
     }
 
     try {

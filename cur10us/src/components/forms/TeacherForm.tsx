@@ -1,5 +1,5 @@
 "use client"
-import { useState, KeyboardEvent } from "react"
+import { useState, useEffect } from "react"
 import FormField from "@/components/ui/FormField"
 import { createTeacherSchema } from "@/lib/validations/entities"
 import { X } from "lucide-react"
@@ -11,8 +11,10 @@ type TeacherData = {
   phone: string
   address: string
   foto?: string | null
-  subjects: string[]
-  classes: string[]
+  subjectIds?: string[]
+  classIds?: string[]
+  subjects?: string[]
+  classes?: string[]
 }
 
 type Props = {
@@ -21,6 +23,8 @@ type Props = {
   onSuccess: () => void
   onCancel: () => void
 }
+
+type Option = { id: string; name: string }
 
 const inputClass = "w-full px-3 py-2 rounded-xl text-sm bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-indigo-500 transition"
 
@@ -31,32 +35,25 @@ const TeacherForm = ({ mode, initialData, onSuccess, onCancel }: Props) => {
     phone: initialData?.phone || "",
     address: initialData?.address || "",
     foto: initialData?.foto || "",
-    subjects: initialData?.subjects || [],
-    classes: initialData?.classes || [],
+    subjectIds: initialData?.subjectIds || [],
+    classIds: initialData?.classIds || [],
   })
-  const [subjectInput, setSubjectInput] = useState("")
-  const [classInput, setClassInput] = useState("")
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
   const [apiError, setApiError] = useState("")
+  const [subjectOptions, setSubjectOptions] = useState<Option[]>([])
+  const [classOptions, setClassOptions] = useState<Option[]>([])
 
-  const addTag = (field: "subjects" | "classes", value: string) => {
-    const trimmed = value.trim()
-    if (trimmed && !form[field].includes(trimmed)) {
-      setForm((f) => ({ ...f, [field]: [...f[field], trimmed] }))
-    }
-  }
+  useEffect(() => {
+    fetch("/api/subjects?limit=100").then(r => r.json()).then(d => setSubjectOptions(d.data || []))
+    fetch("/api/classes?limit=100").then(r => r.json()).then(d => setClassOptions(d.data || []))
+  }, [])
 
-  const removeTag = (field: "subjects" | "classes", index: number) => {
-    setForm((f) => ({ ...f, [field]: f[field].filter((_, i) => i !== index) }))
-  }
-
-  const handleTagKey = (e: KeyboardEvent<HTMLInputElement>, field: "subjects" | "classes", setter: (v: string) => void, value: string) => {
-    if (e.key === "Enter" || e.key === ",") {
-      e.preventDefault()
-      addTag(field, value)
-      setter("")
-    }
+  const toggleId = (field: "subjectIds" | "classIds", id: string) => {
+    setForm((f) => ({
+      ...f,
+      [field]: f[field].includes(id) ? f[field].filter((v) => v !== id) : [...f[field], id],
+    }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -124,40 +121,44 @@ const TeacherForm = ({ mode, initialData, onSuccess, onCancel }: Props) => {
         <input className={inputClass} value={form.address} onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))} />
       </FormField>
 
-      <FormField label="Disciplinas (Enter para adicionar)" error={errors.subjects}>
+      <FormField label="Disciplinas" error={errors.subjectIds}>
         <div className="flex flex-wrap gap-1.5 mb-1">
-          {form.subjects.map((s, i) => (
-            <span key={i} className="flex items-center gap-1 px-2 py-0.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-lg text-xs font-medium">
-              {s}
-              <button type="button" onClick={() => removeTag("subjects", i)}><X size={12} /></button>
-            </span>
-          ))}
+          {form.subjectIds.map((id) => {
+            const s = subjectOptions.find((o) => o.id === id)
+            return s ? (
+              <span key={id} className="flex items-center gap-1 px-2 py-0.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-lg text-xs font-medium">
+                {s.name}
+                <button type="button" onClick={() => toggleId("subjectIds", id)}><X size={12} /></button>
+              </span>
+            ) : null
+          })}
         </div>
-        <input
-          className={inputClass}
-          value={subjectInput}
-          onChange={(e) => setSubjectInput(e.target.value)}
-          onKeyDown={(e) => handleTagKey(e, "subjects", setSubjectInput, subjectInput)}
-          placeholder="Digite e pressione Enter"
-        />
+        <select className={inputClass} value="" onChange={(e) => { if (e.target.value) toggleId("subjectIds", e.target.value) }}>
+          <option value="">Selecionar disciplina...</option>
+          {subjectOptions.filter((o) => !form.subjectIds.includes(o.id)).map((o) => (
+            <option key={o.id} value={o.id}>{o.name}</option>
+          ))}
+        </select>
       </FormField>
 
-      <FormField label="Turmas (Enter para adicionar)" error={errors.classes}>
+      <FormField label="Turmas" error={errors.classIds}>
         <div className="flex flex-wrap gap-1.5 mb-1">
-          {form.classes.map((c, i) => (
-            <span key={i} className="flex items-center gap-1 px-2 py-0.5 bg-cyan-50 dark:bg-cyan-950/40 text-cyan-600 dark:text-cyan-400 rounded-lg text-xs font-medium">
-              {c}
-              <button type="button" onClick={() => removeTag("classes", i)}><X size={12} /></button>
-            </span>
-          ))}
+          {form.classIds.map((id) => {
+            const c = classOptions.find((o) => o.id === id)
+            return c ? (
+              <span key={id} className="flex items-center gap-1 px-2 py-0.5 bg-cyan-50 dark:bg-cyan-950/40 text-cyan-600 dark:text-cyan-400 rounded-lg text-xs font-medium">
+                {c.name}
+                <button type="button" onClick={() => toggleId("classIds", id)}><X size={12} /></button>
+              </span>
+            ) : null
+          })}
         </div>
-        <input
-          className={inputClass}
-          value={classInput}
-          onChange={(e) => setClassInput(e.target.value)}
-          onKeyDown={(e) => handleTagKey(e, "classes", setClassInput, classInput)}
-          placeholder="Digite e pressione Enter"
-        />
+        <select className={inputClass} value="" onChange={(e) => { if (e.target.value) toggleId("classIds", e.target.value) }}>
+          <option value="">Selecionar turma...</option>
+          {classOptions.filter((o) => !form.classIds.includes(o.id)).map((o) => (
+            <option key={o.id} value={o.id}>{o.name}</option>
+          ))}
+        </select>
       </FormField>
 
       <div className="flex items-center gap-3 justify-end pt-2">

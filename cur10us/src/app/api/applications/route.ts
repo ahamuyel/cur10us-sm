@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { requireRole } from "@/lib/api-auth"
+import { requirePermission } from "@/lib/api-auth"
 import { createApplicationSchema } from "@/lib/validations/application"
 import { sendApplicationConfirmation } from "@/lib/email"
 
@@ -32,7 +32,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Já existe uma solicitação pendente para este e-mail nesta escola" }, { status: 409 })
     }
 
-    const application = await prisma.application.create({ data: parsed.data })
+    const { dateOfBirth, documentType, documentNumber, desiredCourseId, ...rest } = parsed.data
+    const application = await prisma.application.create({
+      data: {
+        ...rest,
+        documentType: documentType || undefined,
+        documentNumber: documentNumber || undefined,
+        desiredCourseId: desiredCourseId || undefined,
+        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
+      },
+    })
 
     try {
       await sendApplicationConfirmation(application.email, application.name, application.trackingToken)
@@ -52,7 +61,7 @@ export async function POST(req: Request) {
 // GET — school_admin (list applications for their school)
 export async function GET(req: Request) {
   try {
-    const { error: authError, session } = await requireRole(["school_admin"], { requireSchool: true })
+    const { error: authError, session } = await requirePermission(["school_admin"], "canManageApplications", { requireSchool: true })
     if (authError) return authError
 
     const schoolId = session!.user.schoolId!
