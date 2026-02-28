@@ -11,7 +11,11 @@ export default function DashboardHub() {
 
   useEffect(() => {
     if (status === "authenticated" && session?.user?.id) {
-      router.replace(`/dashboard/${session.user.id}`)
+      if (session.user.role === "super_admin") {
+        router.replace("/admin")
+      } else {
+        router.replace(`/dashboard/${session.user.id}`)
+      }
     }
     if (status === "unauthenticated") {
       router.replace("/signin")

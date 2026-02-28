@@ -8,10 +8,68 @@ datasource db {
 }
 
 enum Role {
-  admin
+  super_admin
+  school_admin
   teacher
   student
   parent
+}
+
+enum SchoolStatus {
+  pendente
+  aprovada
+  ativa
+  suspensa
+  rejeitada
+}
+
+enum ApplicationStatus {
+  pendente
+  em_analise
+  aprovada
+  matriculada
+  rejeitada
+}
+
+model School {
+  id           String       @id @default(cuid())
+  name         String
+  slug         String       @unique
+  cnpj         String?
+  email        String       @unique
+  phone        String
+  address      String
+  city         String
+  state        String
+  logo         String?
+  status       SchoolStatus @default(pendente)
+  rejectReason String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  users        User[]
+  teachers     Teacher[]
+  students     Student[]
+  parents      Parent[]
+  applications Application[]
+}
+
+model Application {
+  id            String            @id @default(cuid())
+  name          String
+  email         String
+  phone         String
+  role          Role
+  message       String?
+  status        ApplicationStatus @default(pendente)
+  rejectReason  String?
+  trackingToken String            @unique @default(cuid())
+  schoolId      String
+  school        School            @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  userId        String?           @unique
+  user          User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
 }
 
 model User {
@@ -21,6 +79,9 @@ model User {
   hashedPassword String
   role           Role     @default(student)
   image          String?
+  isActive       Boolean  @default(false)
+  schoolId       String?
+  school         School?  @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -28,6 +89,7 @@ model User {
   teacher             Teacher?
   student             Student?
   parent              Parent?
+  application         Application?
 }
 
 model PasswordResetToken {
@@ -49,6 +111,8 @@ model Teacher {
   classes   String[]
   userId    String?  @unique
   user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  schoolId  String
+  school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -64,6 +128,8 @@ model Student {
   turma     String
   userId    String?  @unique
   user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  schoolId  String
+  school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   parents   Parent[] @relation("ParentStudents")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -78,6 +144,8 @@ model Parent {
   foto      String?
   userId    String?   @unique
   user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  schoolId  String
+  school    School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   students  Student[] @relation("ParentStudents")
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt

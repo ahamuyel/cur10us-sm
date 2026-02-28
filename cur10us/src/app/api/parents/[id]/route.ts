@@ -1,16 +1,21 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { requireRole } from "@/lib/api-auth"
+import { requireRole, getSchoolId } from "@/lib/api-auth"
 import { updateParentSchema } from "@/lib/validations/entities"
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { error: authError, session } = await requireRole(["school_admin", "teacher", "student", "parent"], { requireSchool: true })
+    if (authError) return authError
+
+    const schoolId = getSchoolId(session!)
     const { id } = await params
     const parent = await prisma.parent.findUnique({
       where: { id },
       include: { students: { select: { id: true, name: true } } },
     })
-    if (!parent) {
+
+    if (!parent || parent.schoolId !== schoolId) {
       return NextResponse.json({ error: "Responsável não encontrado" }, { status: 404 })
     }
     return NextResponse.json(parent)
@@ -21,10 +26,17 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { error: authError } = await requireRole(["admin"])
+    const { error: authError, session } = await requireRole(["school_admin"], { requireSchool: true })
     if (authError) return authError
 
+    const schoolId = getSchoolId(session!)
     const { id } = await params
+
+    const existing = await prisma.parent.findUnique({ where: { id } })
+    if (!existing || existing.schoolId !== schoolId) {
+      return NextResponse.json({ error: "Responsável não encontrado" }, { status: 404 })
+    }
+
     const body = await req.json()
     const parsed = updateParentSchema.safeParse(body)
 
@@ -53,10 +65,17 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { error: authError } = await requireRole(["admin"])
+    const { error: authError, session } = await requireRole(["school_admin"], { requireSchool: true })
     if (authError) return authError
 
+    const schoolId = getSchoolId(session!)
     const { id } = await params
+
+    const existing = await prisma.parent.findUnique({ where: { id } })
+    if (!existing || existing.schoolId !== schoolId) {
+      return NextResponse.json({ error: "Responsável não encontrado" }, { status: 404 })
+    }
+
     await prisma.parent.delete({ where: { id } })
     return NextResponse.json({ success: true })
   } catch {

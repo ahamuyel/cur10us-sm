@@ -18,7 +18,8 @@ import {
   Megaphone,
   CircleUser,
   Settings,
-  LogOut
+  LogOut,
+  Inbox,
 } from "lucide-react";
 
 const menuItems = [
@@ -29,73 +30,79 @@ const menuItems = [
                 icon: Home,
                 label: "Início",
                 href: "/dashboard",
-                visible: ["admin", "teacher", "student", "parent"]
+                visible: ["school_admin", "teacher", "student", "parent"]
+            },
+            {
+                icon: Inbox,
+                label: "Solicitações",
+                href: "/list/applications",
+                visible: ["school_admin"]
             },
             {
                 icon: UserRound,
                 label: "Professores",
                 href: "/list/teachers",
-                visible: ["admin", "teacher"]
+                visible: ["school_admin", "teacher"]
             },
             {
                 icon: Users,
                 label: "Alunos",
                 href: "/list/students",
-                visible: ["admin", "teacher"]
+                visible: ["school_admin", "teacher"]
             },
             {
                 icon: UserCheck,
                 label: "Responsáveis",
                 href: "/list/parents",
-                visible: ["admin", "teacher"]
+                visible: ["school_admin", "teacher"]
             },
             {
                 icon: Presentation,
                 label: "Turmas",
                 href: "/list/classes",
-                visible: ["admin", "teacher"]
+                visible: ["school_admin", "teacher"]
             },
             {
                 icon: BookOpen,
                 label: "Aulas",
                 href: "/list/lessons",
-                visible: ["admin", "teacher"]
+                visible: ["school_admin", "teacher"]
             },
             {
                 icon: FileText,
                 label: "Provas",
                 href: "/list/exams",
-                visible: ["admin", "teacher", "student", "parent"]
+                visible: ["school_admin", "teacher", "student", "parent"]
             },
             {
                 icon: ClipboardList,
                 label: "Tarefas",
                 href: "/list/assignments",
-                visible: ["admin", "teacher", "student", "parent"]
+                visible: ["school_admin", "teacher", "student", "parent"]
             },
             {
                 icon: GraduationCap,
                 label: "Resultados",
                 href: "/list/results",
-                visible: ["admin", "teacher", "student", "parent"]
+                visible: ["school_admin", "teacher", "student", "parent"]
             },
             {
                 icon: CalendarCheck,
                 label: "Frequência",
                 href: "/list/attendance",
-                visible: ["admin", "teacher", "student", "parent"]
+                visible: ["school_admin", "teacher", "student", "parent"]
             },
             {
                 icon: MessageSquare,
                 label: "Mensagens",
                 href: "/list/messages",
-                visible: ["admin", "teacher", "student", "parent"]
+                visible: ["school_admin", "teacher", "student", "parent"]
             },
             {
                 icon: Megaphone,
                 label: "Avisos",
                 href: "/list/announcements",
-                visible: ["admin", "teacher", "student", "parent"]
+                visible: ["school_admin", "teacher", "student", "parent"]
             },
         ]
     },
@@ -106,13 +113,13 @@ const menuItems = [
                 icon: CircleUser,
                 label: "Perfil",
                 href: "/profile",
-                visible: ["admin", "teacher", "student", "parent"]
+                visible: ["school_admin", "teacher", "student", "parent"]
             },
             {
                 icon: Settings,
                 label: "Configurações",
                 href: "/settings",
-                visible: ["admin", "teacher", "student", "parent"]
+                visible: ["school_admin", "teacher", "student", "parent"]
             },
         ]
     }

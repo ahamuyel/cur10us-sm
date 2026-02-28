@@ -1,8 +1,4 @@
 @import "tailwindcss";
-/* Tailwind já importa os utilitários */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 /* Estilos globais adicionais */
 html, body {
@@ -65,4 +61,30 @@ html, body {
   overflow-x: hidden;
 }
 
-
+/* Styled scrollbar — thin, themed */
+.styled-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+.styled-scroll:hover {
+  scrollbar-color: var(--scroll-thumb, rgba(0,0,0,0.15)) transparent;
+}
+.dark .styled-scroll:hover {
+  scrollbar-color: rgba(255,255,255,0.12) transparent;
+}
+.styled-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.styled-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.styled-scroll::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 9999px;
+}
+.styled-scroll:hover::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.15);
+}
+.dark .styled-scroll:hover::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.12);
+}

@@ -6,17 +6,50 @@ const prisma = new PrismaClient()
 async function main() {
   const hashedPassword = await hash("cur10usx", 12)
 
+  // 1. Super Admin (no school)
   await prisma.user.upsert({
-    where: { email: "admin@cur10usx.com" },
-    update: { hashedPassword },
+    where: { email: "super@cur10usx.com" },
+    update: { hashedPassword, role: "super_admin", isActive: true },
     create: {
-      name: "Administrador",
-      email: "admin@cur10usx.com",
+      name: "Super Admin",
+      email: "super@cur10usx.com",
       hashedPassword,
-      role: "admin",
+      role: "super_admin",
+      isActive: true,
     },
   })
 
+  // 2. Demo School
+  const school = await prisma.school.upsert({
+    where: { slug: "demo-escola" },
+    update: {},
+    create: {
+      name: "Escola Demo",
+      slug: "demo-escola",
+      email: "contato@demo-escola.com",
+      phone: "11999999999",
+      address: "Rua Principal, 100",
+      city: "São Paulo",
+      state: "SP",
+      status: "ativa",
+    },
+  })
+
+  // 3. School Admin
+  await prisma.user.upsert({
+    where: { email: "admin@demo-escola.com" },
+    update: { hashedPassword, role: "school_admin", schoolId: school.id, isActive: true },
+    create: {
+      name: "Administrador Escolar",
+      email: "admin@demo-escola.com",
+      hashedPassword,
+      role: "school_admin",
+      schoolId: school.id,
+      isActive: true,
+    },
+  })
+
+  // 4. Teachers
   const teachers = [
     { name: "João Silva", email: "joao@silva.com", phone: "11999999999", subjects: ["Matemática", "Geometria"], classes: ["1B", "2A", "3C"], address: "Rua Principal, 123, São Paulo, SP", foto: "https://images.pexels.com/photos/2888150/pexels-photo-2888150.jpeg?auto=compress&cs=tinysrgb&w=1200" },
     { name: "Joana Santos", email: "joana@santos.com", phone: "11999999999", subjects: ["Física", "Química"], classes: ["5A", "4B", "3C"], address: "Avenida Central, 456, Rio de Janeiro, RJ", foto: "https://images.pexels.com/photos/936126/pexels-photo-936126.jpeg?auto=compress&cs=tinysrgb&w=1200" },
@@ -33,11 +66,12 @@ async function main() {
   for (const t of teachers) {
     await prisma.teacher.upsert({
       where: { email: t.email },
-      update: t,
-      create: t,
+      update: { ...t, schoolId: school.id },
+      create: { ...t, schoolId: school.id },
     })
   }
 
+  // 5. Students
   const students = [
     { name: "Joãozinho Silva", email: "joaozinho@silva.com", phone: "11999999999", serie: 5, turma: "1B", address: "Rua Principal, 123, São Paulo, SP", foto: "https://images.pexels.com/photos/2888150/pexels-photo-2888150.jpeg?auto=compress&cs=tinysrgb&w=1200" },
     { name: "Maria Oliveira", email: "maria@oliveira.com", phone: "11988888888", serie: 6, turma: "2A", address: "Avenida Central, 456, Rio de Janeiro, RJ", foto: "https://images.pexels.com/photos/1139743/pexels-photo-1139743.jpeg?auto=compress&cs=tinysrgb&w=1200" },
@@ -55,12 +89,13 @@ async function main() {
   for (const s of students) {
     const student = await prisma.student.upsert({
       where: { email: s.email },
-      update: s,
-      create: s,
+      update: { ...s, schoolId: school.id },
+      create: { ...s, schoolId: school.id },
     })
     createdStudents[s.name] = student.id
   }
 
+  // 6. Parents
   const parents = [
     { name: "Carlos Silva", email: "carlos@silva.com", phone: "11999999999", address: "Rua Principal, 123, São Paulo, SP", foto: "https://images.pexels.com/photos/2888150/pexels-photo-2888150.jpeg?auto=compress&cs=tinysrgb&w=1200", studentNames: ["Joãozinho Silva"] },
     { name: "Fernanda Oliveira", email: "fernanda@oliveira.com", phone: "11988888888", address: "Avenida Central, 456, Rio de Janeiro, RJ", foto: "https://images.pexels.com/photos/936126/pexels-photo-936126.jpeg?auto=compress&cs=tinysrgb&w=1200", studentNames: ["Maria Oliveira"] },
@@ -83,16 +118,18 @@ async function main() {
       where: { email: p.email },
       update: {
         ...p,
+        schoolId: school.id,
         students: { set: studentIds.map((id) => ({ id })) },
       },
       create: {
         ...p,
+        schoolId: school.id,
         students: { connect: studentIds.map((id) => ({ id })) },
       },
     })
   }
 
-  console.log("Seed concluído: admin + 10 teachers + 10 students + 10 parents")
+  console.log("Seed concluído: super_admin + escola demo + school_admin + 10 teachers + 10 students + 10 parents")
 }
 
 main()
