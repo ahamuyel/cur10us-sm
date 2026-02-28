@@ -94,6 +94,23 @@ export async function sendSchoolApproved(to: string, schoolName: string) {
   })
 }
 
+export async function sendSchoolActivated(to: string, schoolName: string, tempPassword: string) {
+  const loginUrl = `${baseUrl}/signin`
+  await getResend().emails.send({
+    from,
+    to,
+    subject: "Escola activada — Cur10usX",
+    html: wrap(
+      "Escola activada!",
+      `<p>A escola <strong>${schoolName}</strong> foi activada na plataforma Cur10usX!</p>
+       <p>Uma conta de administrador foi criada para si. Use as seguintes credenciais para aceder:</p>
+       <p><strong>E-mail:</strong> ${to}<br/><strong>Palavra-passe temporária:</strong> ${tempPassword}</p>
+       <p><a href="${loginUrl}" style="display:inline-block;padding:12px 24px;background:#6366f1;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;">Aceder ao Cur10usX</a></p>
+       <p style="color:#71717a;font-size:13px;">Recomendamos que altere a sua palavra-passe após o primeiro acesso.</p>`
+    ),
+  })
+}
+
 export async function sendSchoolRejected(to: string, schoolName: string, reason: string) {
   await getResend().emails.send({
     from,
