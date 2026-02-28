@@ -1,4 +1,3 @@
-import Image from "next/image"
 import Link from "next/link"
 
 export default function AuthLayout({
@@ -11,7 +10,6 @@ export default function AuthLayout({
       {/* Header */}
       <header className="px-6 py-4">
         <Link href="/" className="inline-flex items-center gap-2">
-          <Image src="/logo.png" alt="Cur10usX" width={32} height={32} />
           <span className="text-lg font-bold tracking-tight">
             Cur10us<span className="text-indigo-600 dark:text-indigo-400">X</span>
           </span>
