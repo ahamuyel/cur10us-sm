@@ -28,7 +28,7 @@ const menuItems = [
             {
                 icon: Home,
                 label: "Início",
-                href: "/admin",
+                href: "/dashboard",
                 visible: ["admin", "teacher", "student", "parent"]
             },
             {
@@ -121,7 +121,7 @@ const menuItems = [
 const Menu = () => {
     const { data: session } = useSession()
     const role = session?.user?.role || "student"
-    const homePath = getDashboardPath(role)
+    const homePath = getDashboardPath(session?.user?.id)
 
     return (
         <div className="mt-4 text-sm">

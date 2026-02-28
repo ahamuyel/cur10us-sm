@@ -21,7 +21,7 @@ export function middleware(req: NextRequest) {
   // Auth pages — redirect to dashboard if already logged in
   if (authPages.some((p) => pathname.startsWith(p))) {
     if (isLoggedIn) {
-      return NextResponse.redirect(new URL("/admin", req.url))
+      return NextResponse.redirect(new URL("/dashboard", req.url))
     }
     return NextResponse.next()
   }

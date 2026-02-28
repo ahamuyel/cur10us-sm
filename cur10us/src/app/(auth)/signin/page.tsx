@@ -40,7 +40,7 @@ export default function SignInPage() {
       }
 
       const session = await getSession()
-      const dashboard = getDashboardPath(session?.user?.role)
+      const dashboard = getDashboardPath(session?.user?.id)
       router.push(dashboard)
       router.refresh()
     } catch {

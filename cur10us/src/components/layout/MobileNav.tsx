@@ -20,10 +20,10 @@ import {
 import { useState } from "react"
 
 const navItems = [
-  { icon: LayoutDashboard, label: "Início", href: "/admin" },
+  { icon: LayoutDashboard, label: "Início", href: "/dashboard" },
   { icon: UserRound, label: "Professores", href: "/list/teachers" },
   { icon: Users, label: "Alunos", href: "/list/students" },
-  { icon: CalendarDays, label: "Agenda", href: "/teacher" },
+  { icon: CalendarDays, label: "Agenda", href: "/list/lessons" },
 ]
 
 const moreItems = [
@@ -37,7 +37,7 @@ const moreItems = [
 const MobileNav = () => {
   const pathname = usePathname()
   const { data: session } = useSession()
-  const homePath = getDashboardPath(session?.user?.role)
+  const homePath = getDashboardPath(session?.user?.id)
   const [showMore, setShowMore] = useState(false)
 
   return (
