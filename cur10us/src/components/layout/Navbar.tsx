@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useSession } from "next-auth/react"
 import {
   Search,
   MessageCircle,
@@ -10,8 +11,19 @@ import {
 import Image from "next/image"
 import ThemeToggle from "@/components/ui/ThemeToggle"
 
+const roleLabels: Record<string, string> = {
+  admin: "Admin",
+  teacher: "Professor",
+  student: "Aluno",
+  parent: "Responsável",
+}
+
 const NavBar = () => {
   const [searchOpen, setSearchOpen] = useState(false)
+  const { data: session } = useSession()
+
+  const userName = session?.user?.name || "Usuário"
+  const userRole = session?.user?.role || ""
 
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 border-b border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md gap-2">
@@ -78,10 +90,10 @@ const NavBar = () => {
         {/* USER INFO */}
         <div className="hidden sm:flex flex-col leading-tight text-right">
           <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-100">
-            Kelcio Fragoso
+            {userName}
           </span>
           <span className="text-[10px] text-zinc-500">
-            Admin
+            {roleLabels[userRole] || userRole}
           </span>
         </div>
 

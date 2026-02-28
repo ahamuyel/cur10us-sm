@@ -1,11 +1,53 @@
 "use client"
 
 import Link from "next/link"
-import { Eye, EyeOff, UserPlus } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Eye, EyeOff, UserPlus, Loader2 } from "lucide-react"
 import { useState } from "react"
+import { signUpSchema } from "@/lib/validations/auth"
 
 export default function SignUpPage() {
+  const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [role, setRole] = useState("")
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setError("")
+
+    const parsed = signUpSchema.safeParse({ name, email, role, password })
+    if (!parsed.success) {
+      setError(parsed.error.issues[0].message)
+      return
+    }
+
+    setLoading(true)
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, role, password }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        setError(data.error || "Erro ao criar conta")
+        return
+      }
+
+      router.push("/signin")
+    } catch {
+      setError("Erro de conexão. Tente novamente.")
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <div className="w-full max-w-md">
@@ -17,7 +59,13 @@ export default function SignUpPage() {
           </p>
         </div>
 
-        <form className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 text-sm text-red-600 dark:text-red-400">
+              {error}
+            </div>
+          )}
+
           {/* Name */}
           <div>
             <label
@@ -30,6 +78,9 @@ export default function SignUpPage() {
               id="name"
               type="text"
               placeholder="Seu nome"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              disabled={loading}
               className="w-full px-4 py-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
             />
           </div>
@@ -46,6 +97,9 @@ export default function SignUpPage() {
               id="email"
               type="email"
               placeholder="seu@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={loading}
               className="w-full px-4 py-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
             />
           </div>
@@ -60,6 +114,9 @@ export default function SignUpPage() {
             </label>
             <select
               id="role"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              disabled={loading}
               className="w-full px-4 py-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm text-zinc-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition appearance-none"
             >
               <option value="">Selecione seu perfil</option>
@@ -82,6 +139,9 @@ export default function SignUpPage() {
                 id="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Mínimo 8 caracteres"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
                 className="w-full px-4 py-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition pr-10"
               />
               <button
@@ -101,10 +161,15 @@ export default function SignUpPage() {
           {/* Submit */}
           <button
             type="submit"
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 text-white font-medium text-sm hover:bg-indigo-700 shadow-lg shadow-indigo-600/25 transition mt-2"
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 text-white font-medium text-sm hover:bg-indigo-700 shadow-lg shadow-indigo-600/25 transition mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <UserPlus className="w-4 h-4" />
-            Criar conta
+            {loading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <UserPlus className="w-4 h-4" />
+            )}
+            {loading ? "Criando conta..." : "Criar conta"}
           </button>
         </form>
 

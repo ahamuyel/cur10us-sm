@@ -1,11 +1,51 @@
 "use client"
 
 import Link from "next/link"
-import { Eye, EyeOff, LogIn } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Eye, EyeOff, LogIn, Loader2 } from "lucide-react"
 import { useState } from "react"
+import { signIn } from "next-auth/react"
+import { signInSchema } from "@/lib/validations/auth"
 
 export default function SignInPage() {
+  const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setError("")
+
+    const parsed = signInSchema.safeParse({ email, password })
+    if (!parsed.success) {
+      setError(parsed.error.issues[0].message)
+      return
+    }
+
+    setLoading(true)
+    try {
+      const res = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      })
+
+      if (res?.error) {
+        setError("E-mail ou senha incorretos")
+        return
+      }
+
+      router.push("/admin")
+      router.refresh()
+    } catch {
+      setError("Erro de conexão. Tente novamente.")
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <div className="w-full max-w-md">
@@ -17,7 +57,13 @@ export default function SignInPage() {
           </p>
         </div>
 
-        <form className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 text-sm text-red-600 dark:text-red-400">
+              {error}
+            </div>
+          )}
+
           {/* Email */}
           <div>
             <label
@@ -30,6 +76,9 @@ export default function SignInPage() {
               id="email"
               type="email"
               placeholder="seu@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={loading}
               className="w-full px-4 py-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
             />
           </div>
@@ -55,6 +104,9 @@ export default function SignInPage() {
                 id="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
                 className="w-full px-4 py-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition pr-10"
               />
               <button
@@ -74,10 +126,15 @@ export default function SignInPage() {
           {/* Submit */}
           <button
             type="submit"
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 text-white font-medium text-sm hover:bg-indigo-700 shadow-lg shadow-indigo-600/25 transition mt-2"
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 text-white font-medium text-sm hover:bg-indigo-700 shadow-lg shadow-indigo-600/25 transition mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <LogIn className="w-4 h-4" />
-            Entrar
+            {loading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <LogIn className="w-4 h-4" />
+            )}
+            {loading ? "Entrando..." : "Entrar"}
           </button>
         </form>
 

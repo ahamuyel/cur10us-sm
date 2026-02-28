@@ -1,11 +1,15 @@
 "use client"
 
 import Link from "next/link"
-import { Mail, ArrowLeft, CheckCircle2 } from "lucide-react"
+import { Mail, ArrowLeft, CheckCircle2, Loader2 } from "lucide-react"
 import { useState } from "react"
+import { forgotPasswordSchema } from "@/lib/validations/auth"
 
 export default function ForgotPasswordPage() {
+  const [email, setEmail] = useState("")
   const [submitted, setSubmitted] = useState(false)
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
 
   if (submitted) {
     return (
@@ -31,6 +35,33 @@ export default function ForgotPasswordPage() {
     )
   }
 
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setError("")
+
+    const parsed = forgotPasswordSchema.safeParse({ email })
+    if (!parsed.success) {
+      setError(parsed.error.issues[0].message)
+      return
+    }
+
+    setLoading(true)
+    try {
+      await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      })
+
+      // Always show success to prevent email enumeration
+      setSubmitted(true)
+    } catch {
+      setError("Erro de conexão. Tente novamente.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="w-full max-w-md">
       <div className="rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm p-8">
@@ -44,13 +75,13 @@ export default function ForgotPasswordPage() {
           </p>
         </div>
 
-        <form
-          className="space-y-4"
-          onSubmit={(e) => {
-            e.preventDefault()
-            setSubmitted(true)
-          }}
-        >
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 text-sm text-red-600 dark:text-red-400">
+              {error}
+            </div>
+          )}
+
           {/* Email */}
           <div>
             <label
@@ -63,6 +94,9 @@ export default function ForgotPasswordPage() {
               id="email"
               type="email"
               placeholder="seu@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={loading}
               className="w-full px-4 py-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
             />
           </div>
@@ -70,10 +104,15 @@ export default function ForgotPasswordPage() {
           {/* Submit */}
           <button
             type="submit"
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 text-white font-medium text-sm hover:bg-indigo-700 shadow-lg shadow-indigo-600/25 transition"
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 text-white font-medium text-sm hover:bg-indigo-700 shadow-lg shadow-indigo-600/25 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Mail className="w-4 h-4" />
-            Enviar link de recuperação
+            {loading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Mail className="w-4 h-4" />
+            )}
+            {loading ? "Enviando..." : "Enviar link de recuperação"}
           </button>
         </form>
       </div>
