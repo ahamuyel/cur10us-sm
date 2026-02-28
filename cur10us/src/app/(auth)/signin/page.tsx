@@ -4,8 +4,9 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Eye, EyeOff, LogIn, Loader2 } from "lucide-react"
 import { useState } from "react"
-import { signIn } from "next-auth/react"
+import { signIn, getSession } from "next-auth/react"
 import { signInSchema } from "@/lib/validations/auth"
+import { getDashboardPath } from "@/lib/routes"
 
 export default function SignInPage() {
   const router = useRouter()
@@ -38,7 +39,9 @@ export default function SignInPage() {
         return
       }
 
-      router.push("/admin")
+      const session = await getSession()
+      const dashboard = getDashboardPath(session?.user?.role)
+      router.push(dashboard)
       router.refresh()
     } catch {
       setError("Erro de conexão. Tente novamente.")

@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { useSession, signOut } from "next-auth/react"
+import { getDashboardPath } from "@/lib/routes"
 import {
   Home,
   UserRound,
@@ -120,6 +121,7 @@ const menuItems = [
 const Menu = () => {
     const { data: session } = useSession()
     const role = session?.user?.role || "student"
+    const homePath = getDashboardPath(role)
 
     return (
         <div className="mt-4 text-sm">
@@ -130,9 +132,10 @@ const Menu = () => {
                     </span>
                     {i.items.map((item) => {
                         if (item.visible.includes(role)) {
+                            const href = item.label === "Início" ? homePath : item.href
                             return (
                                 <Link
-                                    href={item.href}
+                                    href={href}
                                     key={item.label}
                                     className="flex items-center justify-center lg:justify-start gap-4 text-zinc-500 dark:text-zinc-400 py-2 rounded-lg md:px-2 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                                 >
