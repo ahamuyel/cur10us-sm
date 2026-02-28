@@ -111,6 +111,21 @@ export async function sendSchoolActivated(to: string, schoolName: string, tempPa
   })
 }
 
+export async function sendSchoolActivatedExistingAdmin(to: string, schoolName: string) {
+  const loginUrl = `${baseUrl}/signin`
+  await getResend().emails.send({
+    from,
+    to,
+    subject: "Escola activada — Cur10usX",
+    html: wrap(
+      "Escola activada!",
+      `<p>A escola <strong>${schoolName}</strong> foi activada na plataforma Cur10usX!</p>
+       <p>Pode aceder à plataforma com as credenciais que usou no registo.</p>
+       <p><a href="${loginUrl}" style="display:inline-block;padding:12px 24px;background:#6366f1;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;">Aceder ao Cur10usX</a></p>`
+    ),
+  })
+}
+
 export async function sendSchoolRejected(to: string, schoolName: string, reason: string) {
   await getResend().emails.send({
     from,

@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { requireRole } from "@/lib/api-auth"
 import { hash } from "bcryptjs"
 import crypto from "crypto"
-import { sendSchoolActivated } from "@/lib/email"
+import { sendSchoolActivated, sendSchoolActivatedExistingAdmin } from "@/lib/email"
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -16,16 +16,24 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       data: { status: "ativa" },
     })
 
-    // Find or create the school_admin for this school
+    // Find existing school_admin (active or inactive from self-registration)
     let admin = await prisma.user.findFirst({
-      where: { schoolId: id, role: "school_admin", isActive: true },
+      where: { schoolId: id, role: "school_admin" },
       orderBy: { createdAt: "asc" },
     })
 
     let tempPassword: string | null = null
+    let existingAdmin = false
 
-    if (!admin) {
-      // No school_admin exists — create one using the school's email
+    if (admin && !admin.isActive) {
+      // Self-registered admin — activate their account
+      await prisma.user.update({
+        where: { id: admin.id },
+        data: { isActive: true },
+      })
+      existingAdmin = true
+    } else if (!admin) {
+      // No school_admin exists — create one using the school's email (fallback for schools created by super admin)
       tempPassword = crypto.randomBytes(6).toString("base64url") // e.g. "aB3dEf1g"
       const hashedPassword = await hash(tempPassword, 12)
 
@@ -68,18 +76,21 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       },
     })
 
-    // Send activation email with credentials if a new admin was created
-    if (tempPassword) {
-      try {
+    // Send activation email
+    try {
+      if (tempPassword) {
         await sendSchoolActivated(school.email, school.name, tempPassword)
-      } catch {
-        // Email delivery failure shouldn't block activation
+      } else if (existingAdmin) {
+        await sendSchoolActivatedExistingAdmin(admin.email, school.name)
       }
+    } catch {
+      // Email delivery failure shouldn't block activation
     }
 
     return NextResponse.json({
       ...school,
       adminCreated: !!tempPassword,
+      existingAdmin,
       adminEmail: admin.email,
     })
   } catch {

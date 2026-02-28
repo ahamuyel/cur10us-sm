@@ -35,6 +35,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     const user = await prisma.user.findUnique({ where: { email: application.email } })
 
     if (user) {
+      // Security: only update activation, school, and role — never modify email or password
       await prisma.user.update({
         where: { id: user.id },
         data: { isActive: true, schoolId, role: application.role },

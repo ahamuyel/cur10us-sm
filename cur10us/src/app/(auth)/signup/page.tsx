@@ -157,6 +157,14 @@ export default function SignUpPage() {
           Após criar a sua conta, será direcionado para solicitar matrícula numa escola.
         </div>
 
+        {/* School registration link */}
+        <div className="mt-3 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm text-zinc-600 dark:text-zinc-400">
+          Representa uma escola?{" "}
+          <Link href="/registar-escola" className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline">
+            Registe aqui
+          </Link>
+        </div>
+
         {/* Divider */}
         <div className="flex items-center gap-3 my-6">
           <div className="flex-1 h-px bg-zinc-200 dark:bg-zinc-700" />
