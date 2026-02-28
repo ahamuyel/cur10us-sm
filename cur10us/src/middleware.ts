@@ -2,12 +2,13 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
 const authPages = ["/signin", "/signup", "/forgot-password", "/reset-password"]
+const publicPaths = ["/", "/aplicacao", "/aplicacao/status"]
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
   // Public paths — always accessible
-  if (pathname === "/" || pathname.startsWith("/api/")) {
+  if (publicPaths.includes(pathname) || pathname.startsWith("/api/")) {
     return NextResponse.next()
   }
 

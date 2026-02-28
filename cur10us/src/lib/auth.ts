@@ -25,8 +25,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
           if (!email || !password) return null
 
-          const user = await prisma.user.findUnique({ where: { email } })
+          const user = await prisma.user.findUnique({
+            where: { email },
+            include: { school: { select: { slug: true } } },
+          })
           if (!user) return null
+
+          // Block inactive users (except super_admin who is always active)
+          if (!user.isActive && user.role !== "super_admin") return null
 
           const isValid = await compare(password, user.hashedPassword)
           if (!isValid) return null
@@ -37,6 +43,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             email: user.email,
             role: user.role,
             image: user.image,
+            schoolId: user.schoolId,
+            schoolSlug: user.school?.slug ?? null,
+            isActive: user.isActive,
           }
         } catch (error) {
           console.error("Authorize error:", error)
@@ -49,7 +58,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.role = (user as { role: string }).role
-        token.id = user.id
+        token.id = user.id!
+        token.schoolId = (user as { schoolId?: string | null }).schoolId ?? null
+        token.schoolSlug = (user as { schoolSlug?: string | null }).schoolSlug ?? null
+        token.isActive = (user as { isActive: boolean }).isActive
       }
       return token
     },
@@ -57,6 +69,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (session.user) {
         session.user.role = token.role as string
         session.user.id = token.id as string
+        session.user.schoolId = (token.schoolId as string) ?? null
+        session.user.schoolSlug = (token.schoolSlug as string) ?? null
+        session.user.isActive = token.isActive as boolean
       }
       return session
     },

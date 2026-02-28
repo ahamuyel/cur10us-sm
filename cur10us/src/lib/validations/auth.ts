@@ -19,9 +19,6 @@ export const signUpSchema = z.object({
     .string()
     .min(1, "E-mail é obrigatório")
     .email("E-mail inválido"),
-  role: z.enum(["teacher", "student", "parent"], {
-    error: () => "Selecione um perfil",
-  }),
   password: z
     .string()
     .min(8, "Senha deve ter pelo menos 8 caracteres")

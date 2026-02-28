@@ -11,7 +11,6 @@ export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
-  const [role, setRole] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
@@ -20,7 +19,7 @@ export default function SignUpPage() {
     e.preventDefault()
     setError("")
 
-    const parsed = signUpSchema.safeParse({ name, email, role, password })
+    const parsed = signUpSchema.safeParse({ name, email, password })
     if (!parsed.success) {
       setError(parsed.error.issues[0].message)
       return
@@ -31,7 +30,7 @@ export default function SignUpPage() {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, role, password }),
+        body: JSON.stringify({ name, email, password }),
       })
 
       const data = await res.json()
@@ -41,7 +40,7 @@ export default function SignUpPage() {
         return
       }
 
-      router.push("/signin")
+      router.push("/aplicacao")
     } catch {
       setError("Erro de conexão. Tente novamente.")
     } finally {
@@ -104,28 +103,6 @@ export default function SignUpPage() {
             />
           </div>
 
-          {/* Role */}
-          <div>
-            <label
-              htmlFor="role"
-              className="block text-sm font-medium mb-1.5 text-zinc-700 dark:text-zinc-300"
-            >
-              Perfil
-            </label>
-            <select
-              id="role"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              disabled={loading}
-              className="w-full px-4 py-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm text-zinc-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition appearance-none"
-            >
-              <option value="">Selecione seu perfil</option>
-              <option value="teacher">Professor(a)</option>
-              <option value="student">Aluno(a)</option>
-              <option value="parent">Responsável</option>
-            </select>
-          </div>
-
           {/* Password */}
           <div>
             <label
@@ -172,6 +149,11 @@ export default function SignUpPage() {
             {loading ? "Criando conta..." : "Criar conta"}
           </button>
         </form>
+
+        {/* Info about next step */}
+        <div className="mt-6 p-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800 text-sm text-indigo-700 dark:text-indigo-400">
+          Após criar sua conta, você será direcionado para solicitar matrícula em uma escola.
+        </div>
 
         {/* Divider */}
         <div className="flex items-center gap-3 my-6">

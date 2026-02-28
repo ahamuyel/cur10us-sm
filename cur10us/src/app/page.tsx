@@ -98,7 +98,6 @@ export default function Home() {
       <nav className="sticky top-0 z-50 backdrop-blur-md bg-zinc-50/80 dark:bg-black/80 border-b border-zinc-200 dark:border-zinc-800">
         <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-4">
           <Link href="/" className="flex items-center gap-2">
-            {/* <Image src="/logo.png" alt="Cur10usX" width={32} height={32} /> */}
             <span className="text-lg font-bold tracking-tight">
               Cur10us<span className="text-indigo-600 dark:text-indigo-400">X</span>
             </span>
@@ -260,6 +259,25 @@ export default function Home() {
         </div>
       </section>
 
+      {/* CTA: Application */}
+      <section className="py-20 px-6 bg-indigo-50 dark:bg-indigo-950/30 border-y border-indigo-200 dark:border-indigo-900">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-3">
+            Quer fazer parte de uma escola?
+          </h2>
+          <p className="text-zinc-600 dark:text-zinc-400 mb-6 max-w-lg mx-auto">
+            Envie sua solicitação de matrícula e acompanhe o status em tempo real.
+          </p>
+          <Link
+            href="/aplicacao"
+            className="group inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 shadow-lg shadow-indigo-600/25 transition"
+          >
+            Solicitar matrícula
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+        </div>
+      </section>
+
       {/* CTA FINAL */}
       <section className="py-28 px-6 text-center relative overflow-hidden">
         <div className="absolute inset-0 -z-10">
@@ -272,20 +290,27 @@ export default function Home() {
         <p className="text-zinc-600 dark:text-zinc-400 mb-8 max-w-lg mx-auto">
           Comece agora e acompanhe o progresso educacional de forma clara e eficiente.
         </p>
-        <Link
-          href="/signin"
-          className="group inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 shadow-lg shadow-indigo-600/25 transition"
-        >
-          Entrar no Cur10usX
-          <ArrowRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
-        </Link>
+        <div className="flex gap-4 flex-wrap justify-center">
+          <Link
+            href="/signin"
+            className="group inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 shadow-lg shadow-indigo-600/25 transition"
+          >
+            Entrar no Cur10usX
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+          <Link
+            href="/aplicacao"
+            className="px-8 py-4 rounded-xl border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition font-semibold"
+          >
+            Solicitar matrícula
+          </Link>
+        </div>
       </section>
 
       {/* FOOTER */}
       <footer className="border-t border-zinc-200 dark:border-zinc-800 py-8 px-6">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <Image src="/logo.png" alt="Cur10usX" width={24} height={24} />
             <span className="text-sm font-semibold">
               Cur10us<span className="text-indigo-600 dark:text-indigo-400">X</span>
             </span>
@@ -295,6 +320,7 @@ export default function Home() {
           </p>
         </div>
       </footer>
+  
 
     </main>
   )

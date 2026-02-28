@@ -13,7 +13,8 @@ import Link from "next/link"
 import ThemeToggle from "@/components/ui/ThemeToggle"
 
 const roleLabels: Record<string, string> = {
-  admin: "Admin",
+  super_admin: "Super Admin",
+  school_admin: "Administrador",
   teacher: "Professor",
   student: "Aluno",
   parent: "Responsável",

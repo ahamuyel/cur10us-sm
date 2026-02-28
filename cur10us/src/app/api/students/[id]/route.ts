@@ -1,16 +1,21 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { requireRole } from "@/lib/api-auth"
+import { requireRole, getSchoolId } from "@/lib/api-auth"
 import { updateStudentSchema } from "@/lib/validations/entities"
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { error: authError, session } = await requireRole(["school_admin", "teacher", "student", "parent"], { requireSchool: true })
+    if (authError) return authError
+
+    const schoolId = getSchoolId(session!)
     const { id } = await params
     const student = await prisma.student.findUnique({
       where: { id },
       include: { parents: { select: { id: true, name: true } } },
     })
-    if (!student) {
+
+    if (!student || student.schoolId !== schoolId) {
       return NextResponse.json({ error: "Aluno não encontrado" }, { status: 404 })
     }
     return NextResponse.json(student)
@@ -21,10 +26,17 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { error: authError } = await requireRole(["admin"])
+    const { error: authError, session } = await requireRole(["school_admin"], { requireSchool: true })
     if (authError) return authError
 
+    const schoolId = getSchoolId(session!)
     const { id } = await params
+
+    const existing = await prisma.student.findUnique({ where: { id } })
+    if (!existing || existing.schoolId !== schoolId) {
+      return NextResponse.json({ error: "Aluno não encontrado" }, { status: 404 })
+    }
+
     const body = await req.json()
     const parsed = updateStudentSchema.safeParse(body)
 
@@ -32,11 +44,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
     }
 
-    const student = await prisma.student.update({
-      where: { id },
-      data: parsed.data,
-    })
-
+    const student = await prisma.student.update({ where: { id }, data: parsed.data })
     return NextResponse.json(student)
   } catch {
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
@@ -45,10 +53,17 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { error: authError } = await requireRole(["admin"])
+    const { error: authError, session } = await requireRole(["school_admin"], { requireSchool: true })
     if (authError) return authError
 
+    const schoolId = getSchoolId(session!)
     const { id } = await params
+
+    const existing = await prisma.student.findUnique({ where: { id } })
+    if (!existing || existing.schoolId !== schoolId) {
+      return NextResponse.json({ error: "Aluno não encontrado" }, { status: 404 })
+    }
+
     await prisma.student.delete({ where: { id } })
     return NextResponse.json({ success: true })
   } catch {
