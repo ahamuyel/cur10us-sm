@@ -17,7 +17,7 @@ export default function DashboardLayout({
           <Link href="/" className="flex items-center justify-center lg:justify-start gap-2">
             <Image src="/logo.png" width={32} height={32} alt="logo" />
             <span className="hidden lg:block font-bold text-zinc-900 dark:text-zinc-100">
-              cur10us<span className="text-indigo-600 dark:text-indigo-400">x</span>
+              Cur10us<span className="text-indigo-600 dark:text-indigo-400">X</span>
             </span>
           </Link>
         </div>
