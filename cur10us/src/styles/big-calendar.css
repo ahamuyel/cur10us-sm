@@ -1,4 +1,3 @@
-
 /* Header */
 .cur10us-calendar .rbc-toolbar {
   padding: 1rem;
@@ -32,6 +31,11 @@
   border: none;
   padding: 4px 6px;
   font-size: 0.75rem;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cur10us-calendar .rbc-event:hover {
+  transform: scale(1.02);
 }
 
 .cur10us-calendar .rbc-event-label {
@@ -41,6 +45,51 @@
 /* Today highlight */
 .cur10us-calendar .rbc-today {
   background: #eef2ff;
+}
+
+/* Month view styles */
+.cur10us-calendar .rbc-month-view {
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.cur10us-calendar .rbc-month-row {
+  min-height: 80px;
+}
+
+.cur10us-calendar .rbc-month-view .rbc-header {
+  padding: 8px 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #71717a;
+}
+
+.cur10us-calendar .rbc-off-range-bg {
+  background: #fafafa;
+}
+
+.cur10us-calendar .rbc-date-cell {
+  padding: 4px 8px;
+  font-size: 0.8rem;
+}
+
+/* Fade-in animation on view change */
+.cur10us-calendar .rbc-month-view,
+.cur10us-calendar .rbc-time-view {
+  animation: calendarFadeIn 0.25s ease-out;
+}
+
+@keyframes calendarFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Dark mode */
@@ -83,10 +132,22 @@
   border-color: #27272a;
 }
 
+.dark .cur10us-calendar .rbc-time-content {
+  border-top-color: #27272a;
+}
+
+.dark .cur10us-calendar .rbc-timeslot-group {
+  border-bottom-color: #27272a;
+}
+
 .dark .cur10us-calendar .rbc-date-cell {
   color: #d4d4d8;
 }
 
 .dark .cur10us-calendar .rbc-off-range {
   color: #52525b;
+}
+
+.dark .cur10us-calendar .rbc-month-view .rbc-header {
+  color: #a1a1aa;
 }

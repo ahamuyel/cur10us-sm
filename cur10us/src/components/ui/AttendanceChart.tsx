@@ -2,6 +2,7 @@
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts'
 import { CalendarCheck } from "lucide-react"
+import { useTheme } from "@/provider/theme"
 
 const data = [
   { name: 'Seg', present: 62, absent: 23 },
@@ -12,6 +13,9 @@ const data = [
 ]
 
 const AttendanceChart = () => {
+  const { theme } = useTheme()
+  const isDark = theme === "dark"
+
   return (
     <div className="bg-white dark:bg-zinc-900 rounded-2xl p-3 sm:p-4 h-full shadow-sm flex flex-col border border-zinc-200 dark:border-zinc-800">
 
@@ -31,29 +35,30 @@ const AttendanceChart = () => {
             barSize={14}
             margin={{ top: 5, right: 5, left: -15, bottom: 0 }}
           >
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDark ? "#3f3f46" : "#e5e7eb"} />
             <XAxis
               dataKey="name"
               axisLine={false}
-              tick={{ fill: "#9ca3af", fontSize: 11 }}
+              tick={{ fill: isDark ? "#a1a1aa" : "#9ca3af", fontSize: 11 }}
               tickLine={false}
             />
             <YAxis
               axisLine={false}
-              tick={{ fill: "#9ca3af", fontSize: 11 }}
+              tick={{ fill: isDark ? "#a1a1aa" : "#9ca3af", fontSize: 11 }}
               tickLine={false}
               width={35}
             />
             <Tooltip
               contentStyle={{
-                background: "#fff",
-                border: "1px solid #e5e7eb",
+                background: isDark ? "#18181b" : "#fff",
+                border: `1px solid ${isDark ? "#3f3f46" : "#e5e7eb"}`,
                 borderRadius: "12px",
                 fontSize: "12px",
+                color: isDark ? "#fafafa" : "#18181b",
               }}
             />
-            <Bar dataKey="present" fill="#22d3ee" radius={[6,6,0,0]} name="Presentes" />
-            <Bar dataKey="absent" fill="#facc15" radius={[6,6,0,0]} name="Ausentes" />
+            <Bar dataKey="present" fill="#06B6D4" radius={[6,6,0,0]} name="Presentes" />
+            <Bar dataKey="absent" fill="#F59E0B" radius={[6,6,0,0]} name="Ausentes" />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -61,11 +66,11 @@ const AttendanceChart = () => {
       {/* Legend */}
       <div className="flex justify-center gap-4 sm:gap-6 mt-2 sm:mt-4 text-xs sm:text-sm text-zinc-700 dark:text-zinc-300">
         <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-full bg-cyan-400" />
+          <span className="w-3 h-3 rounded-full bg-cyan-500" />
           <span>Presentes</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-full bg-amber-400" />
+          <span className="w-3 h-3 rounded-full bg-amber-500" />
           <span>Ausentes</span>
         </div>
       </div>
