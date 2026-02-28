@@ -25,6 +25,9 @@ model User {
   updatedAt      DateTime @updatedAt
 
   passwordResetTokens PasswordResetToken[]
+  teacher             Teacher?
+  student             Student?
+  parent              Parent?
 }
 
 model PasswordResetToken {
@@ -33,4 +36,49 @@ model PasswordResetToken {
   expires DateTime
   userId  String
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Teacher {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  phone     String
+  address   String
+  foto      String?
+  subjects  String[]
+  classes   String[]
+  userId    String?  @unique
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Student {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  phone     String
+  address   String
+  foto      String?
+  serie     Int
+  turma     String
+  userId    String?  @unique
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  parents   Parent[] @relation("ParentStudents")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Parent {
+  id        String    @id @default(cuid())
+  name      String
+  email     String    @unique
+  phone     String
+  address   String
+  foto      String?
+  userId    String?   @unique
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  students  Student[] @relation("ParentStudents")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
