@@ -98,7 +98,7 @@ export default function Home() {
       <nav className="sticky top-0 z-50 backdrop-blur-md bg-zinc-50/80 dark:bg-black/80 border-b border-zinc-200 dark:border-zinc-800">
         <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-4">
           <Link href="/" className="flex items-center gap-2">
-            <Image src="/logo.png" alt="Cur10usX" width={32} height={32} />
+            {/* <Image src="/logo.png" alt="Cur10usX" width={32} height={32} /> */}
             <span className="text-lg font-bold tracking-tight">
               Cur10us<span className="text-indigo-600 dark:text-indigo-400">X</span>
             </span>
