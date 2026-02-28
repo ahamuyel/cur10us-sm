@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { signOut } from "next-auth/react"
 import {
   LayoutDashboard,
   UserRound,
@@ -13,6 +14,7 @@ import {
   MessageSquare,
   Megaphone,
   Settings,
+  LogOut,
 } from "lucide-react"
 import { useState } from "react"
 
@@ -29,7 +31,7 @@ const moreItems = [
   { icon: MessageSquare, label: "Mensagens", href: "/list/messages" },
   { icon: Megaphone, label: "Avisos", href: "/list/announcements" },
   { icon: Settings, label: "Configurações", href: "/settings" },
-]
+] as const
 
 const MobileNav = () => {
   const pathname = usePathname()
@@ -59,6 +61,15 @@ const MobileNav = () => {
                   </Link>
                 )
               })}
+            </div>
+            <div className="mt-2 pt-2 border-t border-zinc-200 dark:border-zinc-800">
+              <button
+                onClick={() => { setShowMore(false); signOut({ callbackUrl: "/signin" }) }}
+                className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors w-full"
+              >
+                <LogOut size={16} className="shrink-0" />
+                Sair
+              </button>
             </div>
           </div>
         </div>
