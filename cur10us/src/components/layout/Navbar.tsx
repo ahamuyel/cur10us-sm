@@ -60,7 +60,6 @@ const NavBar = () => {
 
       {/* MOBILE LOGO */}
       <Link href="/" className="md:hidden flex items-center gap-1.5 shrink-0">
-        <Image src="/logo.png" width={26} height={26} alt="logo" />
         <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
           Cur10us<span className="text-indigo-600 dark:text-indigo-400">X</span>
         </span>
@@ -96,24 +95,25 @@ const NavBar = () => {
         {/* DIVIDER */}
         <div className="hidden sm:block w-px h-6 bg-zinc-200 dark:bg-zinc-700" />
 
-        {/* USER INFO */}
-        <div className="hidden sm:flex flex-col leading-tight text-right">
-          <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-100">
-            {userName}
-          </span>
-          <span className="text-[10px] text-zinc-500">
-            {roleLabels[userRole] || userRole}
-          </span>
-        </div>
+        {/* USER INFO + AVATAR — link to profile */}
+        <Link href="/profile" className="flex items-center gap-3 group cursor-pointer">
+          <div className="hidden sm:flex flex-col leading-tight text-right">
+            <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+              {userName}
+            </span>
+            <span className="text-[10px] text-zinc-500">
+              {roleLabels[userRole] || userRole}
+            </span>
+          </div>
 
-        {/* AVATAR */}
-        <Image
-          src="/avatar.png"
-          alt="User Avatar"
-          width={34}
-          height={34}
-          className="rounded-full object-cover border-2 border-zinc-200 dark:border-zinc-700 shrink-0"
-        />
+          <Image
+            src="/avatar.png"
+            alt="User Avatar"
+            width={34}
+            height={34}
+            className="rounded-full object-cover border-2 border-zinc-200 dark:border-zinc-700 shrink-0 group-hover:border-indigo-400 dark:group-hover:border-indigo-500 transition-colors"
+          />
+        </Link>
       </div>
     </header>
   )
