@@ -34,7 +34,7 @@ const renderRow = (item: Announcement) => (
       </span>
     </td>
     <td className="hidden md:table-cell text-zinc-600 dark:text-zinc-400 text-xs sm:text-sm">
-      {new Date(item.date).toLocaleDateString("pt-BR")}
+      {new Date(item.date).toLocaleDateString("pt")}
     </td>
   </tr>
 )

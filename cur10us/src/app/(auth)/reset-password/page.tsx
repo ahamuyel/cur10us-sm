@@ -41,9 +41,9 @@ function ResetPasswordForm() {
           <div className="w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center mx-auto mb-6">
             <CheckCircle2 className="w-7 h-7 text-emerald-600 dark:text-emerald-400" />
           </div>
-          <h1 className="text-2xl font-bold mb-2">Senha redefinida</h1>
+          <h1 className="text-2xl font-bold mb-2">Palavra-passe redefinida</h1>
           <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">
-            Sua senha foi atualizada com sucesso.
+            A sua palavra-passe foi actualizada com sucesso.
           </p>
           <Link
             href="/signin"
@@ -62,7 +62,7 @@ function ResetPasswordForm() {
     setError("")
 
     if (password.length < 8) {
-      setError("Senha deve ter pelo menos 8 caracteres")
+      setError("Palavra-passe deve ter pelo menos 8 caracteres")
       return
     }
 
@@ -77,7 +77,7 @@ function ResetPasswordForm() {
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.error || "Erro ao redefinir senha")
+        setError(data.error || "Erro ao redefinir palavra-passe")
         return
       }
 
@@ -96,9 +96,9 @@ function ResetPasswordForm() {
           <div className="w-14 h-14 rounded-full bg-indigo-100 dark:bg-indigo-950 flex items-center justify-center mx-auto mb-4">
             <KeyRound className="w-7 h-7 text-indigo-600 dark:text-indigo-400" />
           </div>
-          <h1 className="text-2xl font-bold mb-2">Nova senha</h1>
+          <h1 className="text-2xl font-bold mb-2">Nova palavra-passe</h1>
           <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
-            Digite sua nova senha abaixo.
+            Introduza a sua nova palavra-passe abaixo.
           </p>
         </div>
 
@@ -114,7 +114,7 @@ function ResetPasswordForm() {
               htmlFor="password"
               className="block text-sm font-medium mb-1.5 text-zinc-700 dark:text-zinc-300"
             >
-              Nova senha
+              Nova palavra-passe
             </label>
             <div className="relative">
               <input
@@ -150,7 +150,7 @@ function ResetPasswordForm() {
             ) : (
               <KeyRound className="w-4 h-4" />
             )}
-            {loading ? "Redefinindo..." : "Redefinir senha"}
+            {loading ? "A redefinir..." : "Redefinir palavra-passe"}
           </button>
         </form>
       </div>

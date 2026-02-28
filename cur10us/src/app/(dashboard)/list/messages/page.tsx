@@ -40,7 +40,7 @@ const renderRow = (item: Message) => (
       </span>
     </td>
     <td className="hidden lg:table-cell text-zinc-500 dark:text-zinc-500 text-xs">
-      {new Date(item.date).toLocaleDateString("pt-BR")}
+      {new Date(item.date).toLocaleDateString("pt")}
     </td>
     <td className="py-2.5 sm:py-3 px-1.5 sm:px-2">
       <span className={`px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-bold ${

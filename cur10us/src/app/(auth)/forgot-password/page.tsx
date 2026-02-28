@@ -20,8 +20,8 @@ export default function ForgotPasswordPage() {
           </div>
           <h1 className="text-2xl font-bold mb-2">E-mail enviado</h1>
           <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6 leading-relaxed">
-            Se o e-mail informado estiver cadastrado, você receberá um link para
-            redefinir sua senha em alguns minutos.
+            Se o e-mail informado estiver registado, receberá um link para
+            redefinir a sua palavra-passe em alguns minutos.
           </p>
           <Link
             href="/signin"
@@ -69,9 +69,9 @@ export default function ForgotPasswordPage() {
           <div className="w-14 h-14 rounded-full bg-indigo-100 dark:bg-indigo-950 flex items-center justify-center mx-auto mb-4">
             <Mail className="w-7 h-7 text-indigo-600 dark:text-indigo-400" />
           </div>
-          <h1 className="text-2xl font-bold mb-2">Recuperar senha</h1>
+          <h1 className="text-2xl font-bold mb-2">Recuperar palavra-passe</h1>
           <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
-            Digite seu e-mail e enviaremos um link para redefinir sua senha.
+            Introduza o seu e-mail e enviaremos um link para redefinir a sua palavra-passe.
           </p>
         </div>
 

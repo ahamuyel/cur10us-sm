@@ -16,7 +16,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     })
 
     if (!parent || parent.schoolId !== schoolId) {
-      return NextResponse.json({ error: "Responsável não encontrado" }, { status: 404 })
+      return NextResponse.json({ error: "Encarregado não encontrado" }, { status: 404 })
     }
     return NextResponse.json(parent)
   } catch {
@@ -34,7 +34,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
     const existing = await prisma.parent.findUnique({ where: { id } })
     if (!existing || existing.schoolId !== schoolId) {
-      return NextResponse.json({ error: "Responsável não encontrado" }, { status: 404 })
+      return NextResponse.json({ error: "Encarregado não encontrado" }, { status: 404 })
     }
 
     const body = await req.json()
@@ -73,7 +73,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
 
     const existing = await prisma.parent.findUnique({ where: { id } })
     if (!existing || existing.schoolId !== schoolId) {
-      return NextResponse.json({ error: "Responsável não encontrado" }, { status: 404 })
+      return NextResponse.json({ error: "Encarregado não encontrado" }, { status: 404 })
     }
 
     await prisma.parent.delete({ where: { id } })

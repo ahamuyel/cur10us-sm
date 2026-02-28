@@ -19,7 +19,7 @@ interface Application {
 const roleLabels: Record<string, string> = {
   teacher: "Professor(a)",
   student: "Aluno(a)",
-  parent: "Responsável",
+  parent: "Encarregado de educação",
 }
 
 interface Props {
@@ -101,7 +101,7 @@ export default function ApplicationReviewForm({ application, onClose, onRefresh 
             </div>
           )}
           <div className="text-zinc-400 text-xs">
-            Enviada em {new Date(application.createdAt).toLocaleDateString("pt-BR")}
+            Enviada em {new Date(application.createdAt).toLocaleDateString("pt")}
           </div>
         </div>
 

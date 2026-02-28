@@ -30,7 +30,7 @@ const features = [
     icon: Users,
     title: "Multi-perfil",
     description:
-      "Experiência personalizada para gestores, professores, alunos e responsáveis.",
+      "Experiência personalizada para gestores, professores, alunos e encarregados de educação.",
   },
   {
     icon: Wifi,
@@ -73,10 +73,10 @@ const roles = [
   },
   {
     icon: ShieldCheck,
-    role: "Responsáveis",
+    role: "Encarregados de educação",
     color: "bg-rose-100 dark:bg-rose-950 text-rose-600 dark:text-rose-400",
     items: [
-      "Acompanhamento do filho em tempo real",
+      "Acompanhamento do educando em tempo real",
       "Notificações de faltas e desempenho",
       "Comunicação direta com a escola",
     ],
@@ -149,7 +149,7 @@ export default function Home() {
           <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed">
             O Cur10usX ajuda escolas a acompanhar desempenho, frequência e evolução
             dos alunos em tempo real, com dashboards claros para gestores,
-            professores, alunos e responsáveis.
+            professores, alunos e encarregados de educação.
           </p>
 
           <div className="flex gap-4 flex-wrap justify-center pt-2">
@@ -228,7 +228,7 @@ export default function Home() {
               <span className="text-indigo-600 dark:text-indigo-400">cada perfil</span>
             </h2>
             <p className="text-zinc-600 dark:text-zinc-400 max-w-xl mx-auto">
-              Cada usuário acessa o que é relevante para o seu papel na comunidade escolar.
+              Cada utilizador acede ao que é relevante para o seu papel na comunidade escolar.
             </p>
           </div>
 

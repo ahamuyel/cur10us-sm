@@ -17,7 +17,7 @@ export default function PendingAccountGate({ children }: { children: React.React
           </div>
           <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">Conta pendente</h1>
           <p className="text-zinc-500 dark:text-zinc-400 mb-6">
-            Sua conta ainda não foi ativada. Para acessar a plataforma, envie uma solicitação de matrícula para uma escola.
+            A sua conta ainda não foi activada. Para aceder à plataforma, envie uma solicitação de matrícula para uma escola.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link

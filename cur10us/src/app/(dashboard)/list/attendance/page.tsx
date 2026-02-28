@@ -38,7 +38,7 @@ const renderRow = (item: Attendance) => (
       </span>
     </td>
     <td className="hidden md:table-cell text-zinc-600 dark:text-zinc-400 text-xs sm:text-sm">
-      {new Date(item.date).toLocaleDateString("pt-BR")}
+      {new Date(item.date).toLocaleDateString("pt")}
     </td>
     <td className="py-2.5 sm:py-3 px-1.5 sm:px-2">
       <span className={`px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-bold ${statusColor[item.status]}`}>
@@ -64,8 +64,8 @@ const AttendanceListPage = () => {
     <div className="m-2 sm:m-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl sm:rounded-2xl p-2.5 sm:p-4 md:p-6 shadow-sm overflow-hidden">
       <div className="flex flex-col gap-3 sm:gap-4 lg:gap-0 lg:flex-row lg:items-center justify-between mb-4 sm:mb-6">
         <div>
-          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-zinc-900 dark:text-zinc-100">Frequência</h1>
-          <p className="text-[11px] sm:text-xs md:text-sm text-zinc-500 dark:text-zinc-400">Acompanhe a presença dos alunos</p>
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-zinc-900 dark:text-zinc-100">Assiduidade</h1>
+          <p className="text-[11px] sm:text-xs md:text-sm text-zinc-500 dark:text-zinc-400">Acompanhe a assiduidade dos alunos</p>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
           <div className="flex-1 sm:w-56 md:w-64">

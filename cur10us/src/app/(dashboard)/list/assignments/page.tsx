@@ -35,7 +35,7 @@ const renderRow = (item: Assignment) => (
       {item.teacher}
     </td>
     <td className="text-zinc-600 dark:text-zinc-400 text-xs sm:text-sm">
-      {new Date(item.dueDate).toLocaleDateString("pt-BR")}
+      {new Date(item.dueDate).toLocaleDateString("pt")}
     </td>
   </tr>
 )

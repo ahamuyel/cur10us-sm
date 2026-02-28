@@ -22,7 +22,7 @@ type Parent = {
 }
 
 const columns = [
-  { header: "Responsável", accessor: "info" },
+  { header: "Encarregado", accessor: "info" },
   { header: "E-mail", accessor: "email", className: "hidden md:table-cell" },
   { header: "Alunos", accessor: "students" },
   { header: "Telefone", accessor: "phone", className: "hidden lg:table-cell" },
@@ -112,8 +112,8 @@ const ParentListPage = () => {
     <div className="m-2 sm:m-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl sm:rounded-2xl p-2.5 sm:p-4 md:p-6 shadow-sm overflow-hidden">
       <div className="flex flex-col gap-3 sm:gap-4 lg:gap-0 lg:flex-row lg:items-center justify-between mb-4 sm:mb-6">
         <div>
-          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-zinc-900 dark:text-zinc-100">Responsáveis</h1>
-          <p className="text-[11px] sm:text-xs md:text-sm text-zinc-500 dark:text-zinc-400">Gerencie os pais e responsáveis dos alunos</p>
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-zinc-900 dark:text-zinc-100">Encarregados de educação</h1>
+          <p className="text-[11px] sm:text-xs md:text-sm text-zinc-500 dark:text-zinc-400">Gerencie os encarregados de educação dos alunos</p>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
           <div className="flex-1 sm:w-56 md:w-64">
@@ -145,7 +145,7 @@ const ParentListPage = () => {
             <Loader2 size={24} className="animate-spin text-indigo-500" />
           </div>
         ) : data.length === 0 ? (
-          <div className="text-center py-12 text-zinc-400 text-sm">Nenhum responsável encontrado</div>
+          <div className="text-center py-12 text-zinc-400 text-sm">Nenhum encarregado encontrado</div>
         ) : (
           <Table columns={columns} renderRow={renderRow} data={data} />
         )}
@@ -157,11 +157,11 @@ const ParentListPage = () => {
         </div>
       )}
 
-      <FormModal open={createOpen} onClose={() => setCreateOpen(false)} title="Novo Responsável">
+      <FormModal open={createOpen} onClose={() => setCreateOpen(false)} title="Novo Encarregado">
         <ParentForm mode="create" onSuccess={() => { setCreateOpen(false); refetch() }} onCancel={() => setCreateOpen(false)} />
       </FormModal>
 
-      <FormModal open={!!editItem} onClose={() => setEditItem(null)} title="Editar Responsável">
+      <FormModal open={!!editItem} onClose={() => setEditItem(null)} title="Editar Encarregado">
         {editItem && (
           <ParentForm mode="edit" initialData={editItem} onSuccess={() => { setEditItem(null); refetch() }} onCancel={() => setEditItem(null)} />
         )}

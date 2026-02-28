@@ -17,7 +17,7 @@ const roleLabels: Record<string, string> = {
   school_admin: "Administrador",
   teacher: "Professor",
   student: "Aluno",
-  parent: "Responsável",
+  parent: "Encarregado",
 }
 
 const NavBar = () => {

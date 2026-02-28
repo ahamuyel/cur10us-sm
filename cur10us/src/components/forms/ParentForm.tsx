@@ -120,7 +120,7 @@ const ParentForm = ({ mode, initialData, onSuccess, onCancel }: Props) => {
       <FormField label="Alunos vinculados" error={errors.studentIds}>
         <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950">
           {allStudents.length === 0 && (
-            <span className="text-xs text-zinc-400">Nenhum aluno cadastrado</span>
+            <span className="text-xs text-zinc-400">Nenhum aluno registado</span>
           )}
           {allStudents.map((s) => (
             <button

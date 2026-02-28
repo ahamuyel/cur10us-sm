@@ -40,14 +40,14 @@ export async function POST(req: Request) {
       await resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL || "noreply@cur10usx.com",
         to: email,
-        subject: "Redefinir senha — Cur10usX",
+        subject: "Redefinir palavra-passe — Cur10usX",
         html: `
-          <h2>Redefinir senha</h2>
+          <h2>Redefinir palavra-passe</h2>
           <p>Olá ${user.name},</p>
-          <p>Você solicitou a redefinição da sua senha. Clique no link abaixo:</p>
-          <p><a href="${resetUrl}">Redefinir minha senha</a></p>
+          <p>Solicitou a redefinição da sua palavra-passe. Clique no link abaixo:</p>
+          <p><a href="${resetUrl}">Redefinir a minha palavra-passe</a></p>
           <p>Este link expira em 1 hora.</p>
-          <p>Se você não fez essa solicitação, ignore este e-mail.</p>
+          <p>Se não fez esta solicitação, ignore este e-mail.</p>
         `,
       })
     }

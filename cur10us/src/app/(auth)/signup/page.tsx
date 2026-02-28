@@ -152,7 +152,7 @@ export default function SignUpPage() {
 
         {/* Info about next step */}
         <div className="mt-6 p-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800 text-sm text-indigo-700 dark:text-indigo-400">
-          Após criar sua conta, você será direcionado para solicitar matrícula em uma escola.
+          Após criar a sua conta, será direcionado para solicitar matrícula numa escola.
         </div>
 
         {/* Divider */}
