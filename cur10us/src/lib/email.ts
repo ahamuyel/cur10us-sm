@@ -1,6 +1,10 @@
 import { Resend } from "resend"
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+let _resend: Resend | null = null
+function getResend() {
+  if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY)
+  return _resend
+}
 const from = process.env.RESEND_FROM_EMAIL || "noreply@cur10usx.com"
 const baseUrl = process.env.AUTH_URL || "http://localhost:3000"
 
@@ -17,7 +21,7 @@ function wrap(title: string, body: string) {
 
 export async function sendApplicationConfirmation(to: string, name: string, trackingToken: string) {
   const statusUrl = `${baseUrl}/aplicacao/status?token=${trackingToken}`
-  await resend.emails.send({
+  await getResend().emails.send({
     from,
     to,
     subject: "Solicitação recebida — Cur10usX",
@@ -32,7 +36,7 @@ export async function sendApplicationConfirmation(to: string, name: string, trac
 }
 
 export async function sendApplicationApproved(to: string, name: string, schoolName: string) {
-  await resend.emails.send({
+  await getResend().emails.send({
     from,
     to,
     subject: "Solicitação aprovada — Cur10usX",
@@ -46,7 +50,7 @@ export async function sendApplicationApproved(to: string, name: string, schoolNa
 }
 
 export async function sendApplicationRejected(to: string, name: string, reason: string) {
-  await resend.emails.send({
+  await getResend().emails.send({
     from,
     to,
     subject: "Solicitação não aprovada — Cur10usX",
@@ -62,7 +66,7 @@ export async function sendApplicationRejected(to: string, name: string, reason: 
 
 export async function sendEnrollmentComplete(to: string, name: string, schoolName: string) {
   const loginUrl = `${baseUrl}/signin`
-  await resend.emails.send({
+  await getResend().emails.send({
     from,
     to,
     subject: "Matrícula confirmada — Cur10usX",
@@ -78,7 +82,7 @@ export async function sendEnrollmentComplete(to: string, name: string, schoolNam
 }
 
 export async function sendSchoolApproved(to: string, schoolName: string) {
-  await resend.emails.send({
+  await getResend().emails.send({
     from,
     to,
     subject: "Escola aprovada — Cur10usX",
@@ -91,7 +95,7 @@ export async function sendSchoolApproved(to: string, schoolName: string) {
 }
 
 export async function sendSchoolRejected(to: string, schoolName: string, reason: string) {
-  await resend.emails.send({
+  await getResend().emails.send({
     from,
     to,
     subject: "Escola não aprovada — Cur10usX",
