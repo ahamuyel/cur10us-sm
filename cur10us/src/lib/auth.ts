@@ -5,9 +5,12 @@ import { prisma } from "@/lib/prisma"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
+  debug: process.env.NODE_ENV === "development",
+  secret: process.env.AUTH_SECRET,
   session: { strategy: "jwt" },
   pages: {
     signIn: "/signin",
+    error: "/signin",
   },
   providers: [
     Credentials({
@@ -16,23 +19,28 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: {},
       },
       async authorize(credentials) {
-        const email = credentials.email as string
-        const password = credentials.password as string
+        try {
+          const email = credentials.email as string
+          const password = credentials.password as string
 
-        if (!email || !password) return null
+          if (!email || !password) return null
 
-        const user = await prisma.user.findUnique({ where: { email } })
-        if (!user) return null
+          const user = await prisma.user.findUnique({ where: { email } })
+          if (!user) return null
 
-        const isValid = await compare(password, user.hashedPassword)
-        if (!isValid) return null
+          const isValid = await compare(password, user.hashedPassword)
+          if (!isValid) return null
 
-        return {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          image: user.image,
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            image: user.image,
+          }
+        } catch (error) {
+          console.error("Authorize error:", error)
+          return null
         }
       },
     }),
