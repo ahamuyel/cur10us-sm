@@ -9,6 +9,7 @@ import {
   X,
 } from "lucide-react"
 import Image from "next/image"
+import Link from "next/link"
 import ThemeToggle from "@/components/ui/ThemeToggle"
 
 const roleLabels: Record<string, string> = {
@@ -56,6 +57,14 @@ const NavBar = () => {
           className="w-[180px] lg:w-[240px] bg-transparent outline-none text-sm placeholder:text-zinc-400 text-zinc-700 dark:text-zinc-200"
         />
       </div>
+
+      {/* MOBILE LOGO */}
+      <Link href="/" className="md:hidden flex items-center gap-1.5 shrink-0">
+        <Image src="/logo.png" width={26} height={26} alt="logo" />
+        <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+          Cur10us<span className="text-indigo-600 dark:text-indigo-400">X</span>
+        </span>
+      </Link>
 
       {/* MOBILE SEARCH TRIGGER */}
       <button
