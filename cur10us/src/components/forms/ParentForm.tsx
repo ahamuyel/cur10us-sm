@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react"
 import FormField from "@/components/ui/FormField"
 import { createParentSchema } from "@/lib/validations/entities"
+import { Copy, Check } from "lucide-react"
 
 type ParentData = {
   id?: string
@@ -32,6 +33,9 @@ const ParentForm = ({ mode, initialData, onSuccess, onCancel }: Props) => {
     studentIds: initialData?.students?.map((s) => s.id) || [] as string[],
   })
   const [allStudents, setAllStudents] = useState<{ id: string; name: string }[]>([])
+  const [createAccount, setCreateAccount] = useState(false)
+  const [createdCreds, setCreatedCreds] = useState<{ email: string; password: string } | null>(null)
+  const [copied, setCopied] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
   const [apiError, setApiError] = useState("")
@@ -71,14 +75,19 @@ const ParentForm = ({ mode, initialData, onSuccess, onCancel }: Props) => {
     setLoading(true)
     try {
       const url = mode === "edit" ? `/api/parents/${initialData?.id}` : "/api/parents"
+      const payload = mode === "create" && createAccount ? { ...form, createAccount: true } : form
       const res = await fetch(url, {
         method: mode === "edit" ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       })
       const data = await res.json()
       if (!res.ok) {
         setApiError(data.error || "Erro ao salvar")
+        return
+      }
+      if (data.tempPassword) {
+        setCreatedCreds({ email: form.email, password: data.tempPassword })
         return
       }
       onSuccess()
@@ -87,6 +96,34 @@ const ParentForm = ({ mode, initialData, onSuccess, onCancel }: Props) => {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleCopy = () => {
+    if (!createdCreds) return
+    navigator.clipboard.writeText(`E-mail: ${createdCreds.email}\nPalavra-passe: ${createdCreds.password}`)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  if (createdCreds) {
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
+          <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300 mb-2">Encarregado criado com conta de acesso!</p>
+          <code className="block text-xs bg-white dark:bg-zinc-900 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-800 mb-2">
+            E-mail: {createdCreds.email}<br />Palavra-passe: {createdCreds.password}
+          </code>
+          <button type="button" onClick={handleCopy} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-medium hover:bg-emerald-700 transition">
+            {copied ? <Check size={12} /> : <Copy size={12} />}
+            {copied ? "Copiado" : "Copiar credenciais"}
+          </button>
+          <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-2">O utilizador será obrigado a alterar a palavra-passe no primeiro acesso.</p>
+        </div>
+        <button type="button" onClick={onSuccess} className="px-4 py-2 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition shadow-lg shadow-indigo-600/20">
+          Fechar
+        </button>
+      </div>
+    )
   }
 
   return (
@@ -138,6 +175,13 @@ const ParentForm = ({ mode, initialData, onSuccess, onCancel }: Props) => {
           ))}
         </div>
       </FormField>
+
+      {mode === "create" && (
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" checked={createAccount} onChange={(e) => setCreateAccount(e.target.checked)} className="w-4 h-4 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500" />
+          <span className="text-sm text-zinc-700 dark:text-zinc-300">Criar conta de acesso (palavra-passe temporária)</span>
+        </label>
+      )}
 
       <div className="flex items-center gap-3 justify-end pt-2">
         <button type="button" onClick={onCancel} className="px-4 py-2 rounded-xl text-sm font-medium text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition">

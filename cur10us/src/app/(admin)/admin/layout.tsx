@@ -7,6 +7,7 @@ import { useEffect } from "react"
 import {
   LayoutDashboard,
   School,
+  ShieldCheck,
   LogOut,
   Loader2,
 } from "lucide-react"
@@ -15,6 +16,7 @@ import ThemeToggle from "@/components/ui/ThemeToggle"
 const sidebarItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/admin" },
   { icon: School, label: "Escolas", href: "/admin/schools" },
+  { icon: ShieldCheck, label: "Super Admins", href: "/admin/super-admins" },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

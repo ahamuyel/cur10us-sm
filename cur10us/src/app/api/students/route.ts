@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server"
+import { randomBytes } from "crypto"
+import { hash } from "bcryptjs"
 import { prisma } from "@/lib/prisma"
 import { requirePermission, getSchoolId } from "@/lib/api-auth"
 import { createStudentSchema } from "@/lib/validations/entities"
+import { sendTempCredentials } from "@/lib/email"
 
 export async function GET(req: Request) {
   try {
@@ -35,12 +38,19 @@ export async function GET(req: Request) {
         include: {
           class: { select: { id: true, name: true, grade: true } },
           parents: { select: { id: true, name: true } },
+          user: { select: { id: true, isActive: true } },
         },
       }),
       prisma.student.count({ where }),
     ])
 
-    return NextResponse.json({ data, total, page, totalPages: Math.ceil(total / limit) })
+    const mapped = data.map((s) => ({
+      ...s,
+      hasAccount: !!s.userId,
+      userActive: s.user?.isActive ?? null,
+    }))
+
+    return NextResponse.json({ data: mapped, total, page, totalPages: Math.ceil(total / limit) })
   } catch {
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
@@ -64,8 +74,42 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Este e-mail já está cadastrado" }, { status: 409 })
     }
 
-    const student = await prisma.student.create({ data: { ...parsed.data, schoolId } })
-    return NextResponse.json(student, { status: 201 })
+    const { createAccount, ...studentData } = parsed.data
+
+    let userId: string | undefined
+    let tempPassword: string | undefined
+
+    if (createAccount) {
+      const existingUser = await prisma.user.findUnique({ where: { email: studentData.email } })
+      if (existingUser) {
+        return NextResponse.json({ error: "Este e-mail já tem uma conta de utilizador" }, { status: 409 })
+      }
+      tempPassword = randomBytes(6).toString("base64url")
+      const hashedPassword = await hash(tempPassword, 12)
+      const user = await prisma.user.create({
+        data: {
+          name: studentData.name,
+          email: studentData.email,
+          hashedPassword,
+          role: "student",
+          isActive: true,
+          mustChangePassword: true,
+          schoolId,
+        },
+      })
+      userId = user.id
+    }
+
+    const student = await prisma.student.create({
+      data: { ...studentData, schoolId, ...(userId && { userId }) },
+    })
+
+    if (createAccount && tempPassword) {
+      const school = await prisma.school.findUnique({ where: { id: schoolId }, select: { name: true } })
+      sendTempCredentials(studentData.email, studentData.name, school?.name || "", tempPassword).catch(() => {})
+    }
+
+    return NextResponse.json({ ...student, tempPassword }, { status: 201 })
   } catch {
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }

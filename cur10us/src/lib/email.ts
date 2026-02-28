@@ -126,6 +126,24 @@ export async function sendSchoolActivatedExistingAdmin(to: string, schoolName: s
   })
 }
 
+export async function sendTempCredentials(to: string, name: string, schoolName: string, tempPassword: string) {
+  const loginUrl = `${baseUrl}/signin`
+  await getResend().emails.send({
+    from,
+    to,
+    subject: "Conta criada — Cur10usX",
+    html: wrap(
+      "A sua conta foi criada!",
+      `<p>Olá ${name},</p>
+       <p>Foi criada uma conta para si na escola <strong>${schoolName}</strong>.</p>
+       <p>Use as seguintes credenciais para aceder:</p>
+       <p><strong>E-mail:</strong> ${to}<br/><strong>Palavra-passe temporária:</strong> ${tempPassword}</p>
+       <p><a href="${loginUrl}" style="display:inline-block;padding:12px 24px;background:#6366f1;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;">Aceder ao Cur10usX</a></p>
+       <p style="color:#71717a;font-size:13px;">Será obrigado a alterar a sua palavra-passe no primeiro acesso.</p>`
+    ),
+  })
+}
+
 export async function sendSchoolRejected(to: string, schoolName: string, reason: string) {
   await getResend().emails.send({
     from,
