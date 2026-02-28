@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { requireRole, getSchoolId } from "@/lib/api-auth"
+import { requirePermission, getSchoolId } from "@/lib/api-auth"
 import { createParentSchema } from "@/lib/validations/entities"
 
 export async function GET(req: Request) {
   try {
-    const { error: authError, session } = await requireRole(["school_admin", "teacher", "student", "parent"], { requireSchool: true })
+    const { error: authError, session } = await requirePermission(["school_admin", "teacher", "student", "parent"], undefined, { requireSchool: true })
     if (authError) return authError
 
     const schoolId = getSchoolId(session!)
@@ -45,7 +45,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const { error: authError, session } = await requireRole(["school_admin"], { requireSchool: true })
+    const { error: authError, session } = await requirePermission(["school_admin"], "canManageParents", { requireSchool: true })
     if (authError) return authError
 
     const schoolId = getSchoolId(session!)

@@ -29,7 +29,7 @@ export async function POST(req: Request) {
 
     // User is created inactive — they need to go through the application flow
     await prisma.user.create({
-      data: { name, email, hashedPassword, isActive: false },
+      data: { name, email, hashedPassword, provider: "credentials", isActive: false },
     })
 
     return NextResponse.json({ success: true }, { status: 201 })

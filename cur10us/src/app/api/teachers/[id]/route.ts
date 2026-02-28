@@ -1,21 +1,34 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { requireRole, getSchoolId } from "@/lib/api-auth"
+import { requirePermission, getSchoolId } from "@/lib/api-auth"
 import { updateTeacherSchema } from "@/lib/validations/entities"
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { error: authError, session } = await requireRole(["school_admin", "teacher", "student", "parent"], { requireSchool: true })
+    const { error: authError, session } = await requirePermission(["school_admin", "teacher", "student", "parent"], undefined, { requireSchool: true })
     if (authError) return authError
 
     const schoolId = getSchoolId(session!)
     const { id } = await params
-    const teacher = await prisma.teacher.findUnique({ where: { id } })
+    const teacher = await prisma.teacher.findUnique({
+      where: { id },
+      include: {
+        teacherSubjects: { include: { subject: true } },
+        teacherClasses: { include: { class: true } },
+      },
+    })
 
     if (!teacher || teacher.schoolId !== schoolId) {
       return NextResponse.json({ error: "Professor não encontrado" }, { status: 404 })
     }
-    return NextResponse.json(teacher)
+
+    return NextResponse.json({
+      ...teacher,
+      subjects: teacher.teacherSubjects.map((ts) => ts.subject.name),
+      subjectIds: teacher.teacherSubjects.map((ts) => ts.subjectId),
+      classes: teacher.teacherClasses.map((tc) => tc.class.name),
+      classIds: teacher.teacherClasses.map((tc) => tc.classId),
+    })
   } catch {
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
@@ -23,7 +36,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { error: authError, session } = await requireRole(["school_admin"], { requireSchool: true })
+    const { error: authError, session } = await requirePermission(["school_admin"], "canManageTeachers", { requireSchool: true })
     if (authError) return authError
 
     const schoolId = getSchoolId(session!)
@@ -41,7 +54,30 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
     }
 
-    const teacher = await prisma.teacher.update({ where: { id }, data: parsed.data })
+    const { subjectIds, classIds, ...teacherData } = parsed.data
+
+    const teacher = await prisma.teacher.update({
+      where: { id },
+      data: {
+        ...teacherData,
+        ...(subjectIds !== undefined
+          ? {
+              teacherSubjects: {
+                deleteMany: {},
+                create: subjectIds.map((subjectId) => ({ subjectId })),
+              },
+            }
+          : {}),
+        ...(classIds !== undefined
+          ? {
+              teacherClasses: {
+                deleteMany: {},
+                create: classIds.map((classId) => ({ classId })),
+              },
+            }
+          : {}),
+      },
+    })
     return NextResponse.json(teacher)
   } catch {
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
@@ -50,7 +86,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { error: authError, session } = await requireRole(["school_admin"], { requireSchool: true })
+    const { error: authError, session } = await requirePermission(["school_admin"], "canManageTeachers", { requireSchool: true })
     if (authError) return authError
 
     const schoolId = getSchoolId(session!)

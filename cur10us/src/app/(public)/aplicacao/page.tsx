@@ -10,10 +10,17 @@ interface PublicSchool {
   slug: string
 }
 
+interface PublicCourse {
+  id: string
+  name: string
+}
+
 export default function ApplicationPage() {
   const [schools, setSchools] = useState<PublicSchool[]>([])
+  const [courses, setCourses] = useState<PublicCourse[]>([])
   const [loading, setLoading] = useState(false)
   const [loadingSchools, setLoadingSchools] = useState(true)
+  const [loadingCourses, setLoadingCourses] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState<string | null>(null)
 
@@ -24,6 +31,13 @@ export default function ApplicationPage() {
   const [schoolId, setSchoolId] = useState("")
   const [message, setMessage] = useState("")
 
+  // Student-specific fields
+  const [documentType, setDocumentType] = useState("")
+  const [documentNumber, setDocumentNumber] = useState("")
+  const [dateOfBirth, setDateOfBirth] = useState("")
+  const [desiredGrade, setDesiredGrade] = useState("")
+  const [desiredCourseId, setDesiredCourseId] = useState("")
+
   useEffect(() => {
     fetch("/api/schools/public")
       .then((r) => r.json())
@@ -31,6 +45,23 @@ export default function ApplicationPage() {
       .catch(() => setError("Erro ao carregar escolas"))
       .finally(() => setLoadingSchools(false))
   }, [])
+
+  // Fetch courses when school changes and role is student
+  useEffect(() => {
+    if (schoolId && role === "student") {
+      setLoadingCourses(true)
+      setCourses([])
+      setDesiredCourseId("")
+      fetch(`/api/schools/${schoolId}/courses`)
+        .then((r) => r.json())
+        .then(setCourses)
+        .catch(() => setCourses([]))
+        .finally(() => setLoadingCourses(false))
+    } else {
+      setCourses([])
+      setDesiredCourseId("")
+    }
+  }, [schoolId, role])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -41,7 +72,23 @@ export default function ApplicationPage() {
       const res = await fetch("/api/applications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, phone, role, schoolId, message }),
+        body: JSON.stringify({
+          name,
+          email,
+          phone,
+          role,
+          schoolId,
+          message,
+          ...(role === "student"
+            ? {
+                documentType: documentType || undefined,
+                documentNumber: documentNumber || undefined,
+                dateOfBirth: dateOfBirth || undefined,
+                desiredGrade: desiredGrade ? parseInt(desiredGrade) : undefined,
+                desiredCourseId: desiredCourseId || undefined,
+              }
+            : {}),
+        }),
       })
 
       const data = await res.json()
@@ -168,6 +215,102 @@ export default function ApplicationPage() {
             <option value="parent">Encarregado de educação</option>
           </select>
         </div>
+
+        {role === "student" && (
+          <>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="documentType" className="block text-sm font-medium mb-1.5 text-zinc-700 dark:text-zinc-300">
+                  Tipo de documento
+                </label>
+                <select
+                  id="documentType"
+                  value={documentType}
+                  onChange={(e) => setDocumentType(e.target.value)}
+                  disabled={loading}
+                  className="w-full px-4 py-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition appearance-none"
+                >
+                  <option value="">Selecione</option>
+                  <option value="BI">BI</option>
+                  <option value="Passaporte">Passaporte</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="documentNumber" className="block text-sm font-medium mb-1.5 text-zinc-700 dark:text-zinc-300">
+                  N.o do documento
+                </label>
+                <input
+                  id="documentNumber"
+                  type="text"
+                  value={documentNumber}
+                  onChange={(e) => setDocumentNumber(e.target.value)}
+                  disabled={loading}
+                  className="w-full px-4 py-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="dateOfBirth" className="block text-sm font-medium mb-1.5 text-zinc-700 dark:text-zinc-300">
+                Data de nascimento
+              </label>
+              <input
+                id="dateOfBirth"
+                type="date"
+                value={dateOfBirth}
+                onChange={(e) => setDateOfBirth(e.target.value)}
+                disabled={loading}
+                className="w-full px-4 py-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="desiredGrade" className="block text-sm font-medium mb-1.5 text-zinc-700 dark:text-zinc-300">
+                Classe pretendida
+              </label>
+              <select
+                id="desiredGrade"
+                value={desiredGrade}
+                onChange={(e) => setDesiredGrade(e.target.value)}
+                disabled={loading}
+                className="w-full px-4 py-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition appearance-none"
+              >
+                <option value="">Selecione a classe</option>
+                {Array.from({ length: 13 }, (_, i) => i + 1).map((g) => (
+                  <option key={g} value={g}>{g}.a classe</option>
+                ))}
+              </select>
+            </div>
+
+            {schoolId && (
+              <div>
+                <label htmlFor="desiredCourseId" className="block text-sm font-medium mb-1.5 text-zinc-700 dark:text-zinc-300">
+                  Curso pretendido
+                </label>
+                {loadingCourses ? (
+                  <div className="flex items-center gap-2 text-sm text-zinc-400 py-2">
+                    <Loader2 className="w-4 h-4 animate-spin" /> Carregando cursos...
+                  </div>
+                ) : courses.length > 0 ? (
+                  <select
+                    id="desiredCourseId"
+                    value={desiredCourseId}
+                    onChange={(e) => setDesiredCourseId(e.target.value)}
+                    disabled={loading}
+                    className="w-full px-4 py-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition appearance-none"
+                  >
+                    <option value="">Selecione o curso</option>
+                    {courses.map((c) => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <p className="text-sm text-zinc-400 py-2">Nenhum curso disponível nesta escola</p>
+                )}
+              </div>
+            )}
+          </>
+        )}
 
         <div>
           <label htmlFor="message" className="block text-sm font-medium mb-1.5 text-zinc-700 dark:text-zinc-300">

@@ -4,7 +4,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Eye, EyeOff, LogIn, Loader2 } from "lucide-react"
 import { useState } from "react"
-import { signIn, getSession } from "next-auth/react"
+import { signIn as nextAuthSignIn, getSession } from "next-auth/react"
 import { signInSchema } from "@/lib/validations/auth"
 import { getDashboardPath } from "@/lib/routes"
 
@@ -15,6 +15,7 @@ export default function SignInPage() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -28,7 +29,7 @@ export default function SignInPage() {
 
     setLoading(true)
     try {
-      const res = await signIn("credentials", {
+      const res = await nextAuthSignIn("credentials", {
         email,
         password,
         redirect: false,
@@ -151,7 +152,12 @@ export default function SignInPage() {
         {/* Google */}
         <button
           type="button"
-          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-750 transition"
+          disabled={googleLoading || loading}
+          onClick={async () => {
+            setGoogleLoading(true)
+            await nextAuthSignIn("google", { callbackUrl: "/dashboard" })
+          }}
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-750 transition disabled:opacity-50"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24">
             <path
@@ -171,7 +177,7 @@ export default function SignInPage() {
               fill="#EA4335"
             />
           </svg>
-          Continuar com Google
+          {googleLoading ? "Conectando..." : "Continuar com Google"}
         </button>
       </div>
 
