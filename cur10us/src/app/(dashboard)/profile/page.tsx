@@ -1,5 +1,7 @@
+"use client"
+
 import Image from "next/image"
-import { role } from "@/lib/data"
+import { useSession } from "next-auth/react"
 import { Mail, Phone, MapPin, BookOpen, Users, Calendar } from "lucide-react"
 
 const roleLabels: Record<string, string> = {
@@ -10,6 +12,12 @@ const roleLabels: Record<string, string> = {
 }
 
 const ProfilePage = () => {
+  const { data: session } = useSession()
+
+  const userName = session?.user?.name || "Usuário"
+  const userEmail = session?.user?.email || ""
+  const userRole = session?.user?.role || "student"
+
   return (
     <div className="m-2 sm:m-3 flex flex-col gap-4">
       {/* Profile Card */}
@@ -24,10 +32,10 @@ const ProfilePage = () => {
           />
           <div className="flex-1 text-center sm:text-left">
             <h1 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-              Kelcio Fragoso
+              {userName}
             </h1>
             <span className="inline-block mt-1 px-3 py-1 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-full text-xs font-bold">
-              {roleLabels[role] || role}
+              {roleLabels[userRole] || userRole}
             </span>
             <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-3 max-w-md">
               Responsável pela gestão acadêmica e administrativa da plataforma Cur10usX.
@@ -46,7 +54,7 @@ const ProfilePage = () => {
               <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center">
                 <Mail className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
               </div>
-              <span className="text-sm text-zinc-600 dark:text-zinc-400">kelcio@cur10usx.com</span>
+              <span className="text-sm text-zinc-600 dark:text-zinc-400">{userEmail}</span>
             </div>
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center">

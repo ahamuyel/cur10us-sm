@@ -1,5 +1,0 @@
-{
-  "buildCommand": "apt-get install -y libatomic1 2>/dev/null || true && cd cur10us && npm install && npm run build",
-  "outputDirectory": "cur10us/.next",
-  "installCommand": "echo skip"
-}
