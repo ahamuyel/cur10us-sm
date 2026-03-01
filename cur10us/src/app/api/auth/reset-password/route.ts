@@ -33,14 +33,14 @@ export async function POST(req: Request) {
 
     await prisma.user.update({
       where: { id: resetToken.userId },
-      data: { hashedPassword },
+      data: { hashedPassword, mustChangePassword: false },
     })
 
     await prisma.passwordResetToken.delete({
       where: { id: resetToken.id },
     })
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, email: resetToken.user.email })
   } catch {
     return NextResponse.json(
       { error: "Erro interno do servidor" },
