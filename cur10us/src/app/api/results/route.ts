@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requirePermission, getSchoolId } from "@/lib/api-auth"
 import { createResultSchema } from "@/lib/validations/academic"
+import { createNotification } from "@/lib/notifications"
+import { buildOrderBy } from "@/lib/query-helpers"
 
 export async function GET(req: Request) {
   try {
@@ -9,26 +11,55 @@ export async function GET(req: Request) {
     if (authError) return authError
 
     const schoolId = getSchoolId(session!)
+    const role = session!.user.role
+    const userId = session!.user.id
     const { searchParams } = new URL(req.url)
     const page = parseInt(searchParams.get("page") || "1")
     const limit = parseInt(searchParams.get("limit") || "10")
     const studentId = searchParams.get("studentId") || ""
+    const subjectId = searchParams.get("subjectId") || ""
+    const trimester = searchParams.get("trimester") || ""
+    const academicYear = searchParams.get("academicYear") || ""
+    const classId = searchParams.get("classId") || ""
 
-    const where = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const where: any = {
       schoolId,
       ...(studentId ? { studentId } : {}),
+      ...(subjectId ? { subjectId } : {}),
+      ...(trimester ? { trimester } : {}),
+      ...(academicYear ? { academicYear } : {}),
+      ...(classId ? { student: { classId } } : {}),
     }
+
+    // Student: own results only
+    if (role === "student") {
+      const student = await prisma.student.findFirst({ where: { userId, schoolId }, select: { id: true } })
+      if (student) where.studentId = student.id
+    }
+
+    // Parent: children's results
+    if (role === "parent") {
+      const parent = await prisma.parent.findFirst({
+        where: { userId, schoolId },
+        select: { students: { select: { id: true } } },
+      })
+      if (parent) where.studentId = { in: parent.students.map((s) => s.id) }
+    }
+
+    const orderBy = buildOrderBy(searchParams, ["score", "date", "type"], { date: "desc" })
 
     const [data, total] = await Promise.all([
       prisma.result.findMany({
         where,
         skip: (page - 1) * limit,
         take: limit,
-        orderBy: { date: "desc" },
+        orderBy,
         include: {
           student: { select: { id: true, name: true } },
           subject: { select: { id: true, name: true } },
           exam: { select: { id: true, title: true } },
+          assignment: { select: { id: true, title: true } },
         },
       }),
       prisma.result.count({ where }),
@@ -53,15 +84,33 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
     }
 
-    const { date, ...rest } = parsed.data
+    const { date, trimester, academicYear, assignmentId, ...rest } = parsed.data
 
     const result = await prisma.result.create({
       data: {
         ...rest,
         date: new Date(date),
+        trimester: trimester || null,
+        academicYear: academicYear || null,
+        assignmentId: assignmentId || null,
         schoolId,
       },
     })
+
+    // Notify student
+    const student = await prisma.student.findUnique({ where: { id: rest.studentId }, select: { userId: true } })
+    if (student?.userId) {
+      const subject = await prisma.subject.findUnique({ where: { id: rest.subjectId }, select: { name: true } })
+      await createNotification({
+        userId: student.userId,
+        title: `Nova nota: ${subject?.name || "Disciplina"}`,
+        message: `Nota: ${rest.score}/20`,
+        type: "nota",
+        link: "/list/results",
+        schoolId,
+      })
+    }
+
     return NextResponse.json(result, { status: 201 })
   } catch {
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })

@@ -15,6 +15,7 @@ declare module "next-auth" {
       profileComplete: boolean
       adminLevel?: string | null
       permissions?: string[]
+      schoolFeatures?: Record<string, boolean> | null
     }
   }
 
@@ -27,6 +28,7 @@ declare module "next-auth" {
     profileComplete: boolean
     adminLevel?: string | null
     permissions?: string[]
+    schoolFeatures?: Record<string, boolean> | null
   }
 }
 
@@ -41,5 +43,6 @@ declare module "next-auth/jwt" {
     profileComplete: boolean
     adminLevel?: string | null
     permissions?: string[]
+    schoolFeatures?: Record<string, boolean> | null
   }
 }

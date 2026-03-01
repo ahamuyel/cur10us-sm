@@ -1,15 +1,44 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Moon, Sun, Bell, Shield, Globe } from "lucide-react"
+import { useSession } from "next-auth/react"
+import { Moon, Sun, Bell, Shield, Globe, Settings2 } from "lucide-react"
 import { useTheme } from "@/provider/theme"
 
 const SettingsPage = () => {
   const { theme, toggleTheme } = useTheme()
+  const { data: session } = useSession()
   const darkMode = theme === "dark"
   const [notifications, setNotifications] = useState(true)
   const [emailNotifs, setEmailNotifs] = useState(false)
+  const [locale, setLocale] = useState("pt")
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    fetch("/api/user-preferences")
+      .then((r) => r.ok ? r.json() : null)
+      .then((pref) => {
+        if (pref) {
+          setNotifications(pref.notifyPlatform ?? true)
+          setEmailNotifs(pref.notifyEmail ?? false)
+          setLocale(pref.locale ?? "pt")
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  const savePref = async (updates: Record<string, unknown>) => {
+    setSaving(true)
+    await fetch("/api/user-preferences", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updates),
+    }).catch(() => {})
+    setSaving(false)
+  }
+
+  const isAdmin = session?.user?.role === "school_admin"
 
   return (
     <div className="m-2 sm:m-3 flex flex-col gap-4">
@@ -47,10 +76,14 @@ const SettingsPage = () => {
               <p className="text-xs text-zinc-500 dark:text-zinc-400">Idioma da interface</p>
             </div>
           </div>
-          <select className="px-3 py-1.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm text-zinc-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <option>Português (BR)</option>
-            <option>English</option>
-            <option>Español</option>
+          <select
+            value={locale}
+            onChange={(e) => { setLocale(e.target.value); savePref({ locale: e.target.value }) }}
+            className="px-3 py-1.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm text-zinc-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="pt">Português</option>
+            <option value="en">English</option>
+            <option value="es">Español</option>
           </select>
         </div>
       </div>
@@ -65,11 +98,11 @@ const SettingsPage = () => {
         </div>
         <div className="flex items-center justify-between py-3 border-b border-zinc-100 dark:border-zinc-800">
           <div>
-            <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Notificações push</p>
+            <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Notificações na plataforma</p>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">Receba alertas em tempo real</p>
           </div>
           <button
-            onClick={() => setNotifications(!notifications)}
+            onClick={() => { const v = !notifications; setNotifications(v); savePref({ notifyPlatform: v }) }}
             className={`relative w-11 h-6 rounded-full transition-colors ${notifications ? "bg-indigo-600" : "bg-zinc-300 dark:bg-zinc-600"}`}
           >
             <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${notifications ? "translate-x-5" : ""}`} />
@@ -81,13 +114,37 @@ const SettingsPage = () => {
             <p className="text-xs text-zinc-500 dark:text-zinc-400">Resumo diário por e-mail</p>
           </div>
           <button
-            onClick={() => setEmailNotifs(!emailNotifs)}
+            onClick={() => { const v = !emailNotifs; setEmailNotifs(v); savePref({ notifyEmail: v }) }}
             className={`relative w-11 h-6 rounded-full transition-colors ${emailNotifs ? "bg-indigo-600" : "bg-zinc-300 dark:bg-zinc-600"}`}
           >
             <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${emailNotifs ? "translate-x-5" : ""}`} />
           </button>
         </div>
       </div>
+
+      {/* School Settings (admin only) */}
+      {isAdmin && (
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-8 h-8 rounded-lg bg-cyan-50 dark:bg-cyan-950/40 flex items-center justify-center">
+              <Settings2 className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+            </div>
+            <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">Escola</h2>
+          </div>
+          <div className="flex items-center justify-between py-3">
+            <div>
+              <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Personalizar escola</p>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">Logo, cor primária e identidade visual</p>
+            </div>
+            <Link
+              href="/settings/school"
+              className="px-4 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-xs font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition"
+            >
+              Configurar
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Security */}
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
@@ -116,6 +173,8 @@ const SettingsPage = () => {
           </button>
         </div>
       </div>
+
+      {saving && <span className="text-xs text-zinc-400 text-center">Guardando...</span>}
     </div>
   )
 }

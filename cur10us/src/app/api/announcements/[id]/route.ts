@@ -9,12 +9,17 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     if (authError) return authError
 
     const schoolId = getSchoolId(session!)
+    const userId = session!.user.id
     const { id } = await params
 
     const announcement = await prisma.announcement.findUnique({
       where: { id },
       include: {
         class: { select: { id: true, name: true } },
+        course: { select: { id: true, name: true } },
+        author: { select: { id: true, name: true } },
+        _count: { select: { reads: true } },
+        reads: { where: { userId }, select: { id: true } },
       },
     })
 
@@ -22,7 +27,13 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       return NextResponse.json({ error: "Aviso não encontrado" }, { status: 404 })
     }
 
-    return NextResponse.json(announcement)
+    return NextResponse.json({
+      ...announcement,
+      readCount: announcement._count.reads,
+      isRead: announcement.reads.length > 0,
+      _count: undefined,
+      reads: undefined,
+    })
   } catch {
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
@@ -48,9 +59,14 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
     }
 
+    const { scheduledAt, ...rest } = parsed.data
+
     const updated = await prisma.announcement.update({
       where: { id },
-      data: parsed.data,
+      data: {
+        ...rest,
+        ...(scheduledAt !== undefined ? { scheduledAt: scheduledAt ? new Date(scheduledAt) : null } : {}),
+      },
     })
 
     return NextResponse.json(updated)

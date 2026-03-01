@@ -37,7 +37,14 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
     }
 
-    const school = await prisma.school.update({ where: { id }, data: parsed.data })
+    const { features, ...rest } = parsed.data
+    const school = await prisma.school.update({
+      where: { id },
+      data: {
+        ...rest,
+        ...(features !== undefined && { features: features as unknown as Record<string, boolean> }),
+      },
+    })
     return NextResponse.json(school)
   } catch {
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })

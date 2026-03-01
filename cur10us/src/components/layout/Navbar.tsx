@@ -5,7 +5,6 @@ import { useSession } from "next-auth/react"
 import {
   Search,
   MessageCircle,
-  Megaphone,
   X,
   Users,
   UserRound,
@@ -15,6 +14,7 @@ import {
 import Image from "next/image"
 import Link from "next/link"
 import ThemeToggle from "@/components/ui/ThemeToggle"
+import NotificationDropdown from "@/components/ui/NotificationDropdown"
 
 const roleLabels: Record<string, string> = {
   super_admin: "Super Admin",
@@ -211,13 +211,8 @@ const NavBar = () => {
           <MessageCircle size={18} />
         </button>
 
-        {/* Announcements */}
-        <button className="relative p-2 rounded-lg text-zinc-500 hover:text-indigo-600 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition">
-          <Megaphone size={18} />
-          <span className="absolute top-1 right-1 flex items-center justify-center w-4 h-4 rounded-full bg-indigo-600 text-white text-[9px] font-bold">
-            1
-          </span>
-        </button>
+        {/* Notifications */}
+        <NotificationDropdown />
 
         {/* Theme Toggle */}
         <ThemeToggle />

@@ -6,7 +6,9 @@ import { createAssignmentSchema } from "@/lib/validations/academic"
 type AssignmentData = {
   id?: string
   title?: string | null
+  description?: string | null
   dueDate: string
+  maxScore?: number
   subjectId: string
   classId: string
   teacherId: string
@@ -26,7 +28,9 @@ const inputClass = "w-full px-3 py-2 rounded-xl text-sm bg-zinc-50 dark:bg-zinc-
 const AssignmentForm = ({ mode, initialData, onSuccess, onCancel }: Props) => {
   const [form, setForm] = useState({
     title: initialData?.title || "",
+    description: initialData?.description || "",
     dueDate: initialData?.dueDate ? initialData.dueDate.split("T")[0] : "",
+    maxScore: initialData?.maxScore?.toString() || "20",
     subjectId: initialData?.subjectId || "",
     classId: initialData?.classId || "",
     teacherId: initialData?.teacherId || "",
@@ -49,7 +53,17 @@ const AssignmentForm = ({ mode, initialData, onSuccess, onCancel }: Props) => {
     setErrors({})
     setApiError("")
 
-    const parsed = createAssignmentSchema.safeParse(form)
+    const payload = {
+      title: form.title,
+      description: form.description,
+      dueDate: form.dueDate,
+      maxScore: parseFloat(form.maxScore) || 20,
+      subjectId: form.subjectId,
+      classId: form.classId,
+      teacherId: form.teacherId,
+    }
+
+    const parsed = createAssignmentSchema.safeParse(payload)
     if (!parsed.success) {
       const fieldErrors: Record<string, string> = {}
       parsed.error.issues.forEach((issue) => {
@@ -66,7 +80,7 @@ const AssignmentForm = ({ mode, initialData, onSuccess, onCancel }: Props) => {
       const res = await fetch(url, {
         method: mode === "edit" ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -87,12 +101,20 @@ const AssignmentForm = ({ mode, initialData, onSuccess, onCancel }: Props) => {
         <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-600 text-sm">{apiError}</div>
       )}
 
+      <FormField label="Título" error={errors.title}>
+        <input className={inputClass} value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="Título da tarefa" />
+      </FormField>
+
+      <FormField label="Descrição (opcional)" error={errors.description}>
+        <textarea className={inputClass} rows={3} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} placeholder="Descrição ou instruções da tarefa..." />
+      </FormField>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FormField label="Título (opcional)" error={errors.title}>
-          <input className={inputClass} value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} />
-        </FormField>
         <FormField label="Data de Entrega" error={errors.dueDate}>
           <input className={inputClass} type="date" value={form.dueDate} onChange={(e) => setForm((f) => ({ ...f, dueDate: e.target.value }))} />
+        </FormField>
+        <FormField label="Nota Máxima" error={errors.maxScore}>
+          <input className={inputClass} type="number" min="1" max="100" value={form.maxScore} onChange={(e) => setForm((f) => ({ ...f, maxScore: e.target.value }))} />
         </FormField>
       </div>
 

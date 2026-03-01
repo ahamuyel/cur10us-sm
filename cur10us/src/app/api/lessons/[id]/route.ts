@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server"
+import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import { requirePermission, getSchoolId } from "@/lib/api-auth"
 import { updateLessonSchema } from "@/lib/validations/academic"
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { error: authError, session } = await requirePermission(["school_admin", "teacher"], "canManageLessons", { requireSchool: true })
+    const { error: authError, session } = await requirePermission(["school_admin", "teacher", "student"], "canManageLessons", { requireSchool: true })
     if (authError) return authError
 
     const schoolId = getSchoolId(session!)
@@ -50,9 +51,17 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
     }
 
+    const { materials, subjectId, classId: cId, teacherId, ...rest } = parsed.data
+
     const updated = await prisma.lesson.update({
       where: { id },
-      data: parsed.data,
+      data: {
+        ...rest,
+        ...(subjectId !== undefined ? { subject: { connect: { id: subjectId } } } : {}),
+        ...(cId !== undefined ? { class: { connect: { id: cId } } } : {}),
+        ...(teacherId !== undefined ? { teacher: { connect: { id: teacherId } } } : {}),
+        ...(materials !== undefined ? { materials: materials ? (materials as unknown as Prisma.InputJsonValue) : Prisma.JsonNull } : {}),
+      },
     })
     return NextResponse.json(updated)
   } catch {

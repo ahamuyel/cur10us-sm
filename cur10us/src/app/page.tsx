@@ -320,8 +320,6 @@ export default function Home() {
           </p>
         </div>
       </footer>
-  
-
     </main>
   )
 }

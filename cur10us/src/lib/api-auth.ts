@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth"
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { isFeatureEnabled, type FeatureKey } from "@/lib/features"
 
 interface RequireRoleOptions {
   requireSchool?: boolean
@@ -81,4 +82,20 @@ export async function requirePermission(
     error: NextResponse.json({ error: "Sem permissão para esta ação" }, { status: 403 }),
     session: null,
   }
+}
+
+/**
+ * Check if a feature is enabled for the current user's school.
+ * Super admins bypass feature checks.
+ */
+export function requireFeature(
+  session: { user: { role?: string; schoolFeatures?: Record<string, boolean> | null } },
+  feature: FeatureKey
+): NextResponse | null {
+  if (session.user.role === "super_admin") return null
+  const features = session.user.schoolFeatures
+  if (!isFeatureEnabled(features, feature)) {
+    return NextResponse.json({ error: "Funcionalidade não disponível" }, { status: 403 })
+  }
+  return null
 }
