@@ -8,6 +8,7 @@ type ClassData = {
   name: string
   grade: number
   capacity: number
+  period?: string
   courseId?: string | null
   supervisorId?: string | null
 }
@@ -28,6 +29,7 @@ const ClassForm = ({ mode, initialData, onSuccess, onCancel }: Props) => {
     name: initialData?.name || "",
     grade: initialData?.grade || 1,
     capacity: initialData?.capacity || 30,
+    period: initialData?.period || "regular",
     courseId: initialData?.courseId || "",
     supervisorId: initialData?.supervisorId || "",
   })
@@ -51,6 +53,7 @@ const ClassForm = ({ mode, initialData, onSuccess, onCancel }: Props) => {
       ...form,
       grade: Number(form.grade),
       capacity: Number(form.capacity),
+      period: form.period || "regular",
       courseId: form.courseId || null,
       supervisorId: form.supervisorId || null,
     }
@@ -110,6 +113,15 @@ const ClassForm = ({ mode, initialData, onSuccess, onCancel }: Props) => {
         <FormField label="Capacidade" error={errors.capacity}>
           <input className={inputClass} type="number" min={1} max={200} value={form.capacity} onChange={(e) => setForm((f) => ({ ...f, capacity: Number(e.target.value) }))} />
         </FormField>
+        <FormField label="Período" error={errors.period}>
+          <select className={inputClass} value={form.period} onChange={(e) => setForm((f) => ({ ...f, period: e.target.value }))}>
+            <option value="regular">Regular (Diurno)</option>
+            <option value="pos_laboral">Pós-laboral (Nocturno)</option>
+          </select>
+        </FormField>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField label="Curso" error={errors.courseId}>
           <select className={inputClass} value={form.courseId} onChange={(e) => setForm((f) => ({ ...f, courseId: e.target.value }))}>
             <option value="">Nenhum</option>

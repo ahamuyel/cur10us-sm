@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireRole } from "@/lib/api-auth"
 import { createSchoolSchema } from "@/lib/validations/school"
+import { getDefaultFeatures } from "@/lib/features"
 
 export async function GET(req: Request) {
   try {
@@ -67,7 +68,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Slug ou e-mail já cadastrado" }, { status: 409 })
     }
 
-    const school = await prisma.school.create({ data: parsed.data })
+    const school = await prisma.school.create({ data: { ...parsed.data, features: getDefaultFeatures() } })
     return NextResponse.json(school, { status: 201 })
   } catch {
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })

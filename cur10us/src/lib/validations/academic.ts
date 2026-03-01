@@ -18,6 +18,7 @@ export const createClassSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório").max(20, "Nome muito longo"),
   grade: z.number().int().min(1, "Classe deve ser entre 1 e 13").max(13, "Classe deve ser entre 1 e 13"),
   capacity: z.number().int().min(1, "Capacidade deve ser pelo menos 1").max(200, "Capacidade muito alta"),
+  period: z.enum(["regular", "pos_laboral"]).optional(),
   courseId: z.string().optional().nullable(),
   supervisorId: z.string().optional().nullable(),
 })

@@ -13,6 +13,7 @@ import {
   Settings,
   LogOut,
   Loader2,
+  LifeBuoy,
 } from "lucide-react"
 import ThemeToggle from "@/components/ui/ThemeToggle"
 import AdminNavBar from "@/components/layout/AdminNavBar"
@@ -24,6 +25,7 @@ const sidebarItems = [
   { icon: Users, label: "Utilizadores", href: "/admin/users" },
   { icon: Inbox, label: "Solicitações", href: "/admin/applications" },
   { icon: ShieldCheck, label: "Super Admins", href: "/admin/super-admins" },
+  { icon: LifeBuoy, label: "Suporte", href: "/admin/support" },
   { icon: Settings, label: "Configurações", href: "/admin/settings" },
 ]
 

@@ -66,6 +66,32 @@ enum Gender {
   feminino
 }
 
+enum TicketStatus {
+  aberto
+  em_andamento
+  resolvido
+  arquivado
+}
+
+enum TicketPriority {
+  baixa
+  media
+  alta
+  urgente
+}
+
+enum ImportStatus {
+  pendente
+  processando
+  concluida
+  falhada
+}
+
+enum ClassPeriod {
+  regular
+  pos_laboral
+}
+
 model School {
   id           String       @id @default(cuid())
   name         String
@@ -102,6 +128,8 @@ model School {
   adminPermissions AdminPermission[]
   notifications    Notification[]
   submissions      AssignmentSubmission[]
+  supportTickets   SupportTicket[]
+  importJobs       ImportJob[]
 }
 
 model Application {
@@ -159,6 +187,9 @@ model User {
   targetedAnnouncements Announcement[]       @relation("TargetedAnnouncements")
   dashboardPreference   DashboardPreference?
   userPreference        UserPreference?
+  supportTickets        SupportTicket[]        @relation("UserTickets")
+  supportMessages       SupportTicketMessage[] @relation("UserTicketMessages")
+  importJobs            ImportJob[]            @relation("UserImports")
 }
 
 model PasswordResetToken {
@@ -272,15 +303,16 @@ model CourseSubject {
 }
 
 model Class {
-  id           String   @id @default(cuid())
+  id           String      @id @default(cuid())
   name         String
   grade        Int
   capacity     Int
+  period       ClassPeriod @default(regular)
   courseId      String?
-  course       Course?  @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  course       Course?     @relation(fields: [courseId], references: [id], onDelete: SetNull)
   supervisorId String?
   schoolId     String
-  school       School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school       School      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   students       Student[]
   teacherClasses TeacherClass[]
@@ -547,4 +579,49 @@ model UserPreference {
   notifyPlatform Boolean  @default(true)
   notifyEmail    Boolean  @default(false)
   updatedAt      DateTime @updatedAt
+}
+
+model SupportTicket {
+  id          String         @id @default(cuid())
+  subject     String
+  description String
+  priority    TicketPriority @default(media)
+  status      TicketStatus   @default(aberto)
+  attachment  String?
+  userId      String
+  user        User           @relation("UserTickets", fields: [userId], references: [id], onDelete: Cascade)
+  schoolId    String?
+  school      School?        @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  messages    SupportTicketMessage[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model SupportTicketMessage {
+  id        String        @id @default(cuid())
+  content   String
+  isStaff   Boolean       @default(false)
+  userId    String
+  user      User          @relation("UserTicketMessages", fields: [userId], references: [id], onDelete: Cascade)
+  ticketId  String
+  ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now())
+}
+
+model ImportJob {
+  id           String       @id @default(cuid())
+  filename     String
+  userType     Role
+  status       ImportStatus @default(pendente)
+  totalRows    Int          @default(0)
+  successCount Int          @default(0)
+  failedCount  Int          @default(0)
+  errors       Json?
+  report       Json?
+  importedById String
+  importedBy   User         @relation("UserImports", fields: [importedById], references: [id], onDelete: Cascade)
+  schoolId     String
+  school       School       @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 }

@@ -11,6 +11,7 @@ import {
   Settings,
   Menu,
   LogOut,
+  LifeBuoy,
 } from "lucide-react"
 import { signOut } from "next-auth/react"
 import { useState } from "react"
@@ -24,6 +25,7 @@ const navItems = [
 
 const moreItems = [
   { icon: ShieldCheck, label: "Super Admins", href: "/admin/super-admins" },
+  { icon: LifeBuoy, label: "Suporte", href: "/admin/support" },
   { icon: Settings, label: "Configurações", href: "/admin/settings" },
 ]
 
