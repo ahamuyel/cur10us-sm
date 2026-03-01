@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react"
 import { useParams, useRouter } from "next/navigation"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Loader2 } from "lucide-react"
 
 import UserCard from "@/components/ui/UserCard"
@@ -28,11 +28,15 @@ const calendarConfig: Record<string, { title: string; subtitle: string }> = {
   },
 }
 
+type SchoolStats = { students: number; teachers: number; parents: number; classes: number }
+
 export default function DashboardPage() {
   const { data: session, status } = useSession()
   const params = useParams()
   const router = useRouter()
   const id = params.id as string
+
+  const [stats, setStats] = useState<SchoolStats | null>(null)
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -40,17 +44,24 @@ export default function DashboardPage() {
       return
     }
     if (status === "authenticated" && session?.user?.id) {
-      // Super admin goes to /admin
       if (session.user.role === "super_admin") {
         router.replace("/admin")
         return
       }
-      // Only school admins can view other users' dashboards
       if (id !== session.user.id && session.user.role !== "school_admin") {
         router.replace(`/dashboard/${session.user.id}`)
       }
     }
   }, [status, session, id, router])
+
+  useEffect(() => {
+    if (status === "authenticated" && session?.user?.role === "school_admin") {
+      fetch("/api/school-stats")
+        .then((r) => r.json())
+        .then(setStats)
+        .catch(() => {})
+    }
+  }, [status, session])
 
   if (status === "loading") {
     return (
@@ -62,15 +73,22 @@ export default function DashboardPage() {
 
   const role = session?.user?.role
 
-  // Admin dashboard — KPIs, charts, calendar, announcements
   if (role === "school_admin") {
     return (
       <div className="p-3 sm:p-4 lg:p-6 flex flex-col gap-4 sm:gap-6">
         <section className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-          <UserCard type="students" />
-          <UserCard type="teachers" />
-          <UserCard type="parents" />
-          <UserCard type="staffs" />
+          {stats ? (
+            <>
+              <UserCard type="students" count={stats.students} />
+              <UserCard type="teachers" count={stats.teachers} />
+              <UserCard type="parents" count={stats.parents} />
+              <UserCard type="classes" count={stats.classes} />
+            </>
+          ) : (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-24 sm:h-28 rounded-2xl bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+            ))
+          )}
         </section>
 
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 sm:gap-6">
@@ -94,7 +112,6 @@ export default function DashboardPage() {
     )
   }
 
-  // Teacher / Student / Parent — calendar + sidebar
   const config = calendarConfig[role || ""] || calendarConfig.student
 
   return (

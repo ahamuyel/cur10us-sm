@@ -32,6 +32,7 @@ export default function ApplicationPage() {
   const [message, setMessage] = useState("")
 
   // Student-specific fields
+  const [gender, setGender] = useState("")
   const [documentType, setDocumentType] = useState("")
   const [documentNumber, setDocumentNumber] = useState("")
   const [dateOfBirth, setDateOfBirth] = useState("")
@@ -81,6 +82,7 @@ export default function ApplicationPage() {
           message,
           ...(role === "student"
             ? {
+                gender: gender || undefined,
                 documentType: documentType || undefined,
                 documentNumber: documentNumber || undefined,
                 dateOfBirth: dateOfBirth || undefined,
@@ -218,6 +220,23 @@ export default function ApplicationPage() {
 
         {role === "student" && (
           <>
+            <div>
+              <label htmlFor="gender" className="block text-sm font-medium mb-1.5 text-zinc-700 dark:text-zinc-300">
+                Género
+              </label>
+              <select
+                id="gender"
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+                disabled={loading}
+                className="w-full px-4 py-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition appearance-none"
+              >
+                <option value="">Selecione</option>
+                <option value="masculino">Masculino</option>
+                <option value="feminino">Feminino</option>
+              </select>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="documentType" className="block text-sm font-medium mb-1.5 text-zinc-700 dark:text-zinc-300">

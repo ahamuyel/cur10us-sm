@@ -9,6 +9,7 @@ import DeleteConfirmModal from "@/components/ui/DeleteConfirmModal"
 import StudentForm from "@/components/forms/StudentForm"
 import { useEntityList } from "@/hooks/useEntityList"
 import Image from "next/image"
+import Link from "next/link"
 import { Pencil, Trash2, SlidersHorizontal, ArrowUpDown, UserPlus, UserX, Loader2 } from "lucide-react"
 
 type Student = {
@@ -73,9 +74,9 @@ const StudentListPage = () => {
               </div>
             )}
           </div>
-          <span className="font-bold text-zinc-900 dark:text-zinc-100 truncate text-xs sm:text-sm max-w-[80px] sm:max-w-none">
+          <Link href={`/list/students/${item.id}`} className="font-bold text-zinc-900 dark:text-zinc-100 truncate text-xs sm:text-sm max-w-[80px] sm:max-w-none hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
             {item.name}
-          </span>
+          </Link>
         </div>
       </td>
       <td className="hidden md:table-cell text-zinc-600 dark:text-zinc-400 text-xs">

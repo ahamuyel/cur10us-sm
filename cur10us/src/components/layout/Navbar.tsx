@@ -1,12 +1,16 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { useSession } from "next-auth/react"
 import {
   Search,
   MessageCircle,
   Megaphone,
   X,
+  Users,
+  UserRound,
+  BookOpen,
+  GraduationCap,
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -20,43 +24,168 @@ const roleLabels: Record<string, string> = {
   parent: "Encarregado",
 }
 
+type SearchItem = { id: string; name: string }
+type SearchResults = { students: SearchItem[]; teachers: SearchItem[]; classes: SearchItem[]; subjects: SearchItem[] }
+
+const groupConfig = [
+  { key: "students" as const, label: "Alunos", icon: Users, href: "/list/students" },
+  { key: "teachers" as const, label: "Professores", icon: UserRound, href: "/list/teachers" },
+  { key: "classes" as const, label: "Turmas", icon: BookOpen, href: "/list/classes" },
+  { key: "subjects" as const, label: "Disciplinas", icon: GraduationCap, href: "/list/subjects" },
+]
+
 const NavBar = () => {
   const [searchOpen, setSearchOpen] = useState(false)
+  const [query, setQuery] = useState("")
+  const [results, setResults] = useState<SearchResults | null>(null)
+  const [showResults, setShowResults] = useState(false)
   const { data: session } = useSession()
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const userName = session?.user?.name || "Usuário"
   const userRole = session?.user?.role || ""
+
+  const doSearch = useCallback((q: string) => {
+    if (q.length < 2) {
+      setResults(null)
+      setShowResults(false)
+      return
+    }
+    fetch(`/api/search?q=${encodeURIComponent(q)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        setResults(data)
+        setShowResults(true)
+      })
+      .catch(() => {})
+  }, [])
+
+  const handleQueryChange = (val: string) => {
+    setQuery(val)
+    if (timerRef.current) clearTimeout(timerRef.current)
+    timerRef.current = setTimeout(() => doSearch(val), 300)
+  }
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowResults(false)
+      }
+    }
+    document.addEventListener("mousedown", handler)
+    return () => document.removeEventListener("mousedown", handler)
+  }, [])
+
+  const hasResults = results && (results.students.length + results.teachers.length + results.classes.length + results.subjects.length) > 0
+
+  const renderDropdown = () => {
+    if (!showResults || !results) return null
+    return (
+      <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl z-50 max-h-80 overflow-y-auto">
+        {!hasResults ? (
+          <div className="p-3 text-sm text-zinc-400 text-center">Nenhum resultado encontrado</div>
+        ) : (
+          groupConfig.map((group) => {
+            const items = results[group.key]
+            if (!items.length) return null
+            const Icon = group.icon
+            return (
+              <div key={group.key}>
+                <div className="flex items-center gap-2 px-3 pt-2.5 pb-1">
+                  <Icon size={13} className="text-zinc-400" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">{group.label}</span>
+                </div>
+                {items.map((item) => (
+                  <Link
+                    key={item.id}
+                    href={`${group.href}?search=${encodeURIComponent(item.name)}`}
+                    onClick={() => { setShowResults(false); setQuery(""); setSearchOpen(false) }}
+                    className="block px-3 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition"
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+              </div>
+            )
+          })
+        )}
+      </div>
+    )
+  }
 
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 border-b border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md gap-2">
 
       {/* MOBILE SEARCH OVERLAY */}
       {searchOpen && (
-        <div className="md:hidden absolute inset-0 z-50 flex items-center px-3 bg-white dark:bg-zinc-950">
-          <Search size={16} className="text-zinc-400 shrink-0" />
-          <input
-            type="text"
-            placeholder="Pesquisar..."
-            autoFocus
-            className="flex-1 px-3 py-2 bg-transparent outline-none text-sm text-zinc-700 dark:text-zinc-200 placeholder:text-zinc-400"
-          />
-          <button
-            onClick={() => setSearchOpen(false)}
-            className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800"
-          >
-            <X size={18} className="text-zinc-500" />
-          </button>
+        <div className="md:hidden absolute inset-0 z-50 flex flex-col bg-white dark:bg-zinc-950">
+          <div className="flex items-center px-3 py-2 gap-2">
+            <Search size={16} className="text-zinc-400 shrink-0" />
+            <input
+              type="text"
+              placeholder="Pesquisar..."
+              autoFocus
+              value={query}
+              onChange={(e) => handleQueryChange(e.target.value)}
+              className="flex-1 px-3 py-2 bg-transparent outline-none text-sm text-zinc-700 dark:text-zinc-200 placeholder:text-zinc-400"
+            />
+            <button
+              onClick={() => { setSearchOpen(false); setQuery(""); setShowResults(false) }}
+              className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            >
+              <X size={18} className="text-zinc-500" />
+            </button>
+          </div>
+          {showResults && results && (
+            <div className="flex-1 overflow-y-auto border-t border-zinc-200 dark:border-zinc-800">
+              {!hasResults ? (
+                <div className="p-4 text-sm text-zinc-400 text-center">Nenhum resultado encontrado</div>
+              ) : (
+                groupConfig.map((group) => {
+                  const items = results[group.key]
+                  if (!items.length) return null
+                  const Icon = group.icon
+                  return (
+                    <div key={group.key}>
+                      <div className="flex items-center gap-2 px-4 pt-3 pb-1">
+                        <Icon size={13} className="text-zinc-400" />
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">{group.label}</span>
+                      </div>
+                      {items.map((item) => (
+                        <Link
+                          key={item.id}
+                          href={`${group.href}?search=${encodeURIComponent(item.name)}`}
+                          onClick={() => { setSearchOpen(false); setQuery(""); setShowResults(false) }}
+                          className="block px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition"
+                        >
+                          {item.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )
+                })
+              )}
+            </div>
+          )}
         </div>
       )}
 
       {/* DESKTOP SEARCH */}
-      <div className="hidden md:flex items-center gap-2 px-3 py-2 rounded-full border border-zinc-200 dark:border-zinc-700 text-xs text-zinc-500 focus-within:border-indigo-500 transition flex-shrink-0">
-        <Search size={14} />
-        <input
-          type="text"
-          placeholder="Pesquisar..."
-          className="w-[180px] lg:w-[240px] bg-transparent outline-none text-sm placeholder:text-zinc-400 text-zinc-700 dark:text-zinc-200"
-        />
+      <div className="hidden md:block relative" ref={dropdownRef}>
+        <div className="flex items-center gap-2 px-3 py-2 rounded-full border border-zinc-200 dark:border-zinc-700 text-xs text-zinc-500 focus-within:border-indigo-500 transition flex-shrink-0">
+          <Search size={14} />
+          <input
+            type="text"
+            placeholder="Pesquisar..."
+            value={query}
+            onChange={(e) => handleQueryChange(e.target.value)}
+            onFocus={() => { if (results) setShowResults(true) }}
+            className="w-[180px] lg:w-[240px] bg-transparent outline-none text-sm placeholder:text-zinc-400 text-zinc-700 dark:text-zinc-200"
+          />
+        </div>
+        {renderDropdown()}
       </div>
 
       {/* MOBILE LOGO */}

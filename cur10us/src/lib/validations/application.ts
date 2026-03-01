@@ -9,6 +9,7 @@ export const createApplicationSchema = z.object({
   }),
   schoolId: z.string().min(1, "Escola é obrigatória"),
   message: z.string().max(500, "Mensagem muito longa").optional().or(z.literal("")),
+  gender: z.enum(["masculino", "feminino"]).optional(),
   documentType: z.string().optional().or(z.literal("")),
   documentNumber: z.string().optional().or(z.literal("")),
   dateOfBirth: z.string().optional().or(z.literal("")),

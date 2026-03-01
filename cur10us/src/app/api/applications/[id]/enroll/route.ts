@@ -59,6 +59,10 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
               userId: user.id,
               schoolId,
               ...(classId ? { classId } : {}),
+              ...(application.gender ? { gender: application.gender } : {}),
+              ...(application.dateOfBirth ? { dateOfBirth: application.dateOfBirth } : {}),
+              ...(application.documentType ? { documentType: application.documentType } : {}),
+              ...(application.documentNumber ? { documentNumber: application.documentNumber } : {}),
             },
           })
         } else if (classId) {
@@ -109,6 +113,10 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
             address: "",
             schoolId,
             ...(classId ? { classId } : {}),
+            ...(application.gender ? { gender: application.gender } : {}),
+            ...(application.dateOfBirth ? { dateOfBirth: application.dateOfBirth } : {}),
+            ...(application.documentType ? { documentType: application.documentType } : {}),
+            ...(application.documentNumber ? { documentNumber: application.documentNumber } : {}),
           },
         })
       } else if (application.role === "teacher") {

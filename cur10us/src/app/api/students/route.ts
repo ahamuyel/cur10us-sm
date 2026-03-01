@@ -74,7 +74,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Este e-mail já está cadastrado" }, { status: 409 })
     }
 
-    const { createAccount, ...studentData } = parsed.data
+    const { createAccount, dateOfBirth: dobStr, ...studentData } = parsed.data
+
+    const dateOfBirth = dobStr ? new Date(dobStr) : undefined
 
     let userId: string | undefined
     let tempPassword: string | undefined
@@ -101,7 +103,12 @@ export async function POST(req: Request) {
     }
 
     const student = await prisma.student.create({
-      data: { ...studentData, schoolId, ...(userId && { userId }) },
+      data: {
+        ...studentData,
+        schoolId,
+        ...(dateOfBirth && { dateOfBirth }),
+        ...(userId && { userId }),
+      },
     })
 
     if (createAccount && tempPassword) {

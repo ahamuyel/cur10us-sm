@@ -20,6 +20,10 @@ export const updateTeacherSchema = createTeacherSchema.partial()
 export const createStudentSchema = z.object({
   ...baseFields,
   classId: z.string().optional().nullable(),
+  gender: z.enum(["masculino", "feminino"]).optional(),
+  dateOfBirth: z.string().optional(),
+  documentType: z.string().optional(),
+  documentNumber: z.string().optional(),
   createAccount: z.boolean().optional(),
 })
 
