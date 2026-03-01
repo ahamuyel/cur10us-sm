@@ -131,9 +131,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.profileComplete = (user as { profileComplete: boolean }).profileComplete ?? true
       }
 
-      // For Google sign-ins, the user object from signIn doesn't have our custom fields
-      // Also refresh on session update trigger
-      if ((token.role === undefined || trigger === "signIn" || trigger === "update") && token.email) {
+      // Refresh from DB on every JWT rotation to pick up changes
+      // (e.g. super admin resetting password sets mustChangePassword)
+      if (token.email) {
         const dbUser = await prisma.user.findUnique({
           where: { email: token.email },
           include: { school: { select: { slug: true } }, adminPermission: true },
