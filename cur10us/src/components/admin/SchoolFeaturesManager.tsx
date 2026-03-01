@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Loader2, Lock, ToggleLeft, ToggleRight } from "lucide-react"
+import { Loader2, Lock } from "lucide-react"
 import {
   ALL_FEATURES,
   ESSENTIAL_FEATURES,
@@ -92,10 +92,16 @@ export default function SchoolFeaturesManager({ schoolId, initialFeatures, onUpd
           return (
             <div
               key={feature}
-              className={`flex items-center justify-between p-3 rounded-xl border transition ${
-                enabled
-                  ? "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800"
-                  : "bg-zinc-50 dark:bg-zinc-950 border-zinc-100 dark:border-zinc-900"
+              role={essential ? undefined : "button"}
+              tabIndex={essential ? undefined : 0}
+              onClick={() => toggleFeature(feature)}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleFeature(feature) } }}
+              className={`flex items-center justify-between p-3 rounded-xl border transition select-none ${
+                essential
+                  ? "bg-zinc-50 dark:bg-zinc-950 border-zinc-100 dark:border-zinc-900 opacity-70"
+                  : enabled
+                    ? "bg-white dark:bg-zinc-900 border-indigo-200 dark:border-indigo-800 cursor-pointer hover:border-indigo-400 dark:hover:border-indigo-600"
+                    : "bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 cursor-pointer hover:border-zinc-300 dark:hover:border-zinc-700"
               }`}
             >
               <div className="flex-1 min-w-0">
@@ -119,18 +125,22 @@ export default function SchoolFeaturesManager({ schoolId, initialFeatures, onUpd
                 )}
               </div>
 
-              <button
-                type="button"
-                onClick={() => toggleFeature(feature)}
-                disabled={essential}
-                className={`ml-3 flex-shrink-0 ${essential ? "cursor-not-allowed" : "cursor-pointer hover:opacity-80 active:scale-95"} transition`}
+              {/* Toggle switch */}
+              <div
+                className={`ml-3 flex-shrink-0 relative w-11 h-6 rounded-full transition-colors ${
+                  essential
+                    ? "bg-zinc-300 dark:bg-zinc-700"
+                    : enabled
+                      ? "bg-indigo-600 dark:bg-indigo-500"
+                      : "bg-zinc-300 dark:bg-zinc-600"
+                }`}
               >
-                {enabled ? (
-                  <ToggleRight size={32} className={essential ? "text-zinc-400" : "text-indigo-600 dark:text-indigo-400"} />
-                ) : (
-                  <ToggleLeft size={32} className="text-zinc-300 dark:text-zinc-600" />
-                )}
-              </button>
+                <div
+                  className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                    enabled ? "translate-x-[22px]" : "translate-x-0.5"
+                  }`}
+                />
+              </div>
             </div>
           )
         })}

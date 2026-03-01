@@ -38,16 +38,16 @@ export default function LandingNavbar() {
 
         <div className="flex items-center gap-3">
           <Link
-            href="/signin"
+            href="/signup"
             className="hidden sm:inline-block text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition"
           >
-            Entrar
+            Criar conta
           </Link>
           <Link
-            href="/registar-escola"
+            href="/signin"
             className="px-4 py-2 text-sm rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition shadow-lg shadow-indigo-600/20"
           >
-            Registar escola
+            Entrar
           </Link>
 
           {/* Mobile menu button */}
@@ -78,7 +78,14 @@ export default function LandingNavbar() {
             onClick={() => setOpen(false)}
             className="block text-sm text-indigo-600 dark:text-indigo-400 font-medium py-1"
           >
-            Entrar na plataforma
+            Entrar
+          </Link>
+          <Link
+            href="/signup"
+            onClick={() => setOpen(false)}
+            className="block text-sm text-zinc-600 dark:text-zinc-400 font-medium py-1"
+          >
+            Criar conta
           </Link>
         </div>
       )}
