@@ -48,9 +48,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           })
           if (!user) return null
 
-          // Block inactive users (except super_admin, school_admin, and users who must change password)
-          if (!user.isActive && user.role !== "super_admin" && user.role !== "school_admin" && !user.mustChangePassword) return null
-
           // Google-only user trying to login with password
           if (!user.hashedPassword) return null
 
@@ -92,12 +89,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               where: { id: existing.id },
               data: { provider: "google", providerId: account.providerAccountId, image: user.image ?? existing.image },
             })
-          }
-          // Block inactive users (except super_admin and school_admin)
-          if (!existing.isActive && existing.role !== "super_admin" && existing.role !== "school_admin") {
-            // Allow Google users with incomplete profile to sign in (they need to complete it)
-            if (!existing.profileComplete) return true
-            return false
           }
           return true
         }
