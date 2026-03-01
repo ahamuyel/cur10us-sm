@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   School,
   ShieldCheck,
+  Users,
   LogOut,
   Loader2,
 } from "lucide-react"
@@ -16,6 +17,7 @@ import ThemeToggle from "@/components/ui/ThemeToggle"
 const sidebarItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/admin" },
   { icon: School, label: "Escolas", href: "/admin/schools" },
+  { icon: Users, label: "Utilizadores", href: "/admin/users" },
   { icon: ShieldCheck, label: "Super Admins", href: "/admin/super-admins" },
 ]
 

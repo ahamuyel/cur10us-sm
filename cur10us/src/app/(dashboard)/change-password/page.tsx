@@ -3,10 +3,26 @@
 import { useState } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { Lock } from "lucide-react"
+import { Lock, Eye, EyeOff } from "lucide-react"
 
 const inputClass =
-  "w-full px-3 py-2 rounded-xl text-sm bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-indigo-500 transition"
+  "w-full px-3 py-2 pr-10 rounded-xl text-sm bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-indigo-500 transition"
+
+function PasswordInput({ value, onChange, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) {
+  const [show, setShow] = useState(false)
+  return (
+    <div className="relative">
+      <input {...props} type={show ? "text" : "password"} className={inputClass} value={value} onChange={onChange} />
+      <button
+        type="button"
+        onClick={() => setShow(!show)}
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition"
+      >
+        {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+      </button>
+    </div>
+  )
+}
 
 export default function ChangePasswordPage() {
   const { data: session, update } = useSession()
@@ -87,39 +103,21 @@ export default function ChangePasswordPage() {
               <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                 Palavra-passe actual
               </label>
-              <input
-                type="password"
-                className={inputClass}
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                required
-              />
+              <PasswordInput value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required />
             </div>
 
             <div>
               <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                 Nova palavra-passe
               </label>
-              <input
-                type="password"
-                className={inputClass}
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                required
-              />
+              <PasswordInput value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
             </div>
 
             <div>
               <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                 Confirmar nova palavra-passe
               </label>
-              <input
-                type="password"
-                className={inputClass}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-              />
+              <PasswordInput value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
             </div>
 
             <button
