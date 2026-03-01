@@ -1,18 +1,38 @@
 "use client"
 
-import Link from "next/link"
 import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 import { Clock } from "lucide-react"
 
 export default function PendingAccountGate({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession()
+  const router = useRouter()
 
-  // Profile completion flow disabled for now
+  const user = session?.user
+  const isSuperAdmin = user?.role === "super_admin"
+  const isSchoolAdmin = user?.role === "school_admin"
 
-  // Show pending account screen for inactive users
-  if (session?.user && !session.user.isActive && session.user.role !== "super_admin") {
-    const isSchoolAdmin = session.user.role === "school_admin"
+  // Redirect inactive non-school_admin users to /minha-area
+  // Also redirect active users without schoolId (except super_admin and school_admin)
+  const shouldRedirect =
+    user &&
+    !isSuperAdmin &&
+    !isSchoolAdmin &&
+    (!user.isActive || !user.schoolId)
 
+  useEffect(() => {
+    if (shouldRedirect) {
+      router.replace("/minha-area")
+    }
+  }, [shouldRedirect, router])
+
+  if (shouldRedirect) {
+    return null
+  }
+
+  // Inline pending screen for school_admin with inactive school
+  if (user && !user.isActive && isSchoolAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-black px-4">
         <div className="max-w-md text-center">
@@ -20,29 +40,11 @@ export default function PendingAccountGate({ children }: { children: React.React
             <Clock className="w-8 h-8 text-amber-600 dark:text-amber-400" />
           </div>
           <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-            {isSchoolAdmin ? "Escola pendente de análise" : "Conta pendente"}
+            Escola pendente de análise
           </h1>
           <p className="text-zinc-500 dark:text-zinc-400 mb-6">
-            {isSchoolAdmin
-              ? "A sua escola está pendente de análise pela equipa Cur10usX. Receberá um e-mail quando a escola for aprovada e activada."
-              : "A sua conta ainda não foi activada. Para aceder à plataforma, envie uma solicitação de matrícula para uma escola."}
+            A sua escola está pendente de análise pela equipa Cur10usX. Receberá um e-mail quando a escola for aprovada e activada.
           </p>
-          {!isSchoolAdmin && (
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link
-                href="/aplicacao"
-                className="px-6 py-3 rounded-xl bg-indigo-600 text-white font-medium text-sm hover:bg-indigo-700 transition"
-              >
-                Solicitar matrícula
-              </Link>
-              <Link
-                href="/aplicacao/status"
-                className="px-6 py-3 rounded-xl border border-zinc-300 dark:border-zinc-700 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
-              >
-                Acompanhar solicitação
-              </Link>
-            </div>
-          )}
         </div>
       </div>
     )
