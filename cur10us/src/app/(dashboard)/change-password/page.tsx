@@ -64,7 +64,9 @@ export default function ChangePasswordPage() {
       }
 
       await update()
-      router.replace("/dashboard")
+      // Full reload to ensure MustChangePasswordGate reads the fresh session
+      window.location.href = "/dashboard"
+      return
     } catch {
       setError("Erro de conexão")
     } finally {
