@@ -20,29 +20,34 @@ export async function GET(req: Request) {
     const classId = searchParams.get("classId") || ""
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let where: any = {
-      schoolId,
-      OR: [
+    let where: any = { schoolId }
+
+    // Admins and teachers see all announcements (including scheduled/unpublished)
+    // Students and parents only see published or past-scheduled announcements
+    if (role === "student" || role === "parent") {
+      where.OR = [
         { publishedAt: { not: null, lte: new Date() } },
         { publishedAt: null, scheduledAt: null },
-      ],
+        { publishedAt: null, scheduledAt: { lte: new Date() } },
+      ]
     }
 
     if (priority) where.priority = priority
     if (classId) where.classId = classId
 
-    // For students: filter to school-wide + their class + their course + targeted to them
+    // For students: also filter by visibility scope
     if (role === "student") {
       const student = await prisma.student.findFirst({ where: { userId, schoolId }, select: { classId: true, class: { select: { courseId: true } } } })
-      where = {
-        ...where,
-        OR: [
-          { classId: null, courseId: null, targetUserId: null },
-          ...(student?.classId ? [{ classId: student.classId }] : []),
-          ...(student?.class?.courseId ? [{ courseId: student.class.courseId }] : []),
-          { targetUserId: userId },
-        ],
-      }
+      where.AND = [
+        {
+          OR: [
+            { classId: null, courseId: null, targetUserId: null },
+            ...(student?.classId ? [{ classId: student.classId }] : []),
+            ...(student?.class?.courseId ? [{ courseId: student.class.courseId }] : []),
+            { targetUserId: userId },
+          ],
+        },
+      ]
     }
 
     const orderBy = buildOrderBy(searchParams, ["createdAt", "priority", "scheduledAt", "title"], { createdAt: "desc" })
