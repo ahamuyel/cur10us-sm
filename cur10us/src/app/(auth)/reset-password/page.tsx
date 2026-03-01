@@ -1,11 +1,14 @@
 "use client"
 
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Eye, EyeOff, KeyRound, CheckCircle2, ArrowLeft, Loader2 } from "lucide-react"
 import { useState, Suspense } from "react"
+import { signIn as nextAuthSignIn, getSession } from "next-auth/react"
+import { getDashboardPath } from "@/lib/routes"
 
 function ResetPasswordForm() {
+  const router = useRouter()
   const searchParams = useSearchParams()
   const token = searchParams.get("token")
 
@@ -14,6 +17,7 @@ function ResetPasswordForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
+  const [signingIn, setSigningIn] = useState(false)
 
   if (!token) {
     return (
@@ -39,19 +43,27 @@ function ResetPasswordForm() {
       <div className="w-full max-w-md">
         <div className="rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm p-8 text-center">
           <div className="w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2 className="w-7 h-7 text-emerald-600 dark:text-emerald-400" />
+            {signingIn ? (
+              <Loader2 className="w-7 h-7 text-emerald-600 dark:text-emerald-400 animate-spin" />
+            ) : (
+              <CheckCircle2 className="w-7 h-7 text-emerald-600 dark:text-emerald-400" />
+            )}
           </div>
           <h1 className="text-2xl font-bold mb-2">Palavra-passe redefinida</h1>
           <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">
-            A sua palavra-passe foi actualizada com sucesso.
+            {signingIn
+              ? "A entrar na sua conta..."
+              : "A sua palavra-passe foi actualizada com sucesso."}
           </p>
-          <Link
-            href="/signin"
-            className="inline-flex items-center gap-2 text-sm text-indigo-600 dark:text-indigo-400 font-medium hover:underline"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Ir para o login
-          </Link>
+          {!signingIn && (
+            <Link
+              href="/signin"
+              className="inline-flex items-center gap-2 text-sm text-indigo-600 dark:text-indigo-400 font-medium hover:underline"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Ir para o login
+            </Link>
+          )}
         </div>
       </div>
     )
@@ -82,6 +94,29 @@ function ResetPasswordForm() {
       }
 
       setSuccess(true)
+
+      // Auto-login com as novas credenciais
+      if (data.email) {
+        setSigningIn(true)
+        try {
+          const signInRes = await nextAuthSignIn("credentials", {
+            email: data.email,
+            password,
+            redirect: false,
+          })
+
+          if (signInRes?.ok) {
+            const session = await getSession()
+            const dashboard = getDashboardPath(session?.user?.id)
+            router.push(dashboard)
+            router.refresh()
+            return
+          }
+        } catch {
+          // Se o auto-login falhar, o utilizador pode ir manualmente
+        }
+        setSigningIn(false)
+      }
     } catch {
       setError("Erro de conexão. Tente novamente.")
     } finally {
