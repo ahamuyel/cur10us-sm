@@ -1,13 +1,14 @@
 "use client"
 
 import { useState } from "react"
-import { Loader2, Lock } from "lucide-react"
+import { Loader2, Star } from "lucide-react"
 import {
   ALL_FEATURES,
-  ESSENTIAL_FEATURES,
+  DEFAULT_ENABLED_FEATURES,
   featureLabels,
   featureDescriptions,
   featureMenuItems,
+  getDefaultFeatures,
   type FeatureKey,
 } from "@/lib/features"
 
@@ -19,18 +20,19 @@ type Props = {
 
 export default function SchoolFeaturesManager({ schoolId, initialFeatures, onUpdate }: Props) {
   const [features, setFeatures] = useState<Record<string, boolean>>(() => {
-    const defaults: Record<string, boolean> = {}
-    ALL_FEATURES.forEach((f) => {
-      defaults[f] = initialFeatures?.[f] ?? (ESSENTIAL_FEATURES as readonly string[]).includes(f)
-    })
-    return defaults
+    if (initialFeatures && Object.keys(initialFeatures).length > 0) {
+      // Use saved features, but ensure new features have defaults
+      const merged = { ...getDefaultFeatures(), ...initialFeatures }
+      return merged
+    }
+    return getDefaultFeatures()
   })
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [saveError, setSaveError] = useState("")
 
-  const isEssential = (feature: string) =>
-    (ESSENTIAL_FEATURES as readonly string[]).includes(feature)
+  const isDefault = (feature: string) =>
+    (DEFAULT_ENABLED_FEATURES as readonly string[]).includes(feature)
 
   async function handleSave() {
     setSaving(true)
@@ -58,7 +60,6 @@ export default function SchoolFeaturesManager({ schoolId, initialFeatures, onUpd
   }
 
   function toggleFeature(key: string) {
-    if (isEssential(key)) return
     setFeatures((prev) => ({ ...prev, [key]: !prev[key] }))
   }
 
@@ -85,23 +86,21 @@ export default function SchoolFeaturesManager({ schoolId, initialFeatures, onUpd
 
       <div className="grid gap-2">
         {ALL_FEATURES.map((feature) => {
-          const essential = isEssential(feature)
           const enabled = features[feature]
+          const recommended = isDefault(feature)
           const menuItems = featureMenuItems[feature as FeatureKey]
 
           return (
             <div
               key={feature}
-              role={essential ? undefined : "button"}
-              tabIndex={essential ? undefined : 0}
+              role="button"
+              tabIndex={0}
               onClick={() => toggleFeature(feature)}
               onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleFeature(feature) } }}
-              className={`flex items-center justify-between p-3 rounded-xl border transition select-none ${
-                essential
-                  ? "bg-zinc-50 dark:bg-zinc-950 border-zinc-100 dark:border-zinc-900 opacity-70"
-                  : enabled
-                    ? "bg-white dark:bg-zinc-900 border-indigo-200 dark:border-indigo-800 cursor-pointer hover:border-indigo-400 dark:hover:border-indigo-600"
-                    : "bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 cursor-pointer hover:border-zinc-300 dark:hover:border-zinc-700"
+              className={`flex items-center justify-between p-3 rounded-xl border transition select-none cursor-pointer ${
+                enabled
+                  ? "bg-white dark:bg-zinc-900 border-indigo-200 dark:border-indigo-800 hover:border-indigo-400 dark:hover:border-indigo-600"
+                  : "bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700"
               }`}
             >
               <div className="flex-1 min-w-0">
@@ -109,9 +108,9 @@ export default function SchoolFeaturesManager({ schoolId, initialFeatures, onUpd
                   <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                     {featureLabels[feature as FeatureKey]}
                   </span>
-                  {essential && (
-                    <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-[10px] font-medium text-zinc-500">
-                      <Lock size={10} /> Essencial
+                  {recommended && (
+                    <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/30 text-[10px] font-medium text-amber-600 dark:text-amber-400">
+                      <Star size={9} /> Recomendado
                     </span>
                   )}
                 </div>
@@ -128,11 +127,9 @@ export default function SchoolFeaturesManager({ schoolId, initialFeatures, onUpd
               {/* Toggle switch */}
               <div
                 className={`ml-3 flex-shrink-0 relative w-11 h-6 rounded-full transition-colors ${
-                  essential
-                    ? "bg-zinc-300 dark:bg-zinc-700"
-                    : enabled
-                      ? "bg-indigo-600 dark:bg-indigo-500"
-                      : "bg-zinc-300 dark:bg-zinc-600"
+                  enabled
+                    ? "bg-indigo-600 dark:bg-indigo-500"
+                    : "bg-zinc-300 dark:bg-zinc-600"
                 }`}
               >
                 <div
