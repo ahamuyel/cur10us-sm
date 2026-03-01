@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { Loader2, ArrowLeft, CheckCircle2, XCircle, Zap, RotateCcw, Ban, Trash2 } from "lucide-react"
+import { Loader2, ArrowLeft, CheckCircle2, XCircle, Zap, RotateCcw, Ban, Trash2, Copy, Check } from "lucide-react"
 import StatusBadge from "@/components/ui/StatusBadge"
 import ConfirmActionModal from "@/components/ui/ConfirmActionModal"
 
@@ -38,6 +38,8 @@ export default function SchoolDetailPage() {
   const [rejectReason, setRejectReason] = useState("")
   const [showReject, setShowReject] = useState(false)
   const [confirmAction, setConfirmAction] = useState<"revert" | "suspend" | "delete" | null>(null)
+  const [activatedCreds, setActivatedCreds] = useState<{ email: string; password: string } | null>(null)
+  const [copied, setCopied] = useState(false)
 
   async function fetchSchool() {
     try {
@@ -69,10 +71,10 @@ export default function SchoolDetailPage() {
       }
       const data = await res.json()
       if (action === "activate") {
-        if (data.adminCreated) {
-          alert(`Escola activada! Conta de administrador criada automaticamente.\n\nE-mail: ${data.adminEmail}\nUma palavra-passe temporária foi enviada para o e-mail da escola.`)
+        if (data.adminCreated && data.tempPassword) {
+          setActivatedCreds({ email: data.adminEmail, password: data.tempPassword })
         } else if (data.existingAdmin) {
-          alert(`Escola activada! O administrador existente (${data.adminEmail}) foi activado e notificado por e-mail.`)
+          alert(`Escola activada! O administrador existente (${data.adminEmail}) foi activado.`)
         }
       }
       setShowReject(false)
@@ -163,6 +165,34 @@ export default function SchoolDetailPage() {
           <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 mb-6 text-sm">
             <span className="font-medium text-red-600 dark:text-red-400">Motivo da rejeição:</span>
             <p className="text-red-600 dark:text-red-400 mt-1">{school.rejectReason}</p>
+          </div>
+        )}
+
+        {/* Activated credentials */}
+        {activatedCreds && (
+          <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 mb-6">
+            <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300 mb-2">
+              Escola activada! Credenciais do administrador:
+            </p>
+            <div className="flex items-center gap-3">
+              <code className="text-xs bg-white dark:bg-zinc-900 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-800 flex-1">
+                E-mail: {activatedCreds.email} | Palavra-passe: {activatedCreds.password}
+              </code>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(`E-mail: ${activatedCreds.email}\nPalavra-passe: ${activatedCreds.password}`)
+                  setCopied(true)
+                  setTimeout(() => setCopied(false), 2000)
+                }}
+                className="flex items-center gap-1 px-3 py-2 rounded-lg bg-emerald-600 text-white text-xs font-medium hover:bg-emerald-700 transition"
+              >
+                {copied ? <Check size={14} /> : <Copy size={14} />}
+                {copied ? "Copiado" : "Copiar"}
+              </button>
+            </div>
+            <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-2">
+              O administrador será obrigado a alterar a palavra-passe no primeiro acesso.
+            </p>
           </div>
         )}
 

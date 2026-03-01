@@ -45,6 +45,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
           provider: "credentials",
           role: "school_admin",
           isActive: true,
+          mustChangePassword: true,
           profileComplete: true,
           schoolId: id,
         },
@@ -92,6 +93,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       adminCreated: !!tempPassword,
       existingAdmin,
       adminEmail: admin.email,
+      ...(tempPassword && { tempPassword }),
     })
   } catch {
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
