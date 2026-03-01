@@ -47,3 +47,11 @@ export const changePasswordSchema = z.object({
     .min(8, "Nova palavra-passe deve ter pelo menos 8 caracteres")
     .max(100, "Palavra-passe muito longa"),
 })
+
+export const updateProfileSchema = z.object({
+  name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres").max(100).optional(),
+  phone: z.string().max(20).optional(),
+  address: z.string().max(200).optional(),
+  gender: z.enum(["masculino", "feminino"]).nullable().optional(),
+  dateOfBirth: z.string().nullable().optional(),
+})

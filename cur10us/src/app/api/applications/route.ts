@@ -32,10 +32,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Já existe uma solicitação pendente para este e-mail nesta escola" }, { status: 409 })
     }
 
-    const { dateOfBirth, documentType, documentNumber, desiredCourseId, ...rest } = parsed.data
+    const { dateOfBirth, documentType, documentNumber, desiredCourseId, gender, ...rest } = parsed.data
     const application = await prisma.application.create({
       data: {
         ...rest,
+        gender: gender || undefined,
         documentType: documentType || undefined,
         documentNumber: documentNumber || undefined,
         desiredCourseId: desiredCourseId || undefined,

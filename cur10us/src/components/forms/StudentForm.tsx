@@ -12,6 +12,10 @@ type StudentData = {
   address: string
   foto?: string | null
   classId?: string | null
+  gender?: string | null
+  dateOfBirth?: string | null
+  documentType?: string | null
+  documentNumber?: string | null
 }
 
 type Props = {
@@ -33,6 +37,10 @@ const StudentForm = ({ mode, initialData, onSuccess, onCancel }: Props) => {
     address: initialData?.address || "",
     foto: initialData?.foto || "",
     classId: initialData?.classId || "",
+    gender: initialData?.gender || "",
+    dateOfBirth: initialData?.dateOfBirth ? initialData.dateOfBirth.slice(0, 10) : "",
+    documentType: initialData?.documentType || "",
+    documentNumber: initialData?.documentNumber || "",
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
@@ -51,7 +59,14 @@ const StudentForm = ({ mode, initialData, onSuccess, onCancel }: Props) => {
     setErrors({})
     setApiError("")
 
-    const submitData = { ...form, classId: form.classId || null }
+    const submitData = {
+      ...form,
+      classId: form.classId || null,
+      gender: form.gender || undefined,
+      dateOfBirth: form.dateOfBirth || undefined,
+      documentType: form.documentType || undefined,
+      documentNumber: form.documentNumber || undefined,
+    }
     const parsed = createStudentSchema.safeParse(submitData)
     if (!parsed.success) {
       const fieldErrors: Record<string, string> = {}
@@ -144,6 +159,32 @@ const StudentForm = ({ mode, initialData, onSuccess, onCancel }: Props) => {
       <FormField label="Endereço" error={errors.address}>
         <input className={inputClass} value={form.address} onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))} />
       </FormField>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <FormField label="Género" error={errors.gender}>
+          <select className={inputClass} value={form.gender} onChange={(e) => setForm((f) => ({ ...f, gender: e.target.value }))}>
+            <option value="">Selecione</option>
+            <option value="masculino">Masculino</option>
+            <option value="feminino">Feminino</option>
+          </select>
+        </FormField>
+        <FormField label="Data de Nascimento" error={errors.dateOfBirth}>
+          <input className={inputClass} type="date" value={form.dateOfBirth} onChange={(e) => setForm((f) => ({ ...f, dateOfBirth: e.target.value }))} />
+        </FormField>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <FormField label="Tipo de Documento" error={errors.documentType}>
+          <select className={inputClass} value={form.documentType} onChange={(e) => setForm((f) => ({ ...f, documentType: e.target.value }))}>
+            <option value="">Selecione</option>
+            <option value="BI">BI</option>
+            <option value="Passaporte">Passaporte</option>
+          </select>
+        </FormField>
+        <FormField label="N.º do Documento" error={errors.documentNumber}>
+          <input className={inputClass} value={form.documentNumber} onChange={(e) => setForm((f) => ({ ...f, documentNumber: e.target.value }))} />
+        </FormField>
+      </div>
 
       <FormField label="Turma" error={errors.classId}>
         <select className={inputClass} value={form.classId} onChange={(e) => setForm((f) => ({ ...f, classId: e.target.value }))}>
