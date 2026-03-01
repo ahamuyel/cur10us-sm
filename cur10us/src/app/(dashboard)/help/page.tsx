@@ -2,7 +2,8 @@
 
 import { useSession } from "next-auth/react"
 import { useState } from "react"
-import { ChevronDown, BookOpen, HelpCircle, Mail } from "lucide-react"
+import Link from "next/link"
+import { ChevronDown, BookOpen, HelpCircle, Mail, LifeBuoy } from "lucide-react"
 import { helpContent, contactInfo } from "@/lib/help-content"
 import type { HelpSection } from "@/lib/help-content"
 
@@ -95,6 +96,24 @@ export default function HelpPage() {
             <FaqSection key={i} section={section} />
           ))}
         </div>
+      </div>
+
+      {/* Support link */}
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
+        <div className="flex items-center gap-2 mb-3">
+          <LifeBuoy size={16} className="text-indigo-600 dark:text-indigo-400" />
+          <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">Precisa de mais ajuda?</h2>
+        </div>
+        <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-3">
+          Abra um ticket de suporte e a nossa equipa irá ajudá-lo o mais rápido possível.
+        </p>
+        <Link
+          href="/support"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 transition"
+        >
+          <LifeBuoy size={14} />
+          Ir para o Suporte
+        </Link>
       </div>
 
       {/* Contact */}

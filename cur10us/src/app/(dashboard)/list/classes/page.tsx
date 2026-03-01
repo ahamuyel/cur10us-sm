@@ -15,16 +15,23 @@ type Class = {
   name: string
   grade: number
   capacity: number
+  period?: string
   courseId?: string | null
   supervisorId?: string | null
   course?: { id: string; name: string } | null
   _count?: { students: number }
 }
 
+const periodLabels: Record<string, string> = {
+  regular: "Regular",
+  pos_laboral: "Pós-laboral",
+}
+
 const columns = [
   { header: "Turma", accessor: "name" },
   { header: "Classe", accessor: "grade" },
-  { header: "Capacidade", accessor: "capacity", className: "hidden md:table-cell" },
+  { header: "Período", accessor: "period", className: "hidden md:table-cell" },
+  { header: "Capacidade", accessor: "capacity", className: "hidden lg:table-cell" },
   { header: "Curso", accessor: "course", className: "hidden lg:table-cell" },
   { header: "Alunos", accessor: "students" },
   { header: "Ações", accessor: "actions" },
@@ -33,7 +40,7 @@ const columns = [
 const ClassListPage = () => {
   const { data: session } = useSession()
   const isAdmin = session?.user?.role === "school_admin"
-  const { data, totalPages, page, search, setSearch, setPage, loading, refetch } = useEntityList<Class>({ endpoint: "/api/classes", limit: 5 })
+  const { data, totalPages, page, search, setSearch, setPage, loading, refetch, filters, setFilters } = useEntityList<Class>({ endpoint: "/api/classes", limit: 5 })
 
   const [createOpen, setCreateOpen] = useState(false)
   const [editItem, setEditItem] = useState<Class | null>(null)
@@ -59,6 +66,11 @@ const ClassListPage = () => {
         </span>
       </td>
       <td className="hidden md:table-cell text-zinc-600 dark:text-zinc-400 text-xs sm:text-sm">
+        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${item.period === "pos_laboral" ? "bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400" : "bg-cyan-50 dark:bg-cyan-950/40 text-cyan-600 dark:text-cyan-400"}`}>
+          {periodLabels[item.period || "regular"] || "Regular"}
+        </span>
+      </td>
+      <td className="hidden lg:table-cell text-zinc-600 dark:text-zinc-400 text-xs sm:text-sm">
         {item.capacity} alunos
       </td>
       <td className="hidden lg:table-cell text-zinc-600 dark:text-zinc-400 text-xs sm:text-sm">
@@ -100,6 +112,15 @@ const ClassListPage = () => {
             <TableSearch value={search} onChange={setSearch} />
           </div>
           <div className="flex items-center justify-end gap-1.5 sm:gap-2">
+            <select
+              value={filters.period || ""}
+              onChange={(e) => setFilters({ ...filters, period: e.target.value })}
+              className="px-2 py-2 sm:py-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-xs sm:text-sm border-0 outline-none focus:ring-2 focus:ring-indigo-500 transition"
+            >
+              <option value="">Todos os períodos</option>
+              <option value="regular">Regular</option>
+              <option value="pos_laboral">Pós-laboral</option>
+            </select>
             <button className="p-2 sm:p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition active:scale-95">
               <SlidersHorizontal size={16} />
             </button>

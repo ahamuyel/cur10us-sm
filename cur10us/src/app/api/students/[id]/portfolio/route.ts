@@ -14,7 +14,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     const student = await prisma.student.findUnique({
       where: { id },
       include: {
-        class: { select: { id: true, name: true, grade: true } },
+        class: { select: { id: true, name: true, grade: true, period: true } },
         school: { select: { id: true, name: true, city: true, logo: true } },
       },
     })

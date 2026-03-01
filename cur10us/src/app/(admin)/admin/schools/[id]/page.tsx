@@ -6,6 +6,7 @@ import { Loader2, ArrowLeft, CheckCircle2, XCircle, Zap, RotateCcw, Ban, Trash2,
 import StatusBadge from "@/components/ui/StatusBadge"
 import ConfirmActionModal from "@/components/ui/ConfirmActionModal"
 import SchoolForm from "@/components/forms/SchoolForm"
+import SchoolFeaturesManager from "@/components/admin/SchoolFeaturesManager"
 
 interface SchoolDetail {
   id: string
@@ -18,6 +19,7 @@ interface SchoolDetail {
   city: string
   provincia: string
   status: string
+  features?: Record<string, boolean> | null
   rejectReason?: string
   createdAt: string
   _count: { users: number; teachers: number; students: number; parents: number; applications: number }
@@ -262,6 +264,17 @@ export default function SchoolDetailPage() {
             </div>
           ))}
         </div>
+
+        {/* Features Manager — visible for active schools */}
+        {school.status === "ativa" && (
+          <div className="mb-6 p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800">
+            <SchoolFeaturesManager
+              schoolId={school.id}
+              initialFeatures={school.features ?? null}
+              onUpdate={fetchSchool}
+            />
+          </div>
+        )}
 
         {/* Reject form */}
         {showReject && (

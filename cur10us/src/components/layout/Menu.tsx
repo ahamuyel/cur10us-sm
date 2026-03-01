@@ -25,6 +25,8 @@ import {
   Inbox,
   ShieldCheck,
   HelpCircle,
+  LifeBuoy,
+  Upload,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { isFeatureEnabled, menuFeatureMap, type FeatureKey } from "@/lib/features"
@@ -63,8 +65,10 @@ const menuItems: { title: string; items: MenuItem[] }[] = [
   {
     title: "OUTROS",
     items: [
+      { icon: Upload, label: "Importar", href: "/import", visible: ["school_admin"] },
       { icon: CircleUser, label: "Perfil", href: "/profile", visible: ["school_admin", "teacher", "student", "parent"] },
       { icon: Settings, label: "Configurações", href: "/settings", visible: ["school_admin", "teacher", "student", "parent"] },
+      { icon: LifeBuoy, label: "Suporte", href: "/support", visible: ["school_admin", "teacher", "student", "parent"] },
       { icon: HelpCircle, label: "Ajuda", href: "/help", visible: ["school_admin", "teacher", "student", "parent"] },
     ],
   },

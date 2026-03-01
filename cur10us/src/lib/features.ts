@@ -59,6 +59,42 @@ export function isFeatureEnabled(
   return schoolFeatures[feature] === true
 }
 
+// Feature descriptions for admin UI
+export const featureDescriptions: Record<FeatureKey, string> = {
+  students: "Gestão de alunos, matrículas e perfis",
+  teachers: "Gestão de professores e atribuições",
+  classes: "Gestão de turmas, classes e períodos",
+  attendance: "Registo e controlo de assiduidade",
+  announcements: "Avisos e comunicações à comunidade escolar",
+  basicGrades: "Registo de notas, exames e resultados",
+  finances: "Gestão financeira, propinas e pagamentos",
+  submissions: "Submissão e avaliação de trabalhos",
+  portfolio: "Portfólio académico do aluno",
+  certificates: "Emissão de certificados e declarações",
+  advancedReports: "Relatórios analíticos avançados",
+  inventory: "Gestão de inventário e recursos",
+  calendar: "Calendário escolar e horários de aulas",
+  internalMessages: "Sistema de mensagens internas",
+}
+
+// Reverse map: feature → affected menu items
+export const featureMenuItems: Record<FeatureKey, string[]> = {
+  students: ["Alunos"],
+  teachers: ["Professores"],
+  classes: ["Turmas"],
+  attendance: ["Assiduidade"],
+  announcements: ["Avisos"],
+  basicGrades: ["Notas", "Exames"],
+  finances: [],
+  submissions: ["Trabalhos"],
+  portfolio: [],
+  certificates: [],
+  advancedReports: [],
+  inventory: [],
+  calendar: ["Aulas"],
+  internalMessages: ["Mensagens"],
+}
+
 // Map menu items to features
 export const menuFeatureMap: Record<string, FeatureKey | undefined> = {
   "/list/students": "students",

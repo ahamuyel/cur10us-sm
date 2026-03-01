@@ -4,6 +4,7 @@ import { requireRole } from "@/lib/api-auth"
 import { hash } from "bcryptjs"
 import crypto from "crypto"
 import { sendSchoolActivated, sendSchoolActivatedExistingAdmin } from "@/lib/email"
+import { getDefaultFeatures } from "@/lib/features"
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -11,9 +12,14 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     if (authError) return authError
 
     const { id } = await params
+    // Set default features if not already configured
+    const existingSchool = await prisma.school.findUnique({ where: { id }, select: { features: true } })
     const school = await prisma.school.update({
       where: { id },
-      data: { status: "ativa" },
+      data: {
+        status: "ativa",
+        ...(!existingSchool?.features && { features: getDefaultFeatures() }),
+      },
     })
 
     // Find existing school_admin (active or inactive from self-registration)

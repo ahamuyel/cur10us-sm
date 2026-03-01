@@ -13,6 +13,7 @@ export async function GET(req: Request) {
     const page = parseInt(searchParams.get("page") || "1")
     const limit = parseInt(searchParams.get("limit") || "10")
     const search = searchParams.get("search") || ""
+    const period = searchParams.get("period") || ""
 
     const where = {
       schoolId,
@@ -20,6 +21,9 @@ export async function GET(req: Request) {
         ? {
             name: { contains: search, mode: "insensitive" as const },
           }
+        : {}),
+      ...(period && (period === "regular" || period === "pos_laboral")
+        ? { period: period as "regular" | "pos_laboral" }
         : {}),
     }
 
