@@ -1,13 +1,27 @@
-export const ESSENTIAL_FEATURES = [
+// Features enabled by default for new schools (core functionality)
+export const DEFAULT_ENABLED_FEATURES = [
   "students",
   "teachers",
+  "parents",
   "classes",
+  "subjects",
+  "courses",
   "attendance",
   "announcements",
   "basicGrades",
 ] as const
 
-export const OPTIONAL_FEATURES = [
+// All available features
+export const ALL_FEATURES = [
+  "students",
+  "teachers",
+  "parents",
+  "classes",
+  "subjects",
+  "courses",
+  "attendance",
+  "announcements",
+  "basicGrades",
   "finances",
   "submissions",
   "portfolio",
@@ -18,32 +32,34 @@ export const OPTIONAL_FEATURES = [
   "internalMessages",
 ] as const
 
-export const ALL_FEATURES = [...ESSENTIAL_FEATURES, ...OPTIONAL_FEATURES] as const
-
 export type FeatureKey = (typeof ALL_FEATURES)[number]
 
 export const featureLabels: Record<FeatureKey, string> = {
   students: "Alunos",
   teachers: "Professores",
+  parents: "Encarregados",
   classes: "Turmas",
+  subjects: "Disciplinas",
+  courses: "Cursos",
   attendance: "Assiduidade",
   announcements: "Avisos",
-  basicGrades: "Notas",
+  basicGrades: "Notas e Resultados",
   finances: "Finanças",
   submissions: "Submissões de Tarefas",
   portfolio: "Portfólio",
   certificates: "Certificados",
   advancedReports: "Relatórios Avançados",
   inventory: "Inventário",
-  calendar: "Calendário",
+  calendar: "Calendário e Aulas",
   internalMessages: "Mensagens Internas",
 }
 
 // Default features for new schools
 export function getDefaultFeatures(): Record<string, boolean> {
   const features: Record<string, boolean> = {}
-  ESSENTIAL_FEATURES.forEach((f) => (features[f] = true))
-  OPTIONAL_FEATURES.forEach((f) => (features[f] = false))
+  ALL_FEATURES.forEach((f) => {
+    features[f] = (DEFAULT_ENABLED_FEATURES as readonly string[]).includes(f)
+  })
   return features
 }
 
@@ -52,10 +68,10 @@ export function isFeatureEnabled(
   schoolFeatures: Record<string, boolean> | null | undefined,
   feature: FeatureKey
 ): boolean {
-  // Essential features are always on
-  if ((ESSENTIAL_FEATURES as readonly string[]).includes(feature)) return true
-  // If no features config, only essentials
-  if (!schoolFeatures) return false
+  // If no features config, use defaults
+  if (!schoolFeatures) {
+    return (DEFAULT_ENABLED_FEATURES as readonly string[]).includes(feature)
+  }
   return schoolFeatures[feature] === true
 }
 
@@ -63,7 +79,10 @@ export function isFeatureEnabled(
 export const featureDescriptions: Record<FeatureKey, string> = {
   students: "Gestão de alunos, matrículas e perfis",
   teachers: "Gestão de professores e atribuições",
+  parents: "Gestão de encarregados de educação",
   classes: "Gestão de turmas, classes e períodos",
+  subjects: "Gestão de disciplinas",
+  courses: "Gestão de cursos",
   attendance: "Registo e controlo de assiduidade",
   announcements: "Avisos e comunicações à comunidade escolar",
   basicGrades: "Registo de notas, exames e resultados",
@@ -81,12 +100,15 @@ export const featureDescriptions: Record<FeatureKey, string> = {
 export const featureMenuItems: Record<FeatureKey, string[]> = {
   students: ["Alunos"],
   teachers: ["Professores"],
+  parents: ["Encarregados"],
   classes: ["Turmas"],
+  subjects: ["Disciplinas"],
+  courses: ["Cursos"],
   attendance: ["Assiduidade"],
   announcements: ["Avisos"],
-  basicGrades: ["Notas", "Exames"],
+  basicGrades: ["Provas", "Resultados", "Tarefas"],
   finances: [],
-  submissions: ["Trabalhos"],
+  submissions: ["Tarefas"],
   portfolio: [],
   certificates: [],
   advancedReports: [],
@@ -95,16 +117,19 @@ export const featureMenuItems: Record<FeatureKey, string[]> = {
   internalMessages: ["Mensagens"],
 }
 
-// Map menu items to features
+// Map menu paths to features
 export const menuFeatureMap: Record<string, FeatureKey | undefined> = {
   "/list/students": "students",
   "/list/teachers": "teachers",
+  "/list/parents": "parents",
   "/list/classes": "classes",
+  "/list/subjects": "subjects",
+  "/list/courses": "courses",
   "/list/attendance": "attendance",
   "/list/announcements": "announcements",
   "/list/results": "basicGrades",
   "/list/exams": "basicGrades",
-  "/list/messages": "internalMessages",
   "/list/assignments": "submissions",
+  "/list/messages": "internalMessages",
   "/list/lessons": "calendar",
 }
