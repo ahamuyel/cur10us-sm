@@ -48,8 +48,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           })
           if (!user) return null
 
-          // Block inactive users (except super_admin and school_admin who see PendingAccountGate)
-          if (!user.isActive && user.role !== "super_admin" && user.role !== "school_admin") return null
+          // Block inactive users (except super_admin, school_admin, and users who must change password)
+          if (!user.isActive && user.role !== "super_admin" && user.role !== "school_admin" && !user.mustChangePassword) return null
 
           // Google-only user trying to login with password
           if (!user.hashedPassword) return null
