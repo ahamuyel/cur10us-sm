@@ -104,20 +104,24 @@ export async function POST(req: Request) {
       },
     })
 
-    // Create notifications for recipients if published now
+    // Create notifications for recipients if published now (non-blocking)
     if (!scheduledAt) {
-      const link = `/list/announcements`
-      const notifTitle = `Novo aviso: ${created.title}`
-      const notifMsg = created.description.slice(0, 100)
+      try {
+        const link = `/list/announcements`
+        const notifTitle = `Novo aviso: ${created.title}`
+        const notifMsg = created.description.slice(0, 100)
 
-      if (created.targetUserId) {
-        await createNotification({ userId: created.targetUserId, title: notifTitle, message: notifMsg, type: "anuncio", link, schoolId })
-      } else if (created.classId) {
-        await notifyClassStudents(created.classId, schoolId, notifTitle, notifMsg, "anuncio", link)
-      } else if (created.courseId) {
-        await notifyCourseStudents(created.courseId, schoolId, notifTitle, notifMsg, "anuncio", link)
-      } else {
-        await notifySchoolUsers(schoolId, notifTitle, notifMsg, "anuncio", link)
+        if (created.targetUserId) {
+          await createNotification({ userId: created.targetUserId, title: notifTitle, message: notifMsg, type: "anuncio", link, schoolId })
+        } else if (created.classId) {
+          await notifyClassStudents(created.classId, schoolId, notifTitle, notifMsg, "anuncio", link)
+        } else if (created.courseId) {
+          await notifyCourseStudents(created.courseId, schoolId, notifTitle, notifMsg, "anuncio", link)
+        } else {
+          await notifySchoolUsers(schoolId, notifTitle, notifMsg, "anuncio", link)
+        }
+      } catch (e) {
+        console.error("Falha ao enviar notificações do anúncio:", e)
       }
     }
 
