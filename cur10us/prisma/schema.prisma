@@ -42,6 +42,25 @@ enum AdminLevel {
   secondary
 }
 
+enum AnnouncementPriority {
+  informativo
+  importante
+  urgente
+}
+
+enum AssignmentStatus {
+  pendente
+  entregue
+  avaliada
+  atrasada
+}
+
+enum Trimester {
+  primeiro
+  segundo
+  terceiro
+}
+
 enum Gender {
   masculino
   feminino
@@ -58,6 +77,8 @@ model School {
   city         String
   provincia    String
   logo         String?
+  primaryColor String?
+  features     Json?
   status       SchoolStatus @default(pendente)
   rejectReason String?
   createdAt    DateTime     @default(now())
@@ -79,6 +100,8 @@ model School {
   messages         Message[]
   announcements    Announcement[]
   adminPermissions AdminPermission[]
+  notifications    Notification[]
+  submissions      AssignmentSubmission[]
 }
 
 model Application {
@@ -122,14 +145,20 @@ model User {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  passwordResetTokens PasswordResetToken[]
-  teacher             Teacher?
-  student             Student?
-  parent              Parent?
-  application         Application?
-  sentMessages        Message[]            @relation("SentMessages")
-  receivedMessages    Message[]            @relation("ReceivedMessages")
-  adminPermission     AdminPermission?
+  passwordResetTokens   PasswordResetToken[]
+  teacher               Teacher?
+  student               Student?
+  parent                Parent?
+  application           Application?
+  sentMessages          Message[]            @relation("SentMessages")
+  receivedMessages      Message[]            @relation("ReceivedMessages")
+  adminPermission       AdminPermission?
+  announcementReads     AnnouncementRead[]
+  notifications         Notification[]
+  authoredAnnouncements Announcement[]       @relation("AuthoredAnnouncements")
+  targetedAnnouncements Announcement[]       @relation("TargetedAnnouncements")
+  dashboardPreference   DashboardPreference?
+  userPreference        UserPreference?
 }
 
 model PasswordResetToken {
@@ -184,6 +213,7 @@ model Student {
 
   results     Result[]
   attendances Attendance[]
+  submissions AssignmentSubmission[]
 }
 
 model Parent {
@@ -226,6 +256,7 @@ model Course {
 
   courseSubjects CourseSubject[]
   classes        Class[]
+  announcements  Announcement[]
 
   @@unique([name, schoolId])
 }
@@ -288,6 +319,7 @@ model Lesson {
   startTime String
   endTime   String
   room      String?
+  materials Json?
   subjectId String
   subject   Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
   classId   String
@@ -296,6 +328,10 @@ model Lesson {
   teacher   Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
   schoolId  String
   school    School  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
+
+  attendances Attendance[]
 }
 
 model Exam {
@@ -315,32 +351,43 @@ model Exam {
 }
 
 model Assignment {
-  id        String   @id @default(cuid())
-  title     String?
-  dueDate   DateTime
-  subjectId String
-  subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-  classId   String
-  class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
-  teacherId String
-  teacher   Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
-  schoolId  String
-  school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  dueDate     DateTime
+  maxScore    Float    @default(20)
+  subjectId   String
+  subject     Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  classId     String
+  class       Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  teacherId   String
+  teacher     Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  schoolId    String
+  school      School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt @default(now())
+
+  submissions AssignmentSubmission[]
+  results     Result[]
 }
 
 model Result {
-  id        String   @id @default(cuid())
-  score     Float
-  type      String
-  date      DateTime
-  studentId String
-  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  subjectId String
-  subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-  examId    String?
-  exam      Exam?    @relation(fields: [examId], references: [id], onDelete: SetNull)
-  schoolId  String
-  school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  id           String     @id @default(cuid())
+  score        Float
+  type         String
+  date         DateTime
+  trimester    Trimester?
+  academicYear String?
+  studentId    String
+  student      Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subjectId    String
+  subject      Subject    @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  examId       String?
+  exam         Exam?      @relation(fields: [examId], references: [id], onDelete: SetNull)
+  assignmentId String?
+  assignment   Assignment? @relation(fields: [assignmentId], references: [id], onDelete: SetNull)
+  schoolId     String
+  school       School     @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 }
 
 model Attendance {
@@ -351,10 +398,12 @@ model Attendance {
   student   Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
   classId   String
   class     Class            @relation(fields: [classId], references: [id], onDelete: Cascade)
+  lessonId  String?
+  lesson    Lesson?          @relation(fields: [lessonId], references: [id], onDelete: SetNull)
   schoolId  String
   school    School           @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
-  @@unique([studentId, date, classId])
+  @@unique([studentId, date, classId, lessonId])
 }
 
 model Message {
@@ -374,16 +423,27 @@ model Message {
 }
 
 model Announcement {
-  id          String   @id @default(cuid())
-  title       String
-  description String
-  classId     String?
-  class       Class?   @relation(fields: [classId], references: [id], onDelete: SetNull)
-  schoolId    String
-  school      School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  id           String               @id @default(cuid())
+  title        String
+  description  String
+  priority     AnnouncementPriority @default(informativo)
+  classId      String?
+  class        Class?               @relation(fields: [classId], references: [id], onDelete: SetNull)
+  courseId      String?
+  course       Course?              @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  authorId     String?
+  author       User?                @relation("AuthoredAnnouncements", fields: [authorId], references: [id], onDelete: SetNull)
+  targetUserId String?
+  targetUser   User?                @relation("TargetedAnnouncements", fields: [targetUserId], references: [id], onDelete: SetNull)
+  scheduledAt  DateTime?
+  publishedAt  DateTime?
+  schoolId     String
+  school       School               @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  reads AnnouncementRead[]
 }
 
 model PlatformConfig {
@@ -424,4 +484,67 @@ model AdminPermission {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model AnnouncementRead {
+  id             String       @id @default(cuid())
+  announcementId String
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  readAt         DateTime     @default(now())
+
+  @@unique([announcementId, userId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  link      String?
+  type      String
+  read      Boolean  @default(false)
+  schoolId  String
+  school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model AssignmentSubmission {
+  id            String           @id @default(cuid())
+  assignmentId  String
+  assignment    Assignment       @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  studentId     String
+  student       Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  content       String?
+  attachmentUrl String?
+  status        AssignmentStatus @default(pendente)
+  score         Float?
+  feedback      String?
+  submittedAt   DateTime?
+  evaluatedAt   DateTime?
+  schoolId      String
+  school        School           @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@unique([assignmentId, studentId])
+}
+
+model DashboardPreference {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  layout    Json
+  updatedAt DateTime @updatedAt
+}
+
+model UserPreference {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  theme          String   @default("light")
+  locale         String   @default("pt")
+  notifyPlatform Boolean  @default(true)
+  notifyEmail    Boolean  @default(false)
+  updatedAt      DateTime @updatedAt
 }

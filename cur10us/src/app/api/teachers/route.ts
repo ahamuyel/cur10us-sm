@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { requirePermission, getSchoolId } from "@/lib/api-auth"
 import { createTeacherSchema } from "@/lib/validations/entities"
 import { sendTempCredentials } from "@/lib/email"
+import { buildOrderBy } from "@/lib/query-helpers"
 
 export async function GET(req: Request) {
   try {
@@ -29,12 +30,14 @@ export async function GET(req: Request) {
         : {}),
     }
 
+    const orderBy = buildOrderBy(searchParams, ["name", "createdAt", "email"], { name: "asc" })
+
     const [data, total] = await Promise.all([
       prisma.teacher.findMany({
         where,
         skip: (page - 1) * limit,
         take: limit,
-        orderBy: { name: "asc" },
+        orderBy,
         include: {
           teacherSubjects: { include: { subject: true } },
           teacherClasses: { include: { class: true } },

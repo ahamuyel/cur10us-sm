@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { requirePermission, getSchoolId } from "@/lib/api-auth"
 import { createStudentSchema } from "@/lib/validations/entities"
 import { sendTempCredentials } from "@/lib/email"
+import { buildOrderBy } from "@/lib/query-helpers"
 
 export async function GET(req: Request) {
   try {
@@ -16,9 +17,14 @@ export async function GET(req: Request) {
     const page = parseInt(searchParams.get("page") || "1")
     const limit = parseInt(searchParams.get("limit") || "10")
     const search = searchParams.get("search") || ""
+    const classId = searchParams.get("classId") || ""
+    const gender = searchParams.get("gender") || ""
 
-    const where = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const where: any = {
       schoolId,
+      ...(classId ? { classId } : {}),
+      ...(gender ? { gender } : {}),
       ...(search
         ? {
             OR: [
@@ -29,12 +35,14 @@ export async function GET(req: Request) {
         : {}),
     }
 
+    const orderBy = buildOrderBy(searchParams, ["name", "createdAt", "email"], { name: "asc" })
+
     const [data, total] = await Promise.all([
       prisma.student.findMany({
         where,
         skip: (page - 1) * limit,
         take: limit,
-        orderBy: { name: "asc" },
+        orderBy,
         include: {
           class: { select: { id: true, name: true, grade: true } },
           parents: { select: { id: true, name: true } },

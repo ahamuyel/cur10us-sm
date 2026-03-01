@@ -6,6 +6,7 @@ import { createAttendanceSchema } from "@/lib/validations/academic"
 type AttendanceData = {
   date: string
   classId: string
+  lessonId?: string
   records: Record<string, "presente" | "ausente" | "atrasado">
 }
 
@@ -18,6 +19,7 @@ type Props = {
 
 type ClassOption = { id: string; name: string }
 type StudentOption = { id: string; name: string; surname?: string; classId?: string }
+type LessonOption = { id: string; day: string; startTime: string; subject?: { name: string } }
 type Status = "presente" | "ausente" | "atrasado"
 
 const inputClass = "w-full px-3 py-2 rounded-xl text-sm bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-indigo-500 transition"
@@ -31,9 +33,10 @@ const statusConfig: { value: Status; label: string; active: string }[] = [
 const inactiveClass = "bg-zinc-100 dark:bg-zinc-800 text-zinc-400"
 
 const AttendanceForm = ({ mode: _mode, initialData, onSuccess, onCancel }: Props) => {
-  const [form, setForm] = useState<{ date: string; classId: string; records: Record<string, Status> }>({
+  const [form, setForm] = useState<{ date: string; classId: string; lessonId: string; records: Record<string, Status> }>({
     date: initialData?.date ? initialData.date.split("T")[0] : "",
     classId: initialData?.classId || "",
+    lessonId: initialData?.lessonId || "",
     records: initialData?.records || {},
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -41,11 +44,20 @@ const AttendanceForm = ({ mode: _mode, initialData, onSuccess, onCancel }: Props
   const [apiError, setApiError] = useState("")
   const [classOptions, setClassOptions] = useState<ClassOption[]>([])
   const [allStudents, setAllStudents] = useState<StudentOption[]>([])
+  const [lessonOptions, setLessonOptions] = useState<LessonOption[]>([])
 
   useEffect(() => {
     fetch("/api/classes?limit=100").then((r) => r.json()).then((d) => setClassOptions(d.data || []))
     fetch("/api/students?limit=200").then((r) => r.json()).then((d) => setAllStudents(d.data || []))
   }, [])
+
+  // Fetch lessons for selected class
+  useEffect(() => {
+    if (!form.classId) { setLessonOptions([]); return }
+    fetch(`/api/lessons?classId=${form.classId}&limit=50`)
+      .then((r) => r.json())
+      .then((d) => setLessonOptions(d.data || []))
+  }, [form.classId])
 
   const filteredStudents = useMemo(() => {
     if (!form.classId) return []
@@ -78,6 +90,7 @@ const AttendanceForm = ({ mode: _mode, initialData, onSuccess, onCancel }: Props
     const payload = {
       date: form.date,
       classId: form.classId,
+      lessonId: form.lessonId || null,
       records: Object.entries(form.records).map(([studentId, status]) => ({
         studentId,
         status,
@@ -133,13 +146,24 @@ const AttendanceForm = ({ mode: _mode, initialData, onSuccess, onCancel }: Props
       </FormField>
 
       <FormField label="Turma" error={errors.classId}>
-        <select className={inputClass} value={form.classId} onChange={(e) => setForm((f) => ({ ...f, classId: e.target.value }))}>
+        <select className={inputClass} value={form.classId} onChange={(e) => setForm((f) => ({ ...f, classId: e.target.value, lessonId: "" }))}>
           <option value="">Selecionar turma...</option>
           {classOptions.map((o) => (
             <option key={o.id} value={o.id}>{o.name}</option>
           ))}
         </select>
       </FormField>
+
+      {form.classId && lessonOptions.length > 0 && (
+        <FormField label="Aula (opcional)" error={errors.lessonId}>
+          <select className={inputClass} value={form.lessonId} onChange={(e) => setForm((f) => ({ ...f, lessonId: e.target.value }))}>
+            <option value="">Geral (sem aula específica)</option>
+            {lessonOptions.map((l) => (
+              <option key={l.id} value={l.id}>{l.subject?.name || ""} — {l.day} {l.startTime}</option>
+            ))}
+          </select>
+        </FormField>
+      )}
 
       {form.classId && filteredStudents.length === 0 && (
         <div className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-900 text-zinc-500 text-sm">

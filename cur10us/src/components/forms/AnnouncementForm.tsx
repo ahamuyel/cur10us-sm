@@ -7,7 +7,11 @@ type AnnouncementData = {
   id?: string
   title: string
   description: string
+  priority?: string
   classId?: string | null
+  courseId?: string | null
+  targetUserId?: string | null
+  scheduledAt?: string | null
 }
 
 type Props = {
@@ -25,17 +29,29 @@ const AnnouncementForm = ({ mode, initialData, onSuccess, onCancel }: Props) => 
   const [form, setForm] = useState({
     title: initialData?.title || "",
     description: initialData?.description || "",
+    priority: initialData?.priority || "informativo",
     classId: initialData?.classId || "",
+    courseId: initialData?.courseId || "",
+    targetUserId: initialData?.targetUserId || "",
+    scheduledAt: initialData?.scheduledAt ? initialData.scheduledAt.split("T")[0] + "T" + (initialData.scheduledAt.split("T")[1]?.slice(0, 5) || "08:00") : "",
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
   const [apiError, setApiError] = useState("")
   const [classOptions, setClassOptions] = useState<Option[]>([])
+  const [courseOptions, setCourseOptions] = useState<Option[]>([])
+  const [userOptions, setUserOptions] = useState<Option[]>([])
 
   useEffect(() => {
-    fetch("/api/classes?limit=100")
-      .then((r) => r.json())
-      .then((d) => setClassOptions(d.data || []))
+    fetch("/api/classes?limit=100").then((r) => r.json()).then((d) => setClassOptions(d.data || []))
+    fetch("/api/courses?limit=100").then((r) => r.json()).then((d) => setCourseOptions(d.data || []))
+    fetch("/api/students?limit=200").then((r) => r.json()).then((d) => {
+      const items = d.data || []
+      setUserOptions(items.map((s: { id: string; name: string; userId?: string }) => ({
+        id: s.userId || s.id,
+        name: s.name,
+      })).filter((u: Option) => u.id))
+    })
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -46,7 +62,11 @@ const AnnouncementForm = ({ mode, initialData, onSuccess, onCancel }: Props) => 
     const payload = {
       title: form.title,
       description: form.description,
+      priority: form.priority,
       classId: form.classId || null,
+      courseId: form.courseId || null,
+      targetUserId: form.targetUserId || null,
+      scheduledAt: form.scheduledAt || null,
     }
 
     const parsed = createAnnouncementSchema.safeParse(payload)
@@ -106,18 +126,71 @@ const AnnouncementForm = ({ mode, initialData, onSuccess, onCancel }: Props) => 
         />
       </FormField>
 
-      <FormField label="Turma (opcional)" error={errors.classId}>
-        <select
-          className={inputClass}
-          value={form.classId}
-          onChange={(e) => setForm((f) => ({ ...f, classId: e.target.value }))}
-        >
-          <option value="">Todas as turmas</option>
-          {classOptions.map((o) => (
-            <option key={o.id} value={o.id}>{o.name}</option>
-          ))}
-        </select>
-      </FormField>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <FormField label="Prioridade" error={errors.priority}>
+          <select
+            className={inputClass}
+            value={form.priority}
+            onChange={(e) => setForm((f) => ({ ...f, priority: e.target.value }))}
+          >
+            <option value="informativo">Informativo</option>
+            <option value="importante">Importante</option>
+            <option value="urgente">Urgente</option>
+          </select>
+        </FormField>
+
+        <FormField label="Agendamento (opcional)" error={errors.scheduledAt}>
+          <input
+            className={inputClass}
+            type="datetime-local"
+            value={form.scheduledAt}
+            onChange={(e) => setForm((f) => ({ ...f, scheduledAt: e.target.value }))}
+          />
+        </FormField>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <FormField label="Turma (opcional)" error={errors.classId}>
+          <select
+            className={inputClass}
+            value={form.classId}
+            onChange={(e) => setForm((f) => ({ ...f, classId: e.target.value, courseId: "", targetUserId: "" }))}
+          >
+            <option value="">Todas as turmas</option>
+            {classOptions.map((o) => (
+              <option key={o.id} value={o.id}>{o.name}</option>
+            ))}
+          </select>
+        </FormField>
+
+        <FormField label="Curso (opcional)" error={errors.courseId}>
+          <select
+            className={inputClass}
+            value={form.courseId}
+            disabled={!!form.classId}
+            onChange={(e) => setForm((f) => ({ ...f, courseId: e.target.value, classId: "", targetUserId: "" }))}
+          >
+            <option value="">Todos os cursos</option>
+            {courseOptions.map((o) => (
+              <option key={o.id} value={o.id}>{o.name}</option>
+            ))}
+          </select>
+        </FormField>
+
+        <FormField label="Utilizador (opcional)" error={errors.targetUserId}>
+          <select
+            className={inputClass}
+            value={form.targetUserId}
+            disabled={!!form.classId || !!form.courseId}
+            onChange={(e) => setForm((f) => ({ ...f, targetUserId: e.target.value, classId: "", courseId: "" }))}
+          >
+            <option value="">Todos</option>
+            {userOptions.map((o) => (
+              <option key={o.id} value={o.id}>{o.name}</option>
+            ))}
+          </select>
+        </FormField>
+      </div>
 
       <div className="flex items-center gap-3 justify-end pt-2">
         <button

@@ -127,7 +127,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (token.email) {
         const dbUser = await prisma.user.findUnique({
           where: { email: token.email },
-          include: { school: { select: { slug: true } }, adminPermission: true },
+          include: { school: { select: { slug: true, features: true } }, adminPermission: true },
         })
         if (dbUser) {
           token.id = dbUser.id
@@ -139,6 +139,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           token.profileComplete = dbUser.profileComplete
           token.adminLevel = dbUser.adminPermission?.level ?? null
           token.permissions = extractPermissions(dbUser.adminPermission as unknown as Record<string, unknown>)
+          token.schoolFeatures = (dbUser.school?.features as Record<string, boolean>) ?? null
         }
       }
 
@@ -155,6 +156,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.profileComplete = token.profileComplete as boolean
         session.user.adminLevel = (token.adminLevel as string) ?? null
         session.user.permissions = (token.permissions as string[]) ?? []
+        session.user.schoolFeatures = (token.schoolFeatures as Record<string, boolean>) ?? null
       }
       return session
     },

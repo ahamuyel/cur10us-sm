@@ -23,6 +23,19 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     const root = document.documentElement
     root.classList.remove("light", "dark")
     root.classList.add(stored)
+
+    // Sync from DB preferences
+    fetch("/api/user-preferences")
+      .then((r) => r.ok ? r.json() : null)
+      .then((pref) => {
+        if (pref?.theme && pref.theme !== stored) {
+          setTheme(pref.theme)
+          document.documentElement.classList.remove("light", "dark")
+          document.documentElement.classList.add(pref.theme)
+          localStorage.setItem("theme", pref.theme)
+        }
+      })
+      .catch(() => {})
   }, [])
 
   const toggleTheme = () => {
@@ -32,6 +45,13 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     document.documentElement.classList.remove("light", "dark")
     document.documentElement.classList.add(newTheme)
     localStorage.setItem("theme", newTheme)
+
+    // Save to DB
+    fetch("/api/user-preferences", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ theme: newTheme }),
+    }).catch(() => {})
   }
 
   if (!theme) return null // não renderiza nada até que o tema esteja definido

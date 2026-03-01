@@ -16,7 +16,10 @@ export const createSchoolSchema = z.object({
   logo: z.string().url("URL do logo inválida").optional().or(z.literal("")),
 })
 
-export const updateSchoolSchema = createSchoolSchema.partial()
+export const updateSchoolSchema = createSchoolSchema.partial().extend({
+  features: z.record(z.string(), z.boolean()).optional(),
+  primaryColor: z.string().max(20).optional().or(z.literal("")),
+})
 
 export const rejectSchoolSchema = z.object({
   reason: z.string().min(5, "Motivo deve ter pelo menos 5 caracteres"),

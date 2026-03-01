@@ -24,8 +24,10 @@ import {
   LogOut,
   Inbox,
   ShieldCheck,
+  HelpCircle,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
+import { isFeatureEnabled, menuFeatureMap, type FeatureKey } from "@/lib/features"
 
 interface MenuItem {
   icon: LucideIcon
@@ -33,6 +35,7 @@ interface MenuItem {
   href: string
   visible: string[]
   permission?: string
+  feature?: FeatureKey
 }
 
 const menuItems: { title: string; items: MenuItem[] }[] = [
@@ -62,6 +65,7 @@ const menuItems: { title: string; items: MenuItem[] }[] = [
     items: [
       { icon: CircleUser, label: "Perfil", href: "/profile", visible: ["school_admin", "teacher", "student", "parent"] },
       { icon: Settings, label: "Configurações", href: "/settings", visible: ["school_admin", "teacher", "student", "parent"] },
+      { icon: HelpCircle, label: "Ajuda", href: "/help", visible: ["school_admin", "teacher", "student", "parent"] },
     ],
   },
 ]
@@ -72,6 +76,7 @@ const Menu = () => {
   const role = session?.user?.role || "student"
   const adminLevel = session?.user?.adminLevel
   const permissions = session?.user?.permissions || []
+  const schoolFeatures = (session?.user as { schoolFeatures?: Record<string, boolean> | null })?.schoolFeatures
   const homePath = getDashboardPath(session?.user?.id)
 
   function isVisible(item: MenuItem): boolean {
@@ -80,6 +85,12 @@ const Menu = () => {
     // Permission check only applies to school_admin secondary admins
     if (role === "school_admin" && item.permission && adminLevel === "secondary") {
       return permissions.includes(item.permission)
+    }
+
+    // Feature flag check
+    const feature = item.feature || menuFeatureMap[item.href]
+    if (feature && !isFeatureEnabled(schoolFeatures, feature)) {
+      return false
     }
 
     return true

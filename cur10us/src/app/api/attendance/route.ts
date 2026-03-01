@@ -2,34 +2,71 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requirePermission, getSchoolId } from "@/lib/api-auth"
 import { createAttendanceSchema } from "@/lib/validations/academic"
+import { buildOrderBy } from "@/lib/query-helpers"
 
 export async function GET(req: Request) {
   try {
-    const { error: authError, session } = await requirePermission(["school_admin", "teacher"], "canManageAttendance", { requireSchool: true })
+    const { error: authError, session } = await requirePermission(["school_admin", "teacher", "student", "parent"], "canManageAttendance", { requireSchool: true })
     if (authError) return authError
 
     const schoolId = getSchoolId(session!)
+    const role = session!.user.role
+    const userId = session!.user.id
     const { searchParams } = new URL(req.url)
     const page = parseInt(searchParams.get("page") || "1")
     const limit = parseInt(searchParams.get("limit") || "10")
     const classId = searchParams.get("classId") || ""
     const date = searchParams.get("date") || ""
+    const studentId = searchParams.get("studentId") || ""
+    const lessonId = searchParams.get("lessonId") || ""
+    const startDate = searchParams.get("startDate") || ""
+    const endDate = searchParams.get("endDate") || ""
 
-    const where = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const where: any = {
       schoolId,
       ...(classId ? { classId } : {}),
+      ...(studentId ? { studentId } : {}),
+      ...(lessonId ? { lessonId } : {}),
       ...(date ? { date: new Date(date) } : {}),
     }
+
+    if (startDate || endDate) {
+      where.date = {}
+      if (startDate) where.date.gte = new Date(startDate)
+      if (endDate) where.date.lte = new Date(endDate)
+    }
+
+    // Student: own records only
+    if (role === "student") {
+      const student = await prisma.student.findFirst({ where: { userId, schoolId }, select: { id: true } })
+      if (student) where.studentId = student.id
+    }
+
+    // Parent: children's records
+    if (role === "parent") {
+      const parent = await prisma.parent.findFirst({
+        where: { userId, schoolId },
+        select: { students: { select: { id: true } } },
+      })
+      if (parent) where.studentId = { in: parent.students.map((s) => s.id) }
+    }
+
+    const status = searchParams.get("status") || ""
+    if (status) where.status = status
+
+    const orderBy = buildOrderBy(searchParams, ["date", "status"], { date: "desc" })
 
     const [data, total] = await Promise.all([
       prisma.attendance.findMany({
         where,
         skip: (page - 1) * limit,
         take: limit,
-        orderBy: { date: "desc" },
+        orderBy,
         include: {
           student: { select: { id: true, name: true } },
           class: { select: { id: true, name: true } },
+          lesson: { select: { id: true, subject: { select: { name: true } }, startTime: true, endTime: true } },
         },
       }),
       prisma.attendance.count({ where }),
@@ -54,12 +91,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
     }
 
-    const { date, classId, records } = parsed.data
+    const { date, classId, lessonId, records } = parsed.data
 
     const created = await prisma.attendance.createMany({
       data: records.map((r) => ({
         date: new Date(date),
         classId,
+        lessonId: lessonId || null,
         studentId: r.studentId,
         status: r.status,
         schoolId,

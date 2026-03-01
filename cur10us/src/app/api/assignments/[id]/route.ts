@@ -5,10 +5,12 @@ import { updateAssignmentSchema } from "@/lib/validations/academic"
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { error: authError, session } = await requirePermission(["school_admin", "teacher"], "canManageExams", { requireSchool: true })
+    const { error: authError, session } = await requirePermission(["school_admin", "teacher", "student"], undefined, { requireSchool: true })
     if (authError) return authError
 
     const schoolId = getSchoolId(session!)
+    const role = session!.user.role
+    const userId = session!.user.id
     const { id } = await params
 
     const assignment = await prisma.assignment.findUnique({
@@ -17,6 +19,17 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
         subject: { select: { id: true, name: true } },
         class: { select: { id: true, name: true } },
         teacher: { select: { id: true, name: true } },
+        ...(role !== "student" ? {
+          submissions: {
+            include: { student: { select: { id: true, name: true } } },
+            orderBy: { submittedAt: "desc" as const },
+          },
+        } : {
+          submissions: {
+            where: { student: { userId } },
+            take: 1,
+          },
+        }),
       },
     })
 
@@ -32,7 +45,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { error: authError, session } = await requirePermission(["school_admin"], "canManageExams", { requireSchool: true })
+    const { error: authError, session } = await requirePermission(["school_admin", "teacher"], "canManageExams", { requireSchool: true })
     if (authError) return authError
 
     const schoolId = getSchoolId(session!)
@@ -50,12 +63,14 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
     }
 
-    const { dueDate, ...rest } = parsed.data
+    const { dueDate, description, maxScore, ...rest } = parsed.data
 
     const assignment = await prisma.assignment.update({
       where: { id },
       data: {
         ...rest,
+        ...(description !== undefined ? { description: description || null } : {}),
+        ...(maxScore !== undefined ? { maxScore } : {}),
         ...(dueDate !== undefined ? { dueDate: new Date(dueDate) } : {}),
       },
     })

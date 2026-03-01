@@ -32,8 +32,24 @@ export const createLessonSchema = z.object({
   subjectId: z.string().min(1, "Disciplina é obrigatória"),
   classId: z.string().min(1, "Turma é obrigatória"),
   teacherId: z.string().min(1, "Professor é obrigatório"),
+  materials: z.array(z.object({
+    title: z.string().min(1, "Título do material é obrigatório"),
+    url: z.string().url("URL inválida"),
+    type: z.string().optional(),
+  })).optional().nullable(),
 })
 export const updateLessonSchema = createLessonSchema.partial()
+
+// Lesson Attendance
+export const createLessonAttendanceSchema = z.object({
+  lessonId: z.string().min(1, "Aula é obrigatória"),
+  date: z.string().min(1, "Data é obrigatória"),
+  classId: z.string().min(1, "Turma é obrigatória"),
+  records: z.array(z.object({
+    studentId: z.string().min(1),
+    status: z.enum(["presente", "ausente", "atrasado"]),
+  })).min(1, "É necessário pelo menos um registo"),
+})
 
 // Exam
 export const createExamSchema = z.object({
@@ -47,13 +63,27 @@ export const updateExamSchema = createExamSchema.partial()
 
 // Assignment
 export const createAssignmentSchema = z.object({
-  title: z.string().max(200, "Título muito longo").optional().or(z.literal("")),
+  title: z.string().min(1, "Título é obrigatório").max(200, "Título muito longo"),
+  description: z.string().optional().or(z.literal("")),
   dueDate: z.string().min(1, "Data de entrega é obrigatória"),
+  maxScore: z.number().min(1).max(100).optional(),
   subjectId: z.string().min(1, "Disciplina é obrigatória"),
   classId: z.string().min(1, "Turma é obrigatória"),
   teacherId: z.string().min(1, "Professor é obrigatório"),
 })
 export const updateAssignmentSchema = createAssignmentSchema.partial()
+
+// Submission
+export const createSubmissionSchema = z.object({
+  content: z.string().optional().or(z.literal("")),
+  attachmentUrl: z.string().url("URL inválida").optional().or(z.literal("")),
+})
+
+// Evaluate Submission
+export const evaluateSubmissionSchema = z.object({
+  score: z.number().min(0, "Nota deve ser >= 0").max(20, "Nota deve ser <= 20"),
+  feedback: z.string().optional().or(z.literal("")),
+})
 
 // Result
 export const createResultSchema = z.object({
@@ -63,6 +93,9 @@ export const createResultSchema = z.object({
   studentId: z.string().min(1, "Aluno é obrigatório"),
   subjectId: z.string().min(1, "Disciplina é obrigatória"),
   examId: z.string().optional().nullable(),
+  assignmentId: z.string().optional().nullable(),
+  trimester: z.enum(["primeiro", "segundo", "terceiro"]).optional().nullable(),
+  academicYear: z.string().optional().nullable(),
 })
 export const updateResultSchema = createResultSchema.partial()
 
@@ -70,6 +103,7 @@ export const updateResultSchema = createResultSchema.partial()
 export const createAttendanceSchema = z.object({
   date: z.string().min(1, "Data é obrigatória"),
   classId: z.string().min(1, "Turma é obrigatória"),
+  lessonId: z.string().optional().nullable(),
   records: z.array(z.object({
     studentId: z.string().min(1),
     status: z.enum(["presente", "ausente", "atrasado"]),
@@ -94,6 +128,10 @@ export const updateMessageSchema = z.object({
 export const createAnnouncementSchema = z.object({
   title: z.string().min(1, "Título é obrigatório").max(200, "Título muito longo"),
   description: z.string().min(1, "Descrição é obrigatória"),
+  priority: z.enum(["informativo", "importante", "urgente"]).optional(),
   classId: z.string().optional().nullable(),
+  courseId: z.string().optional().nullable(),
+  targetUserId: z.string().optional().nullable(),
+  scheduledAt: z.string().optional().nullable(),
 })
 export const updateAnnouncementSchema = createAnnouncementSchema.partial()

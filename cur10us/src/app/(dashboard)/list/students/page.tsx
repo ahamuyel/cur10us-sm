@@ -10,7 +10,9 @@ import StudentForm from "@/components/forms/StudentForm"
 import { useEntityList } from "@/hooks/useEntityList"
 import Image from "next/image"
 import Link from "next/link"
-import { Pencil, Trash2, SlidersHorizontal, ArrowUpDown, UserPlus, UserX, Loader2 } from "lucide-react"
+import FilterPanel from "@/components/ui/FilterPanel"
+import SortButton from "@/components/ui/SortButton"
+import { Pencil, Trash2, UserPlus, UserX, Loader2 } from "lucide-react"
 
 type Student = {
   id: string
@@ -36,7 +38,16 @@ const columns = [
 const StudentListPage = () => {
   const { data: session } = useSession()
   const isAdmin = session?.user?.role === "school_admin"
-  const { data, totalPages, page, search, setSearch, setPage, loading, refetch } = useEntityList<Student>({ endpoint: "/api/students", limit: 5 })
+  const { data, totalPages, page, search, setSearch, setPage, filters, setFilters, sort, setSort, clearFilters, activeFilterCount, loading, refetch } = useEntityList<Student>({ endpoint: "/api/students", limit: 5 })
+
+  const filterConfig = [
+    { key: "classId", label: "Turma", type: "select" as const, optionsEndpoint: "/api/classes?limit=100" },
+    { key: "gender", label: "Género", type: "select" as const, options: [{ value: "masculino", label: "Masculino" }, { value: "feminino", label: "Feminino" }] },
+  ]
+  const sortOptions = [
+    { field: "name", label: "Nome" },
+    { field: "createdAt", label: "Data de registo" },
+  ]
 
   const [createOpen, setCreateOpen] = useState(false)
   const [editItem, setEditItem] = useState<Student | null>(null)
@@ -139,12 +150,8 @@ const StudentListPage = () => {
             <TableSearch value={search} onChange={setSearch} />
           </div>
           <div className="flex items-center justify-end gap-1.5 sm:gap-2">
-            <button className="p-2 sm:p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition active:scale-95">
-              <SlidersHorizontal size={16} />
-            </button>
-            <button className="p-2 sm:p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition active:scale-95">
-              <ArrowUpDown size={16} />
-            </button>
+            <FilterPanel config={filterConfig} filters={filters} onChange={setFilters} onClear={clearFilters} activeCount={activeFilterCount} />
+            <SortButton options={sortOptions} sort={sort} onChange={setSort} />
             {isAdmin && (
               <button
                 onClick={() => setCreateOpen(true)}

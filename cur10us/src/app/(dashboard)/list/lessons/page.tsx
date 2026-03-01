@@ -7,8 +7,13 @@ import TableSearch from "@/components/ui/TableSearch"
 import FormModal from "@/components/ui/FormModal"
 import DeleteConfirmModal from "@/components/ui/DeleteConfirmModal"
 import LessonForm from "@/components/forms/LessonForm"
+import LessonAttendanceForm from "@/components/forms/LessonAttendanceForm"
 import { useEntityList } from "@/hooks/useEntityList"
-import { Pencil, Trash2, SlidersHorizontal, ArrowUpDown, Plus, Loader2 } from "lucide-react"
+import FilterPanel from "@/components/ui/FilterPanel"
+import SortButton from "@/components/ui/SortButton"
+import { Pencil, Trash2, Plus, Loader2, ClipboardCheck, Paperclip, ExternalLink } from "lucide-react"
+
+type Material = { title: string; url: string; type?: string }
 
 type Lesson = {
   id: string
@@ -16,6 +21,7 @@ type Lesson = {
   startTime: string
   endTime: string
   room?: string
+  materials?: Material[] | null
   subjectId: string
   classId: string
   teacherId: string
@@ -30,18 +36,30 @@ const columns = [
   { header: "Disciplina", accessor: "subject" },
   { header: "Turma", accessor: "class", className: "hidden md:table-cell" },
   { header: "Professor", accessor: "teacher", className: "hidden lg:table-cell" },
-  { header: "Sala", accessor: "room", className: "hidden xl:table-cell" },
   { header: "Ações", accessor: "actions" },
 ]
 
 const LessonListPage = () => {
   const { data: session } = useSession()
-  const isAdmin = session?.user?.role === "admin"
-  const { data, totalPages, page, search, setSearch, setPage, loading, refetch } = useEntityList<Lesson>({ endpoint: "/api/lessons", limit: 5 })
+  const role = session?.user?.role
+  const canManage = role === "school_admin" || role === "teacher"
+  const { data, totalPages, page, search, setSearch, setPage, filters, setFilters, sort, setSort, clearFilters, activeFilterCount, loading, refetch } = useEntityList<Lesson>({ endpoint: "/api/lessons", limit: 5 })
+
+  const filterConfig = [
+    { key: "day", label: "Dia", type: "select" as const, options: [{ value: "Segunda", label: "Segunda" }, { value: "Terça", label: "Terça" }, { value: "Quarta", label: "Quarta" }, { value: "Quinta", label: "Quinta" }, { value: "Sexta", label: "Sexta" }] },
+    { key: "classId", label: "Turma", type: "select" as const, optionsEndpoint: "/api/classes?limit=100" },
+    { key: "subjectId", label: "Disciplina", type: "select" as const, optionsEndpoint: "/api/subjects?limit=100" },
+  ]
+  const sortOptions = [
+    { field: "day", label: "Dia" },
+    { field: "startTime", label: "Hora de início" },
+  ]
 
   const [createOpen, setCreateOpen] = useState(false)
   const [editItem, setEditItem] = useState<Lesson | null>(null)
   const [deleteItem, setDeleteItem] = useState<Lesson | null>(null)
+  const [attendanceLesson, setAttendanceLesson] = useState<Lesson | null>(null)
+  const [materialsLesson, setMaterialsLesson] = useState<Lesson | null>(null)
 
   const handleDelete = async () => {
     if (!deleteItem) return
@@ -71,24 +89,39 @@ const LessonListPage = () => {
       <td className="hidden lg:table-cell text-zinc-600 dark:text-zinc-400 text-xs sm:text-sm">
         {item.teacher?.name}
       </td>
-      <td className="hidden xl:table-cell text-zinc-600 dark:text-zinc-400 text-xs sm:text-sm">
-        {item.room || "—"}
-      </td>
       <td className="px-1.5 sm:px-2">
         <div className="flex items-center gap-1 justify-end">
-          <button
-            onClick={() => setEditItem(item)}
-            className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-indigo-600 hover:text-white transition-all active:scale-90"
-          >
-            <Pencil size={13} />
-          </button>
-          {isAdmin && (
+          {item.materials && (item.materials as Material[]).length > 0 && (
             <button
-              onClick={() => setDeleteItem(item)}
-              className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-rose-600 hover:text-white transition-all active:scale-90"
+              onClick={() => setMaterialsLesson(item)}
+              className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-cyan-50 dark:bg-cyan-950/30 text-cyan-600 hover:bg-cyan-100 dark:hover:bg-cyan-900/50 transition-all active:scale-90"
+              title="Materiais"
             >
-              <Trash2 size={13} />
+              <Paperclip size={13} />
             </button>
+          )}
+          {canManage && (
+            <>
+              <button
+                onClick={() => setAttendanceLesson(item)}
+                className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-all active:scale-90"
+                title="Registar Presença"
+              >
+                <ClipboardCheck size={13} />
+              </button>
+              <button
+                onClick={() => setEditItem(item)}
+                className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-indigo-600 hover:text-white transition-all active:scale-90"
+              >
+                <Pencil size={13} />
+              </button>
+              <button
+                onClick={() => setDeleteItem(item)}
+                className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-rose-600 hover:text-white transition-all active:scale-90"
+              >
+                <Trash2 size={13} />
+              </button>
+            </>
           )}
         </div>
       </td>
@@ -107,13 +140,9 @@ const LessonListPage = () => {
             <TableSearch value={search} onChange={setSearch} />
           </div>
           <div className="flex items-center justify-end gap-1.5 sm:gap-2">
-            <button className="p-2 sm:p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition active:scale-95">
-              <SlidersHorizontal size={16} />
-            </button>
-            <button className="p-2 sm:p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition active:scale-95">
-              <ArrowUpDown size={16} />
-            </button>
-            {isAdmin && (
+            <FilterPanel config={filterConfig} filters={filters} onChange={setFilters} onClear={clearFilters} activeCount={activeFilterCount} />
+            <SortButton options={sortOptions} sort={sort} onChange={setSort} />
+            {canManage && (
               <button
                 onClick={() => setCreateOpen(true)}
                 className="flex items-center justify-center gap-1.5 px-2.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-indigo-600 text-white font-semibold text-xs sm:text-sm active:scale-95 shadow-lg shadow-indigo-600/20 transition"
@@ -151,6 +180,42 @@ const LessonListPage = () => {
       <FormModal open={!!editItem} onClose={() => setEditItem(null)} title="Editar Aula">
         {editItem && (
           <LessonForm mode="edit" initialData={editItem} onSuccess={() => { setEditItem(null); refetch() }} onCancel={() => setEditItem(null)} />
+        )}
+      </FormModal>
+
+      {/* Attendance Modal */}
+      <FormModal open={!!attendanceLesson} onClose={() => setAttendanceLesson(null)} title={`Presença — ${attendanceLesson?.subject?.name || ""} (${attendanceLesson?.class?.name || ""})`}>
+        {attendanceLesson && (
+          <LessonAttendanceForm
+            lessonId={attendanceLesson.id}
+            classId={attendanceLesson.classId}
+            onSuccess={() => { setAttendanceLesson(null); refetch() }}
+            onCancel={() => setAttendanceLesson(null)}
+          />
+        )}
+      </FormModal>
+
+      {/* Materials Modal */}
+      <FormModal open={!!materialsLesson} onClose={() => setMaterialsLesson(null)} title={`Materiais — ${materialsLesson?.subject?.name || ""}`}>
+        {materialsLesson?.materials && (
+          <div className="flex flex-col gap-2">
+            {(materialsLesson.materials as Material[]).map((m, i) => (
+              <a
+                key={i}
+                href={m.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-indigo-300 dark:hover:border-indigo-700 transition"
+              >
+                <Paperclip size={16} className="text-indigo-500 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">{m.title}</p>
+                  {m.type && <span className="text-[10px] text-zinc-400 uppercase">{m.type}</span>}
+                </div>
+                <ExternalLink size={14} className="text-zinc-400 shrink-0" />
+              </a>
+            ))}
+          </div>
         )}
       </FormModal>
 

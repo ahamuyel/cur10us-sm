@@ -2,6 +2,9 @@
 import { useState, useEffect } from "react"
 import FormField from "@/components/ui/FormField"
 import { createLessonSchema } from "@/lib/validations/academic"
+import { Plus, Trash2 } from "lucide-react"
+
+type Material = { title: string; url: string; type?: string }
 
 type LessonData = {
   id?: string
@@ -12,6 +15,7 @@ type LessonData = {
   subjectId: string
   classId: string
   teacherId: string
+  materials?: Material[] | null
 }
 
 type Props = {
@@ -33,6 +37,8 @@ const DAYS = [
   { value: "Sexta", label: "Sexta" },
 ]
 
+const materialTypes = ["pdf", "video", "link", "documento", "outro"]
+
 const LessonForm = ({ mode, initialData, onSuccess, onCancel }: Props) => {
   const [form, setForm] = useState({
     day: initialData?.day || "",
@@ -43,6 +49,9 @@ const LessonForm = ({ mode, initialData, onSuccess, onCancel }: Props) => {
     classId: initialData?.classId || "",
     teacherId: initialData?.teacherId || "",
   })
+  const [materials, setMaterials] = useState<Material[]>(
+    (initialData?.materials as Material[]) || []
+  )
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
   const [apiError, setApiError] = useState("")
@@ -56,12 +65,25 @@ const LessonForm = ({ mode, initialData, onSuccess, onCancel }: Props) => {
     fetch("/api/teachers?limit=100").then(r => r.json()).then(d => setTeacherOptions(d.data || []))
   }, [])
 
+  const addMaterial = () => setMaterials([...materials, { title: "", url: "", type: "link" }])
+  const removeMaterial = (i: number) => setMaterials(materials.filter((_, idx) => idx !== i))
+  const updateMaterial = (i: number, field: keyof Material, value: string) => {
+    const updated = [...materials]
+    updated[i] = { ...updated[i], [field]: value }
+    setMaterials(updated)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrors({})
     setApiError("")
 
-    const parsed = createLessonSchema.safeParse(form)
+    const payload = {
+      ...form,
+      materials: materials.length > 0 ? materials : null,
+    }
+
+    const parsed = createLessonSchema.safeParse(payload)
     if (!parsed.success) {
       const fieldErrors: Record<string, string> = {}
       parsed.error.issues.forEach((issue) => {
@@ -78,7 +100,7 @@ const LessonForm = ({ mode, initialData, onSuccess, onCancel }: Props) => {
       const res = await fetch(url, {
         method: mode === "edit" ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -145,6 +167,51 @@ const LessonForm = ({ mode, initialData, onSuccess, onCancel }: Props) => {
             ))}
           </select>
         </FormField>
+      </div>
+
+      {/* Materials Section */}
+      <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-3">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Materiais</span>
+          <button type="button" onClick={addMaterial} className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-700 font-medium">
+            <Plus size={14} /> Adicionar
+          </button>
+        </div>
+        {materials.length === 0 && (
+          <p className="text-xs text-zinc-400">Nenhum material adicionado.</p>
+        )}
+        <div className="flex flex-col gap-2">
+          {materials.map((m, i) => (
+            <div key={i} className="flex items-start gap-2 p-2 rounded-lg bg-zinc-50 dark:bg-zinc-900">
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <input
+                  className={inputClass}
+                  placeholder="Título"
+                  value={m.title}
+                  onChange={(e) => updateMaterial(i, "title", e.target.value)}
+                />
+                <input
+                  className={inputClass}
+                  placeholder="URL"
+                  value={m.url}
+                  onChange={(e) => updateMaterial(i, "url", e.target.value)}
+                />
+                <select
+                  className={inputClass}
+                  value={m.type || "link"}
+                  onChange={(e) => updateMaterial(i, "type", e.target.value)}
+                >
+                  {materialTypes.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+              <button type="button" onClick={() => removeMaterial(i)} className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition">
+                <Trash2 size={14} />
+              </button>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="flex items-center gap-3 justify-end pt-2">

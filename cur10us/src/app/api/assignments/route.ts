@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requirePermission, getSchoolId } from "@/lib/api-auth"
 import { createAssignmentSchema } from "@/lib/validations/academic"
+import { buildOrderBy } from "@/lib/query-helpers"
 
 export async function GET(req: Request) {
   try {
@@ -9,34 +10,75 @@ export async function GET(req: Request) {
     if (authError) return authError
 
     const schoolId = getSchoolId(session!)
+    const role = session!.user.role
+    const userId = session!.user.id
     const { searchParams } = new URL(req.url)
     const page = parseInt(searchParams.get("page") || "1")
     const limit = parseInt(searchParams.get("limit") || "10")
     const search = searchParams.get("search") || ""
+    const classId = searchParams.get("classId") || ""
+    const subjectId = searchParams.get("subjectId") || ""
 
-    const where = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const where: any = {
       schoolId,
+      ...(classId ? { classId } : {}),
+      ...(subjectId ? { subjectId } : {}),
       ...(search
         ? { title: { contains: search, mode: "insensitive" as const } }
         : {}),
     }
+
+    // Student: filter by own class
+    if (role === "student") {
+      const student = await prisma.student.findFirst({ where: { userId, schoolId }, select: { id: true, classId: true } })
+      if (student?.classId) where.classId = student.classId
+    }
+
+    // Teacher: filter own assignments
+    if (role === "teacher") {
+      const teacher = await prisma.teacher.findFirst({ where: { userId, schoolId }, select: { id: true } })
+      if (teacher) where.teacherId = teacher.id
+    }
+
+    const orderBy = buildOrderBy(searchParams, ["dueDate", "title", "createdAt"], { dueDate: "desc" })
 
     const [data, total] = await Promise.all([
       prisma.assignment.findMany({
         where,
         skip: (page - 1) * limit,
         take: limit,
-        orderBy: { dueDate: "desc" },
+        orderBy,
         include: {
           subject: { select: { id: true, name: true } },
           class: { select: { id: true, name: true } },
           teacher: { select: { id: true, name: true } },
+          _count: { select: { submissions: true } },
+          ...(role === "student" ? {
+            submissions: {
+              where: { student: { userId } },
+              select: { id: true, status: true, score: true, submittedAt: true },
+              take: 1,
+            },
+          } : {}),
         },
       }),
       prisma.assignment.count({ where }),
     ])
 
-    return NextResponse.json({ data, total, page, totalPages: Math.ceil(total / limit) })
+    const enriched = data.map((a) => {
+      const now = new Date()
+      const isPastDue = new Date(a.dueDate) < now
+      return {
+        ...a,
+        submissionCount: a._count.submissions,
+        mySubmission: (a as unknown as { submissions?: unknown[] }).submissions?.[0] || null,
+        isPastDue,
+        _count: undefined,
+      }
+    })
+
+    return NextResponse.json({ data: enriched, total, page, totalPages: Math.ceil(total / limit) })
   } catch {
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
@@ -55,12 +97,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
     }
 
-    const { title, dueDate, subjectId, classId, teacherId } = parsed.data
+    const { title, dueDate, description, maxScore, subjectId, classId, teacherId } = parsed.data
 
     const assignment = await prisma.assignment.create({
       data: {
-        title: title || null,
+        title,
+        description: description || null,
         dueDate: new Date(dueDate),
+        maxScore: maxScore || 20,
         subjectId,
         classId,
         teacherId,
