@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
 import { getDashboardPath } from "@/lib/routes"
 import {
@@ -67,6 +68,7 @@ const menuItems: { title: string; items: MenuItem[] }[] = [
 
 const Menu = () => {
   const { data: session } = useSession()
+  const pathname = usePathname()
   const role = session?.user?.role || "student"
   const adminLevel = session?.user?.adminLevel
   const permissions = session?.user?.permissions || []
@@ -93,11 +95,18 @@ const Menu = () => {
           {i.items.map((item) => {
             if (!isVisible(item)) return null
             const href = item.label === "Início" ? homePath : item.href
+            const isActive = href === "/dashboard"
+              ? pathname === "/dashboard" || pathname === homePath
+              : pathname === href || pathname.startsWith(href + "/")
             return (
               <Link
                 href={href}
                 key={item.label}
-                className="flex items-center justify-center lg:justify-start gap-4 text-zinc-500 dark:text-zinc-400 py-2 rounded-lg md:px-2 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                className={`flex items-center justify-center lg:justify-start gap-4 py-2 rounded-lg md:px-2 transition-colors ${
+                  isActive
+                    ? "bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400"
+                    : "text-zinc-500 dark:text-zinc-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:text-indigo-600 dark:hover:text-indigo-400"
+                }`}
               >
                 <item.icon size={20} />
                 <span className="hidden lg:block">{item.label}</span>

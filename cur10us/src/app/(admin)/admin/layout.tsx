@@ -9,16 +9,22 @@ import {
   School,
   ShieldCheck,
   Users,
+  Inbox,
+  Settings,
   LogOut,
   Loader2,
 } from "lucide-react"
 import ThemeToggle from "@/components/ui/ThemeToggle"
+import AdminNavBar from "@/components/layout/AdminNavBar"
+import AdminMobileNav from "@/components/layout/AdminMobileNav"
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/admin" },
   { icon: School, label: "Escolas", href: "/admin/schools" },
   { icon: Users, label: "Utilizadores", href: "/admin/users" },
+  { icon: Inbox, label: "Solicitações", href: "/admin/applications" },
   { icon: ShieldCheck, label: "Super Admins", href: "/admin/super-admins" },
+  { icon: Settings, label: "Configurações", href: "/admin/settings" },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -43,60 +49,72 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="h-screen flex">
-      {/* Sidebar */}
-      <aside className="w-[220px] shrink-0 bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800 flex flex-col">
-        <div className="p-4 border-b border-zinc-200 dark:border-zinc-800">
-          <Link href="/admin" className="flex items-center gap-2">
-            <span className="font-bold text-zinc-900 dark:text-zinc-100">
+    <div className="h-screen flex flex-col md:flex-row">
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:flex md:w-[72px] lg:w-[220px] shrink-0 bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800 flex-col transition-all duration-200">
+        <div className="p-3 lg:p-4 border-b border-zinc-200 dark:border-zinc-800">
+          <Link href="/admin" className="flex items-center justify-center lg:justify-start gap-2">
+            <span className="font-bold text-zinc-900 dark:text-zinc-100 hidden lg:inline">
               Cur10us<span className="text-indigo-600 dark:text-indigo-400">X</span>
             </span>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 font-medium">
+            <span className="font-bold text-zinc-900 dark:text-zinc-100 lg:hidden text-lg">
+              C<span className="text-indigo-600 dark:text-indigo-400">X</span>
+            </span>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 font-medium hidden lg:inline">
               Admin
             </span>
           </Link>
         </div>
 
-        <nav className="flex-1 p-3 space-y-1">
+        <nav className="flex-1 p-2 lg:p-3 space-y-1">
           {sidebarItems.map((item) => {
             const Icon = item.icon
-            const isActive = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href))
+            const isActive = item.href === "/admin"
+              ? pathname === "/admin"
+              : pathname.startsWith(item.href)
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                title={item.label}
+                className={`flex items-center justify-center lg:justify-start gap-3 px-3 py-2.5 lg:py-2 rounded-xl text-sm font-medium transition-colors ${
                   isActive
                     ? "bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400"
                     : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                 }`}
               >
                 <Icon size={18} />
-                {item.label}
+                <span className="hidden lg:block">{item.label}</span>
               </Link>
             )
           })}
         </nav>
 
-        <div className="p-3 border-t border-zinc-200 dark:border-zinc-800 space-y-2">
-          <div className="flex items-center justify-between px-3">
-            <span className="text-xs text-zinc-500">{session.user.name}</span>
+        <div className="p-2 lg:p-3 border-t border-zinc-200 dark:border-zinc-800 space-y-2">
+          <div className="flex items-center justify-center lg:justify-between px-3">
+            <span className="text-xs text-zinc-500 hidden lg:block">{session.user.name}</span>
             <ThemeToggle />
           </div>
           <button
             onClick={() => signOut({ callbackUrl: "/signin" })}
-            className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors w-full"
+            className="flex items-center justify-center lg:justify-start gap-3 px-3 py-2.5 lg:py-2 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors w-full"
           >
             <LogOut size={18} />
-            Sair
+            <span className="hidden lg:block">Sair</span>
           </button>
         </div>
       </aside>
 
+      {/* Mobile top bar */}
+      <AdminNavBar />
+
       {/* Content */}
-      <main className="flex-1 overflow-y-auto bg-[#f7f8fa] dark:bg-zinc-950">
+      <main className="flex-1 overflow-y-auto bg-[#f7f8fa] dark:bg-zinc-950 pb-20 md:pb-0 min-w-0">
         {children}
       </main>
+
+      {/* Mobile bottom nav */}
+      <AdminMobileNav />
     </div>
   )
 }

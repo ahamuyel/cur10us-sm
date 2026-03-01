@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { Loader2, Search, KeyRound, Copy, Check, X } from "lucide-react"
+import Pagination from "@/components/ui/Pagination"
 
 interface User {
   id: string
@@ -110,7 +111,7 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-3 sm:p-4 lg:p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Utilizadores</h1>
@@ -190,10 +191,10 @@ export default function UsersPage() {
               <thead>
                 <tr className="border-b border-zinc-200 dark:border-zinc-800 text-xs text-zinc-500 uppercase">
                   <th className="text-left py-3 px-4 font-medium">Nome</th>
-                  <th className="text-left py-3 px-4 font-medium">E-mail</th>
+                  <th className="text-left py-3 px-4 font-medium hidden sm:table-cell">E-mail</th>
                   <th className="text-left py-3 px-4 font-medium">Papel</th>
-                  <th className="text-left py-3 px-4 font-medium">Escola</th>
-                  <th className="text-left py-3 px-4 font-medium">Estado</th>
+                  <th className="text-left py-3 px-4 font-medium hidden md:table-cell">Escola</th>
+                  <th className="text-left py-3 px-4 font-medium hidden sm:table-cell">Estado</th>
                   <th className="text-right py-3 px-4 font-medium">Acções</th>
                 </tr>
               </thead>
@@ -208,14 +209,14 @@ export default function UsersPage() {
                         <span className="font-medium text-zinc-900 dark:text-zinc-100">{user.name}</span>
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400">{user.email}</td>
+                    <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400 hidden sm:table-cell">{user.email}</td>
                     <td className="py-3 px-4">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${roleColors[user.role] || "bg-zinc-100 text-zinc-500"}`}>
                         {roleLabels[user.role] || user.role}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-zinc-500 text-xs">{user.school?.name || "—"}</td>
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-4 text-zinc-500 text-xs hidden md:table-cell">{user.school?.name || "—"}</td>
+                    <td className="py-3 px-4 hidden sm:table-cell">
                       <div className="flex items-center gap-1.5">
                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${user.isActive ? "bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500"}`}>
                           {user.isActive ? "Activo" : "Inactivo"}
@@ -246,12 +247,8 @@ export default function UsersPage() {
           </div>
 
           {totalPages > 1 && (
-            <div className="flex items-center justify-between px-4 py-3 border-t border-zinc-200 dark:border-zinc-800">
-              <span className="text-xs text-zinc-500">Página {page} de {totalPages}</span>
-              <div className="flex gap-2">
-                <button onClick={() => setPage(Math.max(1, page - 1))} disabled={page <= 1} className="px-3 py-1.5 rounded-lg text-xs border border-zinc-200 dark:border-zinc-700 disabled:opacity-50">Anterior</button>
-                <button onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page >= totalPages} className="px-3 py-1.5 rounded-lg text-xs border border-zinc-200 dark:border-zinc-700 disabled:opacity-50">Próxima</button>
-              </div>
+            <div className="px-4 border-t border-zinc-200 dark:border-zinc-800">
+              <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
             </div>
           )}
         </div>

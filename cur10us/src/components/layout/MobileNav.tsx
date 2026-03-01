@@ -18,23 +18,32 @@ import {
   LogOut,
   Inbox,
 } from "lucide-react"
+import type { LucideIcon } from "lucide-react"
 import { useState } from "react"
 
-const navItems = [
-  { icon: LayoutDashboard, label: "Início", href: "/dashboard" },
-  { icon: UserRound, label: "Professores", href: "/list/teachers" },
-  { icon: Users, label: "Alunos", href: "/list/students" },
-  { icon: CalendarDays, label: "Agenda", href: "/list/lessons" },
+interface NavItem {
+  icon: LucideIcon
+  label: string
+  href: string
+  visible: string[]
+  permission?: string
+}
+
+const navItems: NavItem[] = [
+  { icon: LayoutDashboard, label: "Início", href: "/dashboard", visible: ["school_admin", "teacher", "student", "parent"] },
+  { icon: UserRound, label: "Professores", href: "/list/teachers", visible: ["school_admin", "teacher"], permission: "canManageTeachers" },
+  { icon: Users, label: "Alunos", href: "/list/students", visible: ["school_admin", "teacher"], permission: "canManageStudents" },
+  { icon: CalendarDays, label: "Agenda", href: "/list/lessons", visible: ["school_admin", "teacher"], permission: "canManageLessons" },
 ]
 
-const moreItems = [
-  { icon: Inbox, label: "Solicitações", href: "/list/applications" },
-  { icon: UserCheck, label: "Encarregados", href: "/list/parents" },
-  { icon: CalendarCheck, label: "Assiduidade", href: "/list/attendance" },
-  { icon: MessageSquare, label: "Mensagens", href: "/list/messages" },
-  { icon: Megaphone, label: "Avisos", href: "/list/announcements" },
-  { icon: Settings, label: "Configurações", href: "/settings" },
-] as const
+const moreItems: NavItem[] = [
+  { icon: Inbox, label: "Solicitações", href: "/list/applications", visible: ["school_admin"], permission: "canManageApplications" },
+  { icon: UserCheck, label: "Encarregados", href: "/list/parents", visible: ["school_admin", "teacher"], permission: "canManageParents" },
+  { icon: CalendarCheck, label: "Assiduidade", href: "/list/attendance", visible: ["school_admin", "teacher", "student", "parent"], permission: "canManageAttendance" },
+  { icon: MessageSquare, label: "Mensagens", href: "/list/messages", visible: ["school_admin", "teacher", "student", "parent"], permission: "canManageMessages" },
+  { icon: Megaphone, label: "Avisos", href: "/list/announcements", visible: ["school_admin", "teacher", "student", "parent"], permission: "canManageAnnouncements" },
+  { icon: Settings, label: "Configurações", href: "/settings", visible: ["school_admin", "teacher", "student", "parent"] },
+]
 
 const MobileNav = () => {
   const pathname = usePathname()
@@ -42,17 +51,32 @@ const MobileNav = () => {
   const homePath = getDashboardPath(session?.user?.id)
   const [showMore, setShowMore] = useState(false)
 
+  const role = session?.user?.role || "student"
+  const adminLevel = session?.user?.adminLevel
+  const permissions = (session?.user?.permissions || []) as string[]
+
+  function isVisible(item: NavItem): boolean {
+    if (!item.visible.includes(role)) return false
+    if (role === "school_admin" && item.permission && adminLevel === "secondary") {
+      return permissions.includes(item.permission)
+    }
+    return true
+  }
+
+  const filteredNavItems = navItems.filter(isVisible)
+  const filteredMoreItems = moreItems.filter(isVisible)
+
   return (
     <>
       {/* More menu overlay */}
-      {showMore && (
+      {showMore && filteredMoreItems.length > 0 && (
         <div className="md:hidden fixed inset-0 z-40 bg-black/40" onClick={() => setShowMore(false)}>
           <div
             className="absolute bottom-[68px] left-2 right-2 bg-white dark:bg-zinc-900 rounded-2xl p-3 shadow-xl border border-zinc-200 dark:border-zinc-800"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="grid grid-cols-2 gap-2">
-              {moreItems.map((item) => {
+              {filteredMoreItems.map((item) => {
                 const Icon = item.icon
                 return (
                   <Link
@@ -83,7 +107,7 @@ const MobileNav = () => {
       {/* Bottom bar */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md border-t border-zinc-200 dark:border-zinc-800 safe-area-bottom">
         <div className="flex items-center justify-around px-2 py-2">
-          {navItems.map((item) => {
+          {filteredNavItems.map((item) => {
             const Icon = item.icon
             const href = item.label === "Início" ? homePath : item.href
             const isActive = pathname === href || pathname.startsWith(href + "/")
@@ -102,17 +126,19 @@ const MobileNav = () => {
               </Link>
             )
           })}
-          <button
-            onClick={() => setShowMore(!showMore)}
-            className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-colors min-w-[56px] ${
-              showMore
-                ? "text-indigo-600 dark:text-indigo-400"
-                : "text-zinc-400 dark:text-zinc-500"
-            }`}
-          >
-            <Menu size={20} strokeWidth={showMore ? 2.5 : 2} />
-            <span className="text-[10px] font-medium leading-none">Mais</span>
-          </button>
+          {filteredMoreItems.length > 0 && (
+            <button
+              onClick={() => setShowMore(!showMore)}
+              className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-colors min-w-[56px] ${
+                showMore
+                  ? "text-indigo-600 dark:text-indigo-400"
+                  : "text-zinc-400 dark:text-zinc-500"
+              }`}
+            >
+              <Menu size={20} strokeWidth={showMore ? 2.5 : 2} />
+              <span className="text-[10px] font-medium leading-none">Mais</span>
+            </button>
+          )}
         </div>
       </nav>
     </>

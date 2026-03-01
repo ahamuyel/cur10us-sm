@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react"
 import { Loader2, Plus, Search } from "lucide-react"
 import StatusBadge from "@/components/ui/StatusBadge"
 import SchoolForm from "@/components/forms/SchoolForm"
+import Pagination from "@/components/ui/Pagination"
 
 interface School {
   id: string
@@ -15,6 +16,12 @@ interface School {
   status: string
   _count: { teachers: number; students: number; parents: number }
 }
+
+const PROVINCIAS = [
+  "Bengo", "Benguela", "Bié", "Cabinda", "Cuando Cubango", "Cuanza Norte",
+  "Cuanza Sul", "Cunene", "Huambo", "Huíla", "Icolo e Bengo", "Luanda",
+  "Lunda Norte", "Lunda Sul", "Malanje", "Moxico", "Namibe", "Uíge", "Zaire",
+]
 
 const statusFilters = [
   { value: "", label: "Todas" },
@@ -31,6 +38,7 @@ export default function SchoolsPage() {
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("")
   const [showForm, setShowForm] = useState(false)
+  const [provinciaFilter, setProvinciaFilter] = useState("")
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
@@ -41,6 +49,7 @@ export default function SchoolsPage() {
       const params = new URLSearchParams({ page: String(page), limit: "10" })
       if (search) params.set("search", search)
       if (statusFilter) params.set("status", statusFilter)
+      if (provinciaFilter) params.set("provincia", provinciaFilter)
 
       const res = await fetch(`/api/admin/schools?${params}`)
       const data = await res.json()
@@ -52,7 +61,7 @@ export default function SchoolsPage() {
     } finally {
       setLoading(false)
     }
-  }, [page, search, statusFilter])
+  }, [page, search, statusFilter, provinciaFilter])
 
   useEffect(() => { fetchSchools() }, [fetchSchools])
 
@@ -71,7 +80,7 @@ export default function SchoolsPage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-3 sm:p-4 lg:p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Escolas</h1>
@@ -98,6 +107,16 @@ export default function SchoolsPage() {
             className="bg-transparent outline-none text-sm w-full text-zinc-700 dark:text-zinc-200 placeholder:text-zinc-400"
           />
         </div>
+        <select
+          value={provinciaFilter}
+          onChange={(e) => { setProvinciaFilter(e.target.value); setPage(1) }}
+          className="px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm text-zinc-700 dark:text-zinc-200 outline-none"
+        >
+          <option value="">Todas províncias</option>
+          {PROVINCIAS.map((p) => (
+            <option key={p} value={p}>{p}</option>
+          ))}
+        </select>
         <div className="flex gap-1.5 flex-wrap">
           {statusFilters.map((f) => (
             <button
@@ -140,11 +159,11 @@ export default function SchoolsPage() {
               <thead>
                 <tr className="border-b border-zinc-200 dark:border-zinc-800">
                   <th className="text-left px-4 py-3 text-zinc-500 font-medium">Nome</th>
-                  <th className="text-left px-4 py-3 text-zinc-500 font-medium">Cidade</th>
+                  <th className="text-left px-4 py-3 text-zinc-500 font-medium hidden sm:table-cell">Cidade</th>
                   <th className="text-left px-4 py-3 text-zinc-500 font-medium">Status</th>
-                  <th className="text-right px-4 py-3 text-zinc-500 font-medium">Professores</th>
-                  <th className="text-right px-4 py-3 text-zinc-500 font-medium">Alunos</th>
-                  <th className="text-right px-4 py-3 text-zinc-500 font-medium">Encarregados</th>
+                  <th className="text-right px-4 py-3 text-zinc-500 font-medium hidden md:table-cell">Professores</th>
+                  <th className="text-right px-4 py-3 text-zinc-500 font-medium hidden md:table-cell">Alunos</th>
+                  <th className="text-right px-4 py-3 text-zinc-500 font-medium hidden lg:table-cell">Encarregados</th>
                 </tr>
               </thead>
               <tbody>
@@ -158,11 +177,11 @@ export default function SchoolsPage() {
                       <div className="font-medium text-zinc-900 dark:text-zinc-100">{school.name}</div>
                       <div className="text-xs text-zinc-400">{school.email}</div>
                     </td>
-                    <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{school.city}/{school.provincia}</td>
+                    <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400 hidden sm:table-cell">{school.city}/{school.provincia}</td>
                     <td className="px-4 py-3"><StatusBadge status={school.status} /></td>
-                    <td className="px-4 py-3 text-right text-zinc-600 dark:text-zinc-400">{school._count.teachers}</td>
-                    <td className="px-4 py-3 text-right text-zinc-600 dark:text-zinc-400">{school._count.students}</td>
-                    <td className="px-4 py-3 text-right text-zinc-600 dark:text-zinc-400">{school._count.parents}</td>
+                    <td className="px-4 py-3 text-right text-zinc-600 dark:text-zinc-400 hidden md:table-cell">{school._count.teachers}</td>
+                    <td className="px-4 py-3 text-right text-zinc-600 dark:text-zinc-400 hidden md:table-cell">{school._count.students}</td>
+                    <td className="px-4 py-3 text-right text-zinc-600 dark:text-zinc-400 hidden lg:table-cell">{school._count.parents}</td>
                   </tr>
                 ))}
                 {schools.length === 0 && (
@@ -174,14 +193,9 @@ export default function SchoolsPage() {
             </table>
           </div>
 
-          {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between px-4 py-3 border-t border-zinc-200 dark:border-zinc-800">
-              <span className="text-xs text-zinc-500">Página {page} de {totalPages}</span>
-              <div className="flex gap-2">
-                <button onClick={() => setPage(Math.max(1, page - 1))} disabled={page <= 1} className="px-3 py-1.5 rounded-lg text-xs border border-zinc-200 dark:border-zinc-700 disabled:opacity-50">Anterior</button>
-                <button onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page >= totalPages} className="px-3 py-1.5 rounded-lg text-xs border border-zinc-200 dark:border-zinc-700 disabled:opacity-50">Próxima</button>
-              </div>
+            <div className="px-4 border-t border-zinc-200 dark:border-zinc-800">
+              <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
             </div>
           )}
         </div>

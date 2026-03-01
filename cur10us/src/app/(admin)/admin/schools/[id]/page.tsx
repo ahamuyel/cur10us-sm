@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { Loader2, ArrowLeft, CheckCircle2, XCircle, Zap, RotateCcw, Ban, Trash2, Copy, Check } from "lucide-react"
+import { Loader2, ArrowLeft, CheckCircle2, XCircle, Zap, RotateCcw, Ban, Trash2, Copy, Check, Pencil } from "lucide-react"
 import StatusBadge from "@/components/ui/StatusBadge"
 import ConfirmActionModal from "@/components/ui/ConfirmActionModal"
+import SchoolForm from "@/components/forms/SchoolForm"
 
 interface SchoolDetail {
   id: string
@@ -40,6 +41,7 @@ export default function SchoolDetailPage() {
   const [confirmAction, setConfirmAction] = useState<"revert" | "suspend" | "delete" | null>(null)
   const [activatedCreds, setActivatedCreds] = useState<{ email: string; password: string } | null>(null)
   const [copied, setCopied] = useState(false)
+  const [showEdit, setShowEdit] = useState(false)
 
   async function fetchSchool() {
     try {
@@ -119,6 +121,20 @@ export default function SchoolDetailPage() {
     router.replace("/admin/schools")
   }
 
+  async function handleEditSchool(data: Record<string, string>) {
+    const res = await fetch(`/api/admin/schools/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    })
+    if (!res.ok) {
+      const err = await res.json()
+      throw new Error(err.error || "Erro ao actualizar escola")
+    }
+    setShowEdit(false)
+    fetchSchool()
+  }
+
   if (loading || !school) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -135,7 +151,7 @@ export default function SchoolDetailPage() {
   const revertTarget = REVERT_TARGET[school.status]
 
   return (
-    <div className="p-6 max-w-3xl">
+    <div className="p-3 sm:p-4 lg:p-6 max-w-3xl">
       <button
         onClick={() => router.push("/admin/schools")}
         className="flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 mb-4 transition"
@@ -149,8 +165,43 @@ export default function SchoolDetailPage() {
             <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{school.name}</h1>
             <p className="text-sm text-zinc-500">{school.slug}</p>
           </div>
-          <StatusBadge status={school.status} />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowEdit(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition"
+            >
+              <Pencil size={12} />
+              Editar
+            </button>
+            <StatusBadge status={school.status} />
+          </div>
         </div>
+
+        {/* Edit modal */}
+        {showEdit && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowEdit(false)}>
+            <div
+              className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xl w-full max-w-lg mx-4 p-6 max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 className="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Editar Escola</h2>
+              <SchoolForm
+                initialData={{
+                  name: school.name,
+                  slug: school.slug,
+                  nif: school.nif || "",
+                  email: school.email,
+                  phone: school.phone,
+                  address: school.address,
+                  city: school.city,
+                  provincia: school.provincia,
+                }}
+                onSubmit={handleEditSchool}
+                onCancel={() => setShowEdit(false)}
+              />
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-4 text-sm mb-6">
           <div><span className="text-zinc-500">E-mail:</span> <span className="text-zinc-900 dark:text-zinc-100">{school.email}</span></div>
