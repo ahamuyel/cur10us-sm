@@ -1,8 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useSession, signOut } from "next-auth/react"
 import { Lock, Eye, EyeOff } from "lucide-react"
 
 const inputClass =
@@ -25,8 +24,7 @@ function PasswordInput({ value, onChange, ...props }: React.InputHTMLAttributes<
 }
 
 export default function ChangePasswordPage() {
-  const { data: session, update } = useSession()
-  const router = useRouter()
+  const { data: session } = useSession()
   const [currentPassword, setCurrentPassword] = useState("")
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -63,9 +61,8 @@ export default function ChangePasswordPage() {
         return
       }
 
-      await update()
-      // Full reload to ensure MustChangePasswordGate reads the fresh session
-      window.location.href = "/dashboard"
+      // Sign out and redirect to login so user enters the new credentials
+      signOut({ callbackUrl: "/signin" })
       return
     } catch {
       setError("Erro de conexão")
@@ -133,7 +130,7 @@ export default function ChangePasswordPage() {
             {!isMustChange && (
               <button
                 type="button"
-                onClick={() => router.back()}
+                onClick={() => window.history.back()}
                 className="text-sm text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition"
               >
                 Voltar

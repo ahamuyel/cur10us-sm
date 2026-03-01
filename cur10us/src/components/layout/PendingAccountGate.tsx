@@ -2,24 +2,12 @@
 
 import Link from "next/link"
 import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
-import { useEffect } from "react"
 import { Clock } from "lucide-react"
 
 export default function PendingAccountGate({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession()
-  const router = useRouter()
 
-  // Redirect Google users with incomplete profiles
-  useEffect(() => {
-    if (session?.user && !session.user.profileComplete) {
-      router.replace("/complete-profile")
-    }
-  }, [session, router])
-
-  if (session?.user && !session.user.profileComplete) {
-    return null
-  }
+  // Profile completion flow disabled for now
 
   // Show pending account screen for inactive users
   if (session?.user && !session.user.isActive && session.user.role !== "super_admin") {
