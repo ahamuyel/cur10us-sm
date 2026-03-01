@@ -16,17 +16,23 @@ export default function CTASection() {
       </p>
       <div className="flex gap-4 flex-wrap justify-center">
         <Link
-          href="/registar-escola"
+          href="/signin"
           className="group inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 shadow-lg shadow-indigo-600/25 transition"
         >
-          Registar escola
+          Entrar na plataforma
           <ArrowRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
         </Link>
         <Link
-          href="/aplicacao"
+          href="/signup"
+          className="px-8 py-4 rounded-xl border border-indigo-300 dark:border-indigo-700 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950 transition font-semibold"
+        >
+          Criar conta
+        </Link>
+        <Link
+          href="/registar-escola"
           className="px-8 py-4 rounded-xl border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition font-semibold"
         >
-          Solicitar matrícula
+          Registar escola
         </Link>
       </div>
     </section>

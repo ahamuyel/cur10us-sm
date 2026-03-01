@@ -29,20 +29,26 @@ export default function HeroSection() {
           de qualquer dispositivo.
         </p>
 
-        <div className="flex gap-4 flex-wrap justify-center pt-2">
+        <div className="flex gap-3 flex-wrap justify-center pt-2">
           <Link
-            href="/registar-escola"
+            href="/signin"
             className="group inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 shadow-lg shadow-indigo-600/25 transition"
           >
-            Registar a minha escola
+            Entrar na plataforma
             <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
           </Link>
-          <a
-            href="#funcionalidades"
+          <Link
+            href="/signup"
+            className="px-6 py-3 rounded-xl border border-indigo-300 dark:border-indigo-700 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950 transition font-medium"
+          >
+            Criar conta
+          </Link>
+          <Link
+            href="/registar-escola"
             className="px-6 py-3 rounded-xl border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition font-medium"
           >
-            Ver funcionalidades
-          </a>
+            Registar escola
+          </Link>
         </div>
       </div>
     </section>
