@@ -27,6 +27,7 @@ export default function SchoolFeaturesManager({ schoolId, initialFeatures, onUpd
   })
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [saveError, setSaveError] = useState("")
 
   const isEssential = (feature: string) =>
     (ESSENTIAL_FEATURES as readonly string[]).includes(feature)
@@ -34,6 +35,7 @@ export default function SchoolFeaturesManager({ schoolId, initialFeatures, onUpd
   async function handleSave() {
     setSaving(true)
     setSaved(false)
+    setSaveError("")
     try {
       const res = await fetch(`/api/admin/schools/${schoolId}`, {
         method: "PUT",
@@ -44,9 +46,12 @@ export default function SchoolFeaturesManager({ schoolId, initialFeatures, onUpd
         setSaved(true)
         onUpdate()
         setTimeout(() => setSaved(false), 2000)
+      } else {
+        const data = await res.json()
+        setSaveError(data.error || "Erro ao guardar")
       }
     } catch {
-      // silently fail
+      setSaveError("Erro de conexão")
     } finally {
       setSaving(false)
     }
@@ -74,6 +79,10 @@ export default function SchoolFeaturesManager({ schoolId, initialFeatures, onUpd
         </button>
       </div>
 
+      {saveError && (
+        <div className="p-2 rounded-lg bg-rose-50 dark:bg-rose-950/30 text-rose-600 text-xs">{saveError}</div>
+      )}
+
       <div className="grid gap-2">
         {ALL_FEATURES.map((feature) => {
           const essential = isEssential(feature)
@@ -86,7 +95,7 @@ export default function SchoolFeaturesManager({ schoolId, initialFeatures, onUpd
               className={`flex items-center justify-between p-3 rounded-xl border transition ${
                 enabled
                   ? "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800"
-                  : "bg-zinc-50 dark:bg-zinc-950 border-zinc-100 dark:border-zinc-900 opacity-60"
+                  : "bg-zinc-50 dark:bg-zinc-950 border-zinc-100 dark:border-zinc-900"
               }`}
             >
               <div className="flex-1 min-w-0">
@@ -111,14 +120,15 @@ export default function SchoolFeaturesManager({ schoolId, initialFeatures, onUpd
               </div>
 
               <button
+                type="button"
                 onClick={() => toggleFeature(feature)}
                 disabled={essential}
-                className="ml-3 flex-shrink-0 disabled:cursor-not-allowed"
+                className={`ml-3 flex-shrink-0 ${essential ? "cursor-not-allowed" : "cursor-pointer hover:opacity-80 active:scale-95"} transition`}
               >
                 {enabled ? (
-                  <ToggleRight size={28} className={essential ? "text-zinc-400" : "text-indigo-600"} />
+                  <ToggleRight size={32} className={essential ? "text-zinc-400" : "text-indigo-600 dark:text-indigo-400"} />
                 ) : (
-                  <ToggleLeft size={28} className="text-zinc-300 dark:text-zinc-600" />
+                  <ToggleLeft size={32} className="text-zinc-300 dark:text-zinc-600" />
                 )}
               </button>
             </div>
