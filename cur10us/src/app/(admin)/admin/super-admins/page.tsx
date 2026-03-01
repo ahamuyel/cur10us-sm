@@ -1,7 +1,9 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-import { Loader2, Plus, ShieldCheck, Copy, Check } from "lucide-react"
+import { Loader2, Plus, ShieldCheck, Copy, Check, Power } from "lucide-react"
+import { useSession } from "next-auth/react"
+import ConfirmActionModal from "@/components/ui/ConfirmActionModal"
 
 interface SuperAdmin {
   id: string
@@ -20,6 +22,8 @@ export default function SuperAdminsPage() {
   const [formLoading, setFormLoading] = useState(false)
   const [createdCreds, setCreatedCreds] = useState<{ email: string; password: string } | null>(null)
   const [copied, setCopied] = useState(false)
+  const [toggleTarget, setToggleTarget] = useState<SuperAdmin | null>(null)
+  const { data: session } = useSession()
 
   const fetchAdmins = useCallback(async () => {
     setLoading(true)
@@ -69,10 +73,22 @@ export default function SuperAdminsPage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
+  const handleToggleActive = async () => {
+    if (!toggleTarget) return
+    const res = await fetch(`/api/admin/super-admins/${toggleTarget.id}/toggle-active`, { method: "POST" })
+    if (!res.ok) {
+      const data = await res.json()
+      alert(data.error || "Erro ao alterar estado")
+      return
+    }
+    setToggleTarget(null)
+    fetchAdmins()
+  }
+
   const inputClass = "w-full px-3 py-2 rounded-xl text-sm bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-indigo-500 transition"
 
   return (
-    <div className="p-6">
+    <div className="p-3 sm:p-4 lg:p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Super Admins</h1>
@@ -157,13 +173,15 @@ export default function SuperAdminsPage() {
         <div className="text-center py-16 text-zinc-400 text-sm">Nenhum super admin encontrado</div>
       ) : (
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-zinc-200 dark:border-zinc-800 text-xs text-zinc-500 dark:text-zinc-400 uppercase">
                 <th className="text-left py-3 px-4 font-medium">Nome</th>
-                <th className="text-left py-3 px-4 font-medium">E-mail</th>
+                <th className="text-left py-3 px-4 font-medium hidden sm:table-cell">E-mail</th>
                 <th className="text-left py-3 px-4 font-medium">Estado</th>
-                <th className="text-left py-3 px-4 font-medium">Criado em</th>
+                <th className="text-left py-3 px-4 font-medium hidden md:table-cell">Criado em</th>
+                <th className="text-right py-3 px-4 font-medium">Acções</th>
               </tr>
             </thead>
             <tbody>
@@ -177,19 +195,49 @@ export default function SuperAdminsPage() {
                       <span className="font-medium text-sm text-zinc-900 dark:text-zinc-100">{admin.name}</span>
                     </div>
                   </td>
-                  <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">{admin.email}</td>
+                  <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400 hidden sm:table-cell">{admin.email}</td>
                   <td className="py-3 px-4">
                     <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${admin.isActive ? "bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500"}`}>
                       {admin.isActive ? "Activo" : "Inactivo"}
                     </span>
                   </td>
-                  <td className="py-3 px-4 text-sm text-zinc-500">{new Date(admin.createdAt).toLocaleDateString("pt")}</td>
+                  <td className="py-3 px-4 text-sm text-zinc-500 hidden md:table-cell">{new Date(admin.createdAt).toLocaleDateString("pt")}</td>
+                  <td className="py-3 px-4 text-right">
+                    {session?.user?.id !== admin.id && (
+                      <button
+                        onClick={() => setToggleTarget(admin)}
+                        className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${
+                          admin.isActive
+                            ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-red-600 hover:text-white"
+                            : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-emerald-600 hover:text-white"
+                        }`}
+                      >
+                        <Power size={12} />
+                        <span className="hidden sm:inline">{admin.isActive ? "Desactivar" : "Activar"}</span>
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
+
+      <ConfirmActionModal
+        open={!!toggleTarget}
+        onClose={() => setToggleTarget(null)}
+        onConfirm={handleToggleActive}
+        title={toggleTarget?.isActive ? "Desactivar Super Admin" : "Activar Super Admin"}
+        message={
+          toggleTarget?.isActive
+            ? `Tem a certeza que deseja desactivar "${toggleTarget?.name}"? Não poderá aceder à plataforma.`
+            : `Tem a certeza que deseja reactivar "${toggleTarget?.name}"?`
+        }
+        confirmLabel={toggleTarget?.isActive ? "Desactivar" : "Activar"}
+        confirmColor={toggleTarget?.isActive ? "red" : "emerald"}
+      />
     </div>
   )
 }

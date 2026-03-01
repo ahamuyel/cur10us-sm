@@ -386,6 +386,19 @@ model Announcement {
   updatedAt DateTime @updatedAt
 }
 
+model PlatformConfig {
+  id            String   @id @default("singleton")
+  name          String   @default("Cur10usX")
+  logo          String?
+  contactEmail  String?
+  contactPhone  String?
+  description   String?
+  maintenanceMode Boolean @default(false)
+  allowRegistration Boolean @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
 model AdminPermission {
   id       String     @id @default(cuid())
   userId   String     @unique
