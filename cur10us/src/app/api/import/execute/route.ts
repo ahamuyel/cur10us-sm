@@ -1,189 +1,90 @@
 import { NextResponse } from "next/server"
 import { requirePermission, getSchoolId } from "@/lib/api-auth"
-import { parseFile, normalizeHeaders, validateRows, generateTempPassword } from "@/lib/import-utils"
+import { parseFile, normalizeHeaders, validateRows } from "@/lib/import-utils"
 import { prisma } from "@/lib/prisma"
-import { hash } from "bcryptjs"
-import type { Role } from "@prisma/client"
 
 export async function POST(req: Request) {
   try {
+    // 1. Autenticação e Permissões
     const { error: authError, session } = await requirePermission(["school_admin"], undefined, { requireSchool: true })
     if (authError) return authError
 
     const schoolId = getSchoolId(session!)
-    const userId = session!.user.id
     const formData = await req.formData()
     const file = formData.get("file") as File
     const userType = formData.get("userType") as string
 
+    // 2. Validação básica de input
     if (!file || !["student", "teacher", "parent"].includes(userType)) {
-      return NextResponse.json({ error: "Dados inválidos" }, { status: 400 })
+      return NextResponse.json({ error: "Dados ou tipo de utilizador inválidos" }, { status: 400 })
     }
 
+    // 3. Parsing do arquivo (Excel ou CSV)
     const buffer = Buffer.from(await file.arrayBuffer())
     const { headers, rows } = parseFile(buffer, file.name)
 
     if (rows.length > 500) {
-      return NextResponse.json({ error: "Máximo de 500 linhas" }, { status: 400 })
+      return NextResponse.json({ error: "O limite máximo é de 500 linhas por importação" }, { status: 400 })
     }
 
     const headerMap = normalizeHeaders(headers)
     const validated = validateRows(rows, headerMap, headers)
 
-    // Só verificar emails reais (não vazios)
-    /*const validRows = validated.filter((r) => r.valid)
-    const emails = validRows
-      .filter((r) => r.valid)
-      .map((r) => r.data.email?.toLowerCase())
-      .filter((e): e is string => !!e); // This removes any undefined/null values and tells TS they are gone
-    //const emails = validRows
-    //.map((r) => r.data.email?.toLowerCase())
-    //.filter(Boolean) as string[]*/
-    const emails = validated
-      .filter((r) => r.valid && r.data.email) // Ensure it's valid AND email exists
-      .map((r) => r.data.email!.toLowerCase());
+    // --- CORREÇÃO DO TYPESCRIPT AQUI ---
+    // Filtramos apenas linhas válidas que POSSUEM email para verificar duplicatas
+    const emailsNoArquivo = validated
+      .filter((r) => r.valid && r.data.email)
+      .map((r) => r.data.email!.toLowerCase().trim())
 
-    const existing = await prisma.user.findMany({
-      where: { email: { in: emails } },
-      select: { email: true },
-    })
-    const existingSet = new Set(existing.map((u) => u.email.toLowerCase()))
+    // 4. Verificar duplicados DENTRO do próprio arquivo
+    const emailsDuplicadosNoArquivo = emailsNoArquivo.filter(
+      (email, index) => emailsNoArquivo.indexOf(email) !== index
+    )
 
-    // Get class map if student
-    let classMap: Record<string, string> = {}
-    if (userType === "student") {
-      const classes = await prisma.class.findMany({
-        where: { schoolId },
-        select: { id: true, name: true },
-      })
-      classMap = Object.fromEntries(classes.map((c) => [c.name, c.id]))
-    }
-
-    // Create import job
-    const job = await prisma.importJob.create({
-      data: {
-        filename: file.name,
-        userType: userType as Role,
-        status: "processando",
-        totalRows: rows.length,
-        importedById: userId,
-        schoolId,
+    // 5. Verificar duplicados contra o BANCO DE DADOS
+    const emailsNoBanco = await prisma.user.findMany({
+      where: { 
+        email: { in: emailsNoArquivo },
+        schoolId // Opcional: dependendo se o email é único global ou por escola
       },
+      select: { email: true }
     })
+    const setEmailsBanco = new Set(emailsNoBanco.map(u => u.email.toLowerCase()))
 
-    const successes: { email: string; password: string; name: string }[] = []
-    const failures: { rowNumber: number; email: string; errors: string[] }[] = []
-
+    // 6. Marcar erros nas linhas
     for (const row of validated) {
-      if (!row.valid) {
-        failures.push({ rowNumber: row.rowNumber, email: row.data.email || "", errors: row.errors })
-        continue
+      if (!row.data.email) continue
+
+      const emailLower = row.data.email.toLowerCase().trim()
+
+      // Erro: Duplicado no ficheiro
+      if (emailsDuplicadosNoArquivo.includes(emailLower)) {
+        row.valid = false
+        if (!row.errors.includes("E-mail duplicado no arquivo")) {
+          row.errors.push("E-mail duplicado no arquivo")
+        }
       }
 
-      // Gerar email placeholder se não tiver email
-      const emailFinal = row.data.email?.trim()
-        ? row.data.email.toLowerCase()
-        : `${row.data.nome.toLowerCase().replace(/\s+/g, ".")}.${Date.now()}@importado.local`
-
-      // Só verificar duplicado se for email real
-      if (row.data.email?.trim() && existingSet.has(emailFinal)) {
-        failures.push({ rowNumber: row.rowNumber, email: emailFinal, errors: ["E-mail já registado"] })
-        continue
-      }
-
-      try {
-        const tempPass = generateTempPassword()
-        const hashedPassword = await hash(tempPass, 10)
-
-        const user = await prisma.user.create({
-          data: {
-            name: row.data.nome,
-            email: emailFinal,
-            hashedPassword,
-            role: userType as Role,
-            isActive: true,
-            mustChangePassword: true,
-            profileComplete: true,
-            provider: "credentials",
-            schoolId,
-          },
-        })
-
-        if (userType === "student") {
-          await prisma.student.create({
-            data: {
-              name: row.data.nome,
-              email: emailFinal,
-              phone: row.data.telefone ?? "",
-              address: row.data.endereco ?? "",
-              gender: (row.data.genero as "masculino" | "feminino") ?? null,
-              dateOfBirth: row.data.dataNascimento ? new Date(row.data.dataNascimento) : null,
-              documentType: row.data.tipoDocumento ?? null,
-              documentNumber: row.data.numeroDocumento ?? null,
-              classId: row.data.turma ? classMap[row.data.turma] : null,
-              grade: row.data.classe ?? null,
-              userId: user.id,
-              schoolId,
-            },
-          })
-        } else if (userType === "teacher") {
-          await prisma.teacher.create({
-            data: {
-              name: row.data.nome,
-              email: emailFinal,
-              phone: row.data.telefone ?? "",
-              address: row.data.endereco ?? "",
-              userId: user.id,
-              schoolId,
-            },
-          })
-        } else if (userType === "parent") {
-          await prisma.parent.create({
-            data: {
-              name: row.data.nome,
-              email: emailFinal,
-              phone: row.data.telefone ?? "",
-              address: row.data.endereco ?? "",
-              userId: user.id,
-              schoolId,
-            },
-          })
-        }
-        // Só adicionar ao set se for email real
-        if (row.data.email?.trim()) {
-          existingSet.add(emailFinal)
-        }
-
-        successes.push({ email: emailFinal, password: tempPass, name: row.data.nome })
-      } catch (err) {
-        failures.push({
-          rowNumber: row.rowNumber,
-          email: emailFinal,
-          errors: [err instanceof Error ? err.message : "Erro ao criar utilizador"],
-        })
+      // Erro: Já existe no sistema
+      if (setEmailsBanco.has(emailLower)) {
+        row.valid = false
+        row.errors.push("Este e-mail já está registado no sistema")
       }
     }
 
-    await prisma.importJob.update({
-      where: { id: job.id },
-      data: {
-        status: failures.length === rows.length ? "falhada" : "concluida",
-        successCount: successes.length,
-        failedCount: failures.length,
-        errors: failures.length > 0 ? failures : undefined,
-        report: successes.length > 0 ? successes : undefined,
-      },
+    // 7. Resposta final para o Frontend
+    return NextResponse.json({
+      headers,
+      rows: validated,
+      stats: {
+        total: rows.length,
+        valid: validated.filter(r => r.valid).length,
+        invalid: validated.filter(r => !r.valid).length
+      }
     })
 
-    return NextResponse.json({
-      jobId: job.id,
-      totalRows: rows.length,
-      successCount: successes.length,
-      failedCount: failures.length,
-      successes,
-      failures,
-    })
-  } catch {
-    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
+  } catch (error) {
+    console.error("Erro na validação da importação:", error)
+    return NextResponse.json({ error: "Erro interno ao validar o arquivo" }, { status: 500 })
   }
 }
