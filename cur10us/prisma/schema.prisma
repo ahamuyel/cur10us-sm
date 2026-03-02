@@ -207,7 +207,7 @@ model Teacher {
   id        String   @id @default(cuid())
   name      String
   email     String   @unique
-  phone     String
+  phone     String?
   address   String
   foto      String?
   userId    String?  @unique
@@ -228,7 +228,7 @@ model Student {
   id             String    @id @default(cuid())
   name           String
   email          String    @unique
-  phone          String
+  phone          String?
   address        String
   foto           String?
   gender         Gender?
@@ -256,7 +256,7 @@ model Parent {
   id        String    @id @default(cuid())
   name      String
   email     String    @unique
-  phone     String
+  phone     String?
   address   String
   foto      String?
   userId    String?   @unique
