@@ -102,9 +102,17 @@ model School {
   address      String
   city         String
   provincia    String
-  logo         String?
-  primaryColor String?
-  features     Json?
+  logo            String?
+  primaryColor    String?
+  secondaryColor  String?
+  slogan          String?
+  contactEmail    String?
+  socialFacebook  String?
+  socialInstagram String?
+  socialWhatsapp  String?
+  loginMessage    String?
+  footerText      String?
+  features        Json?
   status       SchoolStatus @default(pendente)
   rejectReason String?
   createdAt    DateTime     @default(now())
