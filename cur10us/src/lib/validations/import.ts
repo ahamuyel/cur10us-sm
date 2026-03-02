@@ -3,13 +3,13 @@ import { z } from "zod"
 export const importRowSchema = z.object({
   nome: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
   email: z.string().email("E-mail inválido"),
-  telefone: z.string().min(9, "Telefone deve ter pelo menos 9 dígitos"),
-  endereco: z.string().min(3, "Endereço é obrigatório"),
-  genero: z.enum(["masculino", "feminino"]).optional(),
-  dataNascimento: z.string().optional(),
-  tipoDocumento: z.string().optional(),
-  numeroDocumento: z.string().optional(),
-  turma: z.string().optional(),
+  telefone: z.string().min(9, "Telefone deve ter pelo menos 9 dígitos").optional().or(z.literal("")),
+  endereco: z.string().min(3, "Endereço deve ter pelo menos 3 caracteres").optional().or(z.literal("")),
+  genero: z.enum(["masculino", "feminino"]).optional().or(z.literal("")),
+  dataNascimento: z.string().optional().or(z.literal("")),
+  tipoDocumento: z.string().optional().or(z.literal("")),
+  numeroDocumento: z.string().optional().or(z.literal("")),
+  turma: z.string().optional().or(z.literal("")),
 })
 
 export type ImportRow = z.infer<typeof importRowSchema>
