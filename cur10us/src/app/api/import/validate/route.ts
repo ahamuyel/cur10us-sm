@@ -13,89 +13,62 @@ export async function POST(req: Request) {
     const file = formData.get("file") as File
     const userType = formData.get("userType") as string
 
-    if (!file) {
-      return NextResponse.json({ error: "Ficheiro é obrigatório" }, { status: 400 })
-    }
-
-    if (!["student", "teacher", "parent"].includes(userType)) {
-      return NextResponse.json({ error: "Tipo de utilizador inválido" }, { status: 400 })
+    if (!file || !["student", "teacher", "parent"].includes(userType)) {
+      return NextResponse.json({ error: "Dados inválidos" }, { status: 400 })
     }
 
     const buffer = Buffer.from(await file.arrayBuffer())
     const { headers, rows } = parseFile(buffer, file.name)
 
-    if (rows.length === 0) {
-      return NextResponse.json({ error: "O ficheiro está vazio" }, { status: 400 })
-    }
-
     if (rows.length > 500) {
-      return NextResponse.json({ error: "Máximo de 500 linhas por ficheiro" }, { status: 400 })
+      return NextResponse.json({ error: "Máximo de 500 linhas por importação" }, { status: 400 })
     }
 
     const headerMap = normalizeHeaders(headers)
     const validated = validateRows(rows, headerMap, headers)
 
-    // Check for duplicate emails within the file
-    const emails = validated.filter((r) => r.valid).map((r) => r.data.email.toLowerCase())
-    const duplicateEmails = emails.filter((e, i) => emails.indexOf(e) !== i)
+    const emails = validated
+      .filter((r) => r.valid && r.data.email?.trim())
+      .map((r) => r.data.email!.toLowerCase().trim())
 
-    if (duplicateEmails.length > 0) {
-      validated.forEach((r) => {
-        if (r.valid && duplicateEmails.includes(r.data.email.toLowerCase())) {
-          r.valid = false
-          r.errors.push("E-mail duplicado no ficheiro")
-        }
-      })
-    }
+    const emailCount = emails.reduce<Record<string, number>>((acc, e) => {
+      acc[e] = (acc[e] || 0) + 1
+      return acc
+    }, {})
+    const duplicateEmails = new Set(Object.keys(emailCount).filter((e) => emailCount[e] > 1))
 
-    // Check for existing emails in DB
-    const validEmails = validated.filter((r) => r.valid).map((r) => r.data.email.toLowerCase())
-    if (validEmails.length > 0) {
-      const existingUsers = await prisma.user.findMany({
-        where: { email: { in: validEmails } },
-        select: { email: true },
-      })
-      const existingSet = new Set(existingUsers.map((u) => u.email.toLowerCase()))
+    const existing = await prisma.user.findMany({
+      where: { email: { in: emails } },
+      select: { email: true },
+    })
+    const existingSet = new Set(existing.map((u) => u.email.toLowerCase()))
 
-      validated.forEach((r) => {
-        if (r.valid && existingSet.has(r.data.email.toLowerCase())) {
-          r.valid = false
-          r.errors.push("E-mail já registado no sistema")
-        }
-      })
-    }
+    for (const row of validated) {
+      if (!row.data.email?.trim()) continue
 
-    // If userType is student, validate class names
-    if (userType === "student") {
-      const classNames = [...new Set(validated.filter((r) => r.valid && r.data.turma).map((r) => r.data.turma!))]
-      if (classNames.length > 0) {
-        const existingClasses = await prisma.class.findMany({
-          where: { schoolId, name: { in: classNames } },
-          select: { name: true },
-        })
-        const classSet = new Set(existingClasses.map((c) => c.name))
+      const emailLower = row.data.email.toLowerCase().trim()
 
-        validated.forEach((r) => {
-          if (r.valid && r.data.turma && !classSet.has(r.data.turma)) {
-            r.valid = false
-            r.errors.push(`Turma "${r.data.turma}" não encontrada`)
-          }
-        })
+      if (duplicateEmails.has(emailLower)) {
+        row.valid = false
+        row.errors.push("E-mail duplicado no ficheiro")
+      }
+
+      if (existingSet.has(emailLower)) {
+        row.valid = false
+        row.errors.push("E-mail já registado no sistema")
       }
     }
 
-    const validCount = validated.filter((r) => r.valid).length
-    const invalidCount = validated.filter((r) => !r.valid).length
-
     return NextResponse.json({
-      filename: file.name,
-      totalRows: rows.length,
-      validCount,
-      invalidCount,
+      headers,
       rows: validated,
-      headerMap,
+      totalRows: rows.length,
+      validRows: validated.filter((r) => r.valid).length,
+      invalidRows: validated.filter((r) => !r.valid).length,
+      hasErrors: validated.some((r) => !r.valid),
     })
-  } catch {
+  } catch (error) {
+    console.error("Erro na validação:", error)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
