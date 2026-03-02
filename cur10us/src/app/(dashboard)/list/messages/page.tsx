@@ -52,7 +52,7 @@ const MessageListPage = () => {
       <td className="hidden md:table-cell py-2.5 sm:py-3 px-1.5 sm:px-2 text-zinc-600 dark:text-zinc-400 text-xs sm:text-sm">
         {item.toAll ? "Todos" : item.to?.name || "\u2014"}
       </td>
-      <td className="py-2.5 sm:py-3 px-1.5 sm:px-2 max-w-[200px]">
+      <td className="py-2.5 sm:py-3 px-1.5 sm:px-2 max-w-[120px] sm:max-w-[200px]">
         <span className={`text-xs sm:text-sm truncate block ${!item.read ? "font-medium text-zinc-900 dark:text-zinc-100" : "text-zinc-600 dark:text-zinc-400"}`}>
           {item.subject}
         </span>

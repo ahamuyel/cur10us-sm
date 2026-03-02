@@ -111,7 +111,7 @@ export default function AdminDashboard() {
         {/* Line Chart - Schools Growth */}
         <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-4 sm:p-6 shadow-sm">
           <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-4">Crescimento de Escolas</h2>
-          <div className="h-[220px]">
+          <div className="h-[180px] sm:h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={data.schoolsGrowth}>
                 <XAxis
@@ -150,7 +150,7 @@ export default function AdminDashboard() {
         {/* Pie Chart - Status Distribution */}
         <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-4 sm:p-6 shadow-sm">
           <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-4">Distribuição por Status</h2>
-          <div className="h-[220px]">
+          <div className="h-[180px] sm:h-[220px]">
             {pieData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -160,10 +160,10 @@ export default function AdminDashboard() {
                     nameKey="status"
                     cx="50%"
                     cy="50%"
-                    outerRadius={70}
-                    innerRadius={40}
+                    outerRadius={60}
+                    innerRadius={35}
                     paddingAngle={2}
-                    label={({ name, value }) => `${name}: ${value}`}
+                    label={false}
                   >
                     {pieData.map((entry) => (
                       <Cell key={entry.status} fill={STATUS_COLORS[entry.status] || "#a1a1aa"} />

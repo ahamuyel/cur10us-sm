@@ -86,7 +86,7 @@ const NotificationDropdown = () => {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl z-50 overflow-hidden">
+        <div className="absolute right-0 top-full mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-80 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl z-50 overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
             <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Notificações</span>
             {unreadCount > 0 && (

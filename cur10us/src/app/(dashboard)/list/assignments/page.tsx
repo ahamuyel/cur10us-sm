@@ -144,7 +144,7 @@ const AssignmentListPage = () => {
             {isStudent && !mySub && (
               <button
                 onClick={() => setSubmitItem(item)}
-                className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-all active:scale-90"
+                className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-all active:scale-90"
                 title="Submeter"
               >
                 <Send size={13} />
@@ -154,20 +154,20 @@ const AssignmentListPage = () => {
               <>
                 <button
                   onClick={() => openDetail(item)}
-                  className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-cyan-600 hover:text-white transition-all active:scale-90"
+                  className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-cyan-600 hover:text-white transition-all active:scale-90"
                   title="Ver submissões"
                 >
                   <Eye size={13} />
                 </button>
                 <button
                   onClick={() => setEditItem(item)}
-                  className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-indigo-600 hover:text-white transition-all active:scale-90"
+                  className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-indigo-600 hover:text-white transition-all active:scale-90"
                 >
                   <Pencil size={13} />
                 </button>
                 <button
                   onClick={() => setDeleteItem(item)}
-                  className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-rose-600 hover:text-white transition-all active:scale-90"
+                  className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-rose-600 hover:text-white transition-all active:scale-90"
                 >
                   <Trash2 size={13} />
                 </button>
