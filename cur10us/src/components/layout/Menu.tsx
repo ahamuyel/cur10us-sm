@@ -55,7 +55,7 @@ const menuItems: { title: string; items: MenuItem[] }[] = [
       { icon: Presentation, label: "Turmas", href: "/list/classes", visible: ["school_admin", "teacher"], permission: "canManageClasses" },
       { icon: Calendar, label: "Aulas", href: "/list/lessons", visible: ["school_admin", "teacher"], permission: "canManageLessons" },
       { icon: FileText, label: "Provas", href: "/list/exams", visible: ["school_admin", "teacher", "student", "parent"], permission: "canManageExams" },
-      { icon: ClipboardList, label: "Tarefas", href: "/list/assignments", visible: ["school_admin", "teacher", "student", "parent"], permission: "canManageExams" },
+      { icon: ClipboardList, label: "Tarefas", href: "/list/assignments", visible: ["school_admin", "teacher", "student", "parent"], permission: "canManageAssignments" },
       { icon: GraduationCap, label: "Resultados", href: "/list/results", visible: ["school_admin", "teacher", "student", "parent"], permission: "canManageResults" },
       { icon: CalendarCheck, label: "Assiduidade", href: "/list/attendance", visible: ["school_admin", "teacher", "student", "parent"], permission: "canManageAttendance" },
       { icon: MessageSquare, label: "Mensagens", href: "/list/messages", visible: ["school_admin", "teacher", "student", "parent"], permission: "canManageMessages" },

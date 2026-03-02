@@ -4,7 +4,7 @@ import { requireRole } from "@/lib/api-auth"
 
 export async function GET(req: Request) {
   try {
-    const { error: authError, session } = await requireRole(["school_admin", "teacher", "student", "parent"])
+    const { error: authError, session } = await requireRole(["school_admin", "teacher", "student", "parent"], { requireSchool: true })
     if (authError) return authError
 
     const userId = session!.user.id

@@ -114,6 +114,7 @@ export async function PUT(
                   canManageSubjects: permissions.canManageSubjects,
                   canManageLessons: permissions.canManageLessons,
                   canManageExams: permissions.canManageExams,
+                  canManageAssignments: permissions.canManageAssignments,
                   canManageResults: permissions.canManageResults,
                   canManageAttendance: permissions.canManageAttendance,
                   canManageMessages: permissions.canManageMessages,

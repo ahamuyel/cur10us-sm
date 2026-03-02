@@ -75,6 +75,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
         canManageSubjects: true,
         canManageLessons: true,
         canManageExams: true,
+        canManageAssignments: true,
         canManageResults: true,
         canManageAttendance: true,
         canManageMessages: true,

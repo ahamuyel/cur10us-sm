@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma"
 const PERMISSION_KEYS = [
   "canManageApplications", "canManageTeachers", "canManageStudents", "canManageParents",
   "canManageClasses", "canManageCourses", "canManageSubjects", "canManageLessons",
-  "canManageExams", "canManageResults", "canManageAttendance", "canManageMessages",
+  "canManageExams", "canManageAssignments", "canManageResults", "canManageAttendance", "canManageMessages",
   "canManageAnnouncements", "canManageAdmins",
 ] as const
 

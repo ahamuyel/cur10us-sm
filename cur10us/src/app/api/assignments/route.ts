@@ -86,7 +86,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const { error: authError, session } = await requirePermission(["school_admin", "teacher"], "canManageExams", { requireSchool: true })
+    const { error: authError, session } = await requirePermission(["school_admin", "teacher"], "canManageAssignments", { requireSchool: true })
     if (authError) return authError
 
     const schoolId = getSchoolId(session!)

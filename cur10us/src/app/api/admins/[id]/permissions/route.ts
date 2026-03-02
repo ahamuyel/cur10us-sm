@@ -58,6 +58,7 @@ export async function PUT(
       "canManageSubjects",
       "canManageLessons",
       "canManageExams",
+      "canManageAssignments",
       "canManageResults",
       "canManageAttendance",
       "canManageMessages",
