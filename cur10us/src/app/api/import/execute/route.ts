@@ -107,8 +107,6 @@ export async function POST(req: Request) {
               documentType: row.data.tipoDocumento || undefined,
               documentNumber: row.data.numeroDocumento || undefined,
               classId: row.data.turma ? classMap[row.data.turma] : undefined,
-              course: row.data.curso || undefined,   // ← novo
-              grade: row.data.classe || undefined,   // ← novo
               userId: user.id,
               schoolId,
             },
