@@ -90,7 +90,7 @@ export default function ApplicationsPage() {
               onClick={() => { setStatusFilter(f.value); setPage(1) }}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
                 statusFilter === f.value
-                  ? "bg-primary-600 text-white"
+                  ? "bg-indigo-600 text-white"
                   : "bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800"
               }`}
             >
@@ -112,7 +112,7 @@ export default function ApplicationsPage() {
       {/* Table */}
       {loading ? (
         <div className="flex justify-center py-12">
-          <Loader2 className="w-6 h-6 animate-spin text-primary-500" />
+          <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
         </div>
       ) : (
         <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">

@@ -4,7 +4,6 @@ import MobileNav from "@/components/layout/MobileNav"
 import PendingAccountGate from "@/components/layout/PendingAccountGate"
 import MustChangePasswordGate from "@/components/layout/MustChangePasswordGate"
 import SidebarBrand from "@/components/layout/SidebarBrand"
-import SidebarFooter from "@/components/layout/SidebarFooter"
 import FloatingHelpButton from "@/components/ui/FloatingHelpButton"
 
 export default function DashboardLayout({
@@ -22,7 +21,6 @@ export default function DashboardLayout({
           <div className="flex-1 overflow-y-auto styled-scroll px-2 pb-4">
             <Menu />
           </div>
-          <SidebarFooter />
         </aside>
 
         {/* MAIN CONTENT */}

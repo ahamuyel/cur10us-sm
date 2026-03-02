@@ -45,7 +45,7 @@ export default function ImportHistoryPage() {
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 size={24} className="animate-spin text-primary-500" />
+          <Loader2 size={24} className="animate-spin text-indigo-500" />
         </div>
       ) : data.length === 0 ? (
         <div className="text-center py-12">
@@ -74,7 +74,7 @@ export default function ImportHistoryPage() {
               </div>
               <a
                 href={`/api/import/${job.id}/export`}
-                className="shrink-0 ml-2 p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-primary-600 hover:text-white transition"
+                className="shrink-0 ml-2 p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-indigo-600 hover:text-white transition"
                 title="Descarregar relatório"
               >
                 <Download size={14} />
