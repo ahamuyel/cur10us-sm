@@ -34,6 +34,7 @@ import {
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { useState, useEffect } from "react"
+import { isFeatureEnabled, menuFeatureMap } from "@/lib/features"
 
 interface NavItem {
   icon: LucideIcon
@@ -92,11 +93,17 @@ const MobileNav = () => {
   const role = session?.user?.role || "student"
   const adminLevel = session?.user?.adminLevel
   const permissions = (session?.user?.permissions || []) as string[]
+  const schoolFeatures = (session?.user as { schoolFeatures?: Record<string, boolean> | null })?.schoolFeatures
 
   function isVisible(item: NavItem): boolean {
     if (!item.visible.includes(role)) return false
     if (role === "school_admin" && item.permission && adminLevel === "secondary") {
       return permissions.includes(item.permission)
+    }
+    // Feature flag check
+    const feature = menuFeatureMap[item.href]
+    if (feature && !isFeatureEnabled(schoolFeatures, feature)) {
+      return false
     }
     return true
   }
