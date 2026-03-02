@@ -20,37 +20,46 @@ export async function POST(req: Request) {
     const buffer = Buffer.from(await file.arrayBuffer())
     const { headers, rows } = parseFile(buffer, file.name)
 
+    if (rows.length > 500) {
+      return NextResponse.json({ error: "Máximo de 500 linhas por importação" }, { status: 400 })
+    }
+
     const headerMap = normalizeHeaders(headers)
     const validated = validateRows(rows, headerMap, headers)
 
-    // CORREÇÃO DO ERRO 'possibly undefined'
+    // Só verificar emails reais (não vazios)
     const emails = validated
-      .filter((r) => r.valid && r.data.email) 
+      .filter((r) => r.valid && r.data.email?.trim())
       .map((r) => r.data.email!.toLowerCase().trim())
 
-    const duplicateEmails = emails.filter((e, i) => emails.indexOf(e) !== i)
+    // Detectar duplicados dentro do próprio ficheiro
+    const emailCount = emails.reduce<Record<string, number>>((acc, e) => {
+      acc[e] = (acc[e] || 0) + 1
+      return acc
+    }, {})
+    const duplicateEmails = new Set(Object.keys(emailCount).filter((e) => emailCount[e] > 1))
 
-    // Verificar duplicados no banco de dados
+    // Verificar emails já existentes na base de dados
     const existing = await prisma.user.findMany({
       where: { email: { in: emails } },
       select: { email: true },
     })
     const existingSet = new Set(existing.map((u) => u.email.toLowerCase()))
 
-    // Marcar erros de duplicidade
+    // Marcar linhas com erros de duplicidade
     for (const row of validated) {
-      if (!row.data.email) continue
-      
+      if (!row.data.email?.trim()) continue
+
       const emailLower = row.data.email.toLowerCase().trim()
-      
-      if (duplicateEmails.includes(emailLower)) {
+
+      if (duplicateEmails.has(emailLower)) {
         row.valid = false
-        row.errors.push("E-mail duplicado no arquivo")
+        row.errors.push("E-mail duplicado no ficheiro")
       }
-      
+
       if (existingSet.has(emailLower)) {
         row.valid = false
-        row.errors.push("E-mail já registrado no sistema")
+        row.errors.push("E-mail já registado no sistema")
       }
     }
 
@@ -66,4 +75,4 @@ export async function POST(req: Request) {
     console.error("Erro na validação:", error)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
-} 
+}
