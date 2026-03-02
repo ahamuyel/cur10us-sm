@@ -34,11 +34,24 @@ const HEADER_MAP: Record<string, string> = {
   "número de documento": "numeroDocumento",
   "bilhete": "numeroDocumento",
   "bi": "numeroDocumento",
-  "turma": "turma",
-  "classe": "turma",
+  "turma": "turma",              // "10ª A"
   "class": "turma",
+  "curso": "curso",              // ← novo  "Ciências e Tecnologia"
+  "course": "curso",             // ← novo
+  "classe": "classe",            // ← novo  "10ª"
+  "grade": "classe",             // ← novo
+  "ano": "classe",               // ← novo
 }
 
+// Na função generateTemplate, actualizar os headers:
+export function generateTemplate(userType: string): Buffer {
+  const headers: Record<string, string[]> = {
+    student: ["Nome", "Email", "Telefone", "Endereço", "Género", "Data de Nascimento", "Tipo Documento", "Número Documento", "Turma", "Curso", "Classe"],
+    teacher: ["Nome", "Email", "Telefone", "Endereço"],
+    parent:  ["Nome", "Email", "Telefone", "Endereço"],
+  }
+  // ... resto da função igual
+}
 export function normalizeHeaders(headers: string[]): Record<number, string> {
   const map: Record<number, string> = {}
   headers.forEach((h, i) => {
