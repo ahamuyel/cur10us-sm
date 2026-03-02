@@ -31,14 +31,17 @@ export async function POST(req: Request) {
     const validated = validateRows(rows, headerMap, headers)
 
     // Só verificar emails reais (não vazios)
-    const validRows = validated.filter((r) => r.valid)
+    /*const validRows = validated.filter((r) => r.valid)
     const emails = validRows
       .filter((r) => r.valid)
       .map((r) => r.data.email?.toLowerCase())
       .filter((e): e is string => !!e); // This removes any undefined/null values and tells TS they are gone
     //const emails = validRows
     //.map((r) => r.data.email?.toLowerCase())
-    //.filter(Boolean) as string[]
+    //.filter(Boolean) as string[]*/
+    const emails = validated
+      .filter((r) => r.valid && r.data.email) // Ensure it's valid AND email exists
+      .map((r) => r.data.email!.toLowerCase());
 
     const existing = await prisma.user.findMany({
       where: { email: { in: emails } },
