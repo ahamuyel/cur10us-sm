@@ -118,7 +118,7 @@ export default function DashboardPage() {
   if (status === "loading") {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
+        <Loader2 className="w-6 h-6 animate-spin text-primary-500" />
       </div>
     )
   }
@@ -166,7 +166,7 @@ export default function DashboardPage() {
                         nl[i] = { ...nl[i], visible: !nl[i].visible }
                         saveLayout(nl)
                       }}
-                      className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500"
+                      className="rounded border-zinc-300 text-primary-600 focus:ring-primary-500"
                     />
                     {cardLabels[card.key] || card.key}
                   </label>
@@ -188,7 +188,7 @@ export default function DashboardPage() {
             </div>
             <button
               onClick={() => setCustomizeOpen(false)}
-              className="mt-3 px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 transition"
+              className="mt-3 px-4 py-2 rounded-xl bg-primary-600 text-white text-xs font-semibold hover:bg-primary-700 transition"
             >
               Fechar
             </button>
@@ -210,6 +210,7 @@ export default function DashboardPage() {
                     icon={comp.icon}
                     color={comp.color}
                     href={comp.href}
+                    size={c.size}
                   />
                 )
               })

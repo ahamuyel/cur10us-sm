@@ -103,8 +103,11 @@ model School {
   city         String
   provincia    String
   logo         String?
-  primaryColor String?
-  features     Json?
+  primaryColor   String?
+  secondaryColor String?
+  sidebarColor   String?
+  abbreviation   String?
+  features       Json?
   status       SchoolStatus @default(pendente)
   rejectReason String?
   createdAt    DateTime     @default(now())

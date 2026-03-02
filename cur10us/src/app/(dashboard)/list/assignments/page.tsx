@@ -108,7 +108,7 @@ const AssignmentListPage = () => {
       <tr key={item.id} className="border-b border-zinc-100 dark:border-zinc-800/50 text-sm hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors">
         <td className="py-2.5 sm:py-3 px-1.5 sm:px-2">
           <button onClick={() => openDetail(item)} className="text-left">
-            <span className="font-bold text-zinc-900 dark:text-zinc-100 text-xs sm:text-sm hover:text-indigo-600 transition">{item.title || "—"}</span>
+            <span className="font-bold text-zinc-900 dark:text-zinc-100 text-xs sm:text-sm hover:text-primary-600 transition">{item.title || "—"}</span>
             {item.description && <p className="text-[11px] text-zinc-400 truncate max-w-xs">{item.description.slice(0, 50)}</p>}
           </button>
         </td>
@@ -144,7 +144,7 @@ const AssignmentListPage = () => {
             {isStudent && !mySub && (
               <button
                 onClick={() => setSubmitItem(item)}
-                className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-all active:scale-90"
+                className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-primary-50 dark:bg-primary-950/30 text-primary-600 hover:bg-primary-100 dark:hover:bg-primary-900/50 transition-all active:scale-90"
                 title="Submeter"
               >
                 <Send size={13} />
@@ -161,7 +161,7 @@ const AssignmentListPage = () => {
                 </button>
                 <button
                   onClick={() => setEditItem(item)}
-                  className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-indigo-600 hover:text-white transition-all active:scale-90"
+                  className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-primary-600 hover:text-white transition-all active:scale-90"
                 >
                   <Pencil size={13} />
                 </button>
@@ -198,7 +198,7 @@ const AssignmentListPage = () => {
             {canManage && (
               <button
                 onClick={() => setCreateOpen(true)}
-                className="flex items-center justify-center gap-1.5 px-2.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-indigo-600 text-white font-semibold text-xs sm:text-sm active:scale-95 shadow-lg shadow-indigo-600/20 transition"
+                className="flex items-center justify-center gap-1.5 px-2.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-primary-600 text-white font-semibold text-xs sm:text-sm active:scale-95 shadow-lg shadow-primary-600/20 transition"
               >
                 <Plus size={16} />
                 <span className="hidden sm:inline">Adicionar</span>
@@ -210,7 +210,7 @@ const AssignmentListPage = () => {
 
       <div className="overflow-x-auto -mx-2.5 px-2.5 sm:-mx-4 sm:px-4 md:mx-0 md:px-0">
         {loading ? (
-          <div className="flex items-center justify-center py-12"><Loader2 size={24} className="animate-spin text-indigo-500" /></div>
+          <div className="flex items-center justify-center py-12"><Loader2 size={24} className="animate-spin text-primary-500" /></div>
         ) : data.length === 0 ? (
           <div className="text-center py-12 text-zinc-400 text-sm">Nenhuma tarefa encontrada</div>
         ) : (
@@ -261,7 +261,7 @@ const AssignmentListPage = () => {
                     {sub.status !== "avaliada" && canManage && (
                       <button
                         onClick={() => setEvalSub({ sub: { ...sub, assignmentId: detailItem.id }, maxScore: detailItem.maxScore })}
-                        className="px-3 py-1.5 rounded-lg text-xs font-semibold text-indigo-600 bg-indigo-50 dark:bg-indigo-950/30 hover:bg-indigo-100 transition"
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold text-primary-600 bg-primary-50 dark:bg-primary-950/30 hover:bg-primary-100 transition"
                       >
                         Avaliar
                       </button>

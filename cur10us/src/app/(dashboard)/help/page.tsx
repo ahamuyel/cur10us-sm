@@ -50,8 +50,8 @@ export default function HelpPage() {
       {/* Header */}
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm">
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
-            <HelpCircle size={20} className="text-indigo-600 dark:text-indigo-400" />
+          <div className="w-10 h-10 rounded-xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
+            <HelpCircle size={20} className="text-primary-600 dark:text-primary-400" />
           </div>
           <div>
             <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-zinc-900 dark:text-zinc-100">Centro de Ajuda</h1>
@@ -63,7 +63,7 @@ export default function HelpPage() {
       {/* Guides */}
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
         <div className="flex items-center gap-2 mb-4">
-          <BookOpen size={16} className="text-indigo-600 dark:text-indigo-400" />
+          <BookOpen size={16} className="text-primary-600 dark:text-primary-400" />
           <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">Guias Passo a Passo</h2>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -73,7 +73,7 @@ export default function HelpPage() {
               <ol className="space-y-2">
                 {guide.steps.map((step, j) => (
                   <li key={j} className="flex gap-2 text-sm text-zinc-600 dark:text-zinc-400">
-                    <span className="shrink-0 w-5 h-5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-bold flex items-center justify-center">
+                    <span className="shrink-0 w-5 h-5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 text-xs font-bold flex items-center justify-center">
                       {j + 1}
                     </span>
                     <span className="leading-relaxed">{step}</span>
@@ -88,7 +88,7 @@ export default function HelpPage() {
       {/* FAQ */}
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
         <div className="flex items-center gap-2 mb-4">
-          <HelpCircle size={16} className="text-indigo-600 dark:text-indigo-400" />
+          <HelpCircle size={16} className="text-primary-600 dark:text-primary-400" />
           <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">Perguntas Frequentes</h2>
         </div>
         <div className="flex flex-col gap-6">
@@ -101,7 +101,7 @@ export default function HelpPage() {
       {/* Support link */}
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
         <div className="flex items-center gap-2 mb-3">
-          <LifeBuoy size={16} className="text-indigo-600 dark:text-indigo-400" />
+          <LifeBuoy size={16} className="text-primary-600 dark:text-primary-400" />
           <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">Precisa de mais ajuda?</h2>
         </div>
         <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-3">
@@ -109,7 +109,7 @@ export default function HelpPage() {
         </p>
         <Link
           href="/support"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 transition"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 text-white text-xs font-semibold hover:bg-primary-700 transition"
         >
           <LifeBuoy size={14} />
           Ir para o Suporte
@@ -119,13 +119,13 @@ export default function HelpPage() {
       {/* Contact */}
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
         <div className="flex items-center gap-2 mb-3">
-          <Mail size={16} className="text-indigo-600 dark:text-indigo-400" />
+          <Mail size={16} className="text-primary-600 dark:text-primary-400" />
           <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">Contacto</h2>
         </div>
         <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-2">{contactInfo.message}</p>
         <a
           href={`mailto:${contactInfo.email}`}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 transition"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 text-white text-xs font-semibold hover:bg-primary-700 transition"
         >
           <Mail size={14} />
           {contactInfo.email}
