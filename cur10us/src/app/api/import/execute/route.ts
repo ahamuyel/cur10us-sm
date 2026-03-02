@@ -124,8 +124,8 @@ export async function POST(req: Request) {
             data: {
               name: row.data.nome,
               email: emailFinal,
-              phone: row.data.telefone ?? null,
-              address: row.data.endereco ?? null,
+              phone: row.data.telefone ?? "",
+              address: row.data.endereco ?? "",
               userId: user.id,
               schoolId,
             },
@@ -135,8 +135,8 @@ export async function POST(req: Request) {
             data: {
               name: row.data.nome,
               email: emailFinal,
-              phone: row.data.telefone ?? null,
-              address: row.data.endereco ?? null,
+              phone: row.data.telefone ?? "",
+              address: row.data.endereco ?? "",
               userId: user.id,
               schoolId,
             },
