@@ -99,14 +99,17 @@ export async function POST(req: Request) {
         })
 
         // Create role-specific record
+        const phone = row.data.telefone || undefined
+        const address = row.data.endereco || undefined
+
         if (userType === "student") {
           await prisma.student.create({
             data: {
               name: row.data.nome,
               email: row.data.email.toLowerCase(),
-              phone: row.data.telefone,
-              address: row.data.endereco,
-              gender: row.data.genero as "masculino" | "feminino" | undefined,
+              phone,
+              address,
+              gender: (row.data.genero as "masculino" | "feminino") || undefined,
               dateOfBirth: row.data.dataNascimento ? new Date(row.data.dataNascimento) : undefined,
               documentType: row.data.tipoDocumento || undefined,
               documentNumber: row.data.numeroDocumento || undefined,
@@ -120,8 +123,8 @@ export async function POST(req: Request) {
             data: {
               name: row.data.nome,
               email: row.data.email.toLowerCase(),
-              phone: row.data.telefone,
-              address: row.data.endereco,
+              phone,
+              address,
               userId: user.id,
               schoolId,
             },
@@ -131,8 +134,8 @@ export async function POST(req: Request) {
             data: {
               name: row.data.nome,
               email: row.data.email.toLowerCase(),
-              phone: row.data.telefone,
-              address: row.data.endereco,
+              phone,
+              address,
               userId: user.id,
               schoolId,
             },
@@ -170,7 +173,9 @@ export async function POST(req: Request) {
       successes,
       failures,
     })
-  } catch {
-    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
+  } catch (error) {
+    console.error("Erro na importação:", error)
+    const message = error instanceof Error ? error.message : "Erro interno do servidor"
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
