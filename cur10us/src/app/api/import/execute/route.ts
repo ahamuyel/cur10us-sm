@@ -30,9 +30,12 @@ export async function POST(req: Request) {
     const headerMap = normalizeHeaders(headers)
     const validated = validateRows(rows, headerMap, headers)
 
-    // Check existing emails
+    // Só verificar emails reais (não vazios)
     const validRows = validated.filter((r) => r.valid)
-    const emails = validRows.map((r) => r.data.email.toLowerCase())
+    const emails = validRows
+      .map((r) => r.data.email?.toLowerCase())
+      .filter(Boolean) as string[]
+
     const existing = await prisma.user.findMany({
       where: { email: { in: emails } },
       select: { email: true },
@@ -70,20 +73,25 @@ export async function POST(req: Request) {
         continue
       }
 
-      if (existingSet.has(row.data.email.toLowerCase())) {
-        failures.push({ rowNumber: row.rowNumber, email: row.data.email, errors: ["E-mail já registado"] })
+      // Gerar email placeholder se não tiver email
+      const emailFinal = row.data.email?.trim()
+        ? row.data.email.toLowerCase()
+        : `${row.data.nome.toLowerCase().replace(/\s+/g, ".")}.${Date.now()}@importado.local`
+
+      // Só verificar duplicado se for email real
+      if (row.data.email?.trim() && existingSet.has(emailFinal)) {
+        failures.push({ rowNumber: row.rowNumber, email: emailFinal, errors: ["E-mail já registado"] })
         continue
       }
 
       try {
         const tempPass = generateTempPassword()
-        const hashedPassword = await hash(tempPass, 10) // cost 10 for bulk
+        const hashedPassword = await hash(tempPass, 10)
 
-        // Create user
         const user = await prisma.user.create({
           data: {
             name: row.data.nome,
-            email: row.data.email.toLowerCase(),
+            email: emailFinal,
             hashedPassword,
             role: userType as Role,
             isActive: true,
@@ -94,21 +102,19 @@ export async function POST(req: Request) {
           },
         })
 
-        // Create role-specific record
         if (userType === "student") {
           await prisma.student.create({
             data: {
               name: row.data.nome,
-              email: row.data.email.toLowerCase(),
-              phone: row.data.telefone,
-              address: row.data.endereco,
+              email: emailFinal,
+              phone: row.data.telefone || undefined,
+              address: row.data.endereco || undefined,
               gender: row.data.genero as "masculino" | "feminino" | undefined,
               dateOfBirth: row.data.dataNascimento ? new Date(row.data.dataNascimento) : undefined,
               documentType: row.data.tipoDocumento || undefined,
               documentNumber: row.data.numeroDocumento || undefined,
               classId: row.data.turma ? classMap[row.data.turma] : undefined,
-              course: row.data.curso || undefined,   // ← novo
-              grade: row.data.classe || undefined,   // ← novo
+              grade: row.data.classe || undefined,
               userId: user.id,
               schoolId,
             },
@@ -117,9 +123,9 @@ export async function POST(req: Request) {
           await prisma.teacher.create({
             data: {
               name: row.data.nome,
-              email: row.data.email.toLowerCase(),
-              phone: row.data.telefone,
-              address: row.data.endereco,
+              email: emailFinal,
+              phone: row.data.telefone || undefined,
+              address: row.data.endereco || undefined,
               userId: user.id,
               schoolId,
             },
@@ -128,27 +134,30 @@ export async function POST(req: Request) {
           await prisma.parent.create({
             data: {
               name: row.data.nome,
-              email: row.data.email.toLowerCase(),
-              phone: row.data.telefone,
-              address: row.data.endereco,
+              email: emailFinal,
+              phone: row.data.telefone || undefined,
+              address: row.data.endereco || undefined,
               userId: user.id,
               schoolId,
             },
           })
         }
 
-        existingSet.add(row.data.email.toLowerCase())
-        successes.push({ email: row.data.email, password: tempPass, name: row.data.nome })
+        // Só adicionar ao set se for email real
+        if (row.data.email?.trim()) {
+          existingSet.add(emailFinal)
+        }
+
+        successes.push({ email: emailFinal, password: tempPass, name: row.data.nome })
       } catch (err) {
         failures.push({
           rowNumber: row.rowNumber,
-          email: row.data.email,
+          email: emailFinal,
           errors: [err instanceof Error ? err.message : "Erro ao criar utilizador"],
         })
       }
     }
 
-    // Update job with results
     await prisma.importJob.update({
       where: { id: job.id },
       data: {
