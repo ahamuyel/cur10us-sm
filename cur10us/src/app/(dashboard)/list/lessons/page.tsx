@@ -79,7 +79,7 @@ const LessonListPage = () => {
         {item.startTime} - {item.endTime}
       </td>
       <td className="py-2.5 sm:py-3 px-1.5 sm:px-2">
-        <span className="px-1.5 sm:px-2 py-0.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded text-[9px] sm:text-[10px] font-bold">
+        <span className="px-1.5 sm:px-2 py-0.5 bg-primary-50 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400 rounded text-[9px] sm:text-[10px] font-bold">
           {item.subject?.name}
         </span>
       </td>
@@ -111,7 +111,7 @@ const LessonListPage = () => {
               </button>
               <button
                 onClick={() => setEditItem(item)}
-                className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-indigo-600 hover:text-white transition-all active:scale-90"
+                className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-primary-600 hover:text-white transition-all active:scale-90"
               >
                 <Pencil size={13} />
               </button>
@@ -145,7 +145,7 @@ const LessonListPage = () => {
             {canManage && (
               <button
                 onClick={() => setCreateOpen(true)}
-                className="flex items-center justify-center gap-1.5 px-2.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-indigo-600 text-white font-semibold text-xs sm:text-sm active:scale-95 shadow-lg shadow-indigo-600/20 transition"
+                className="flex items-center justify-center gap-1.5 px-2.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-primary-600 text-white font-semibold text-xs sm:text-sm active:scale-95 shadow-lg shadow-primary-600/20 transition"
               >
                 <Plus size={16} />
                 <span className="hidden sm:inline">Adicionar</span>
@@ -158,7 +158,7 @@ const LessonListPage = () => {
       <div className="overflow-x-auto -mx-2.5 px-2.5 sm:-mx-4 sm:px-4 md:mx-0 md:px-0">
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 size={24} className="animate-spin text-indigo-500" />
+            <Loader2 size={24} className="animate-spin text-primary-500" />
           </div>
         ) : data.length === 0 ? (
           <div className="text-center py-12 text-zinc-400 text-sm">Nenhuma aula encontrada</div>
@@ -205,9 +205,9 @@ const LessonListPage = () => {
                 href={m.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-indigo-300 dark:hover:border-indigo-700 transition"
+                className="flex items-center gap-3 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-primary-300 dark:hover:border-primary-700 transition"
               >
-                <Paperclip size={16} className="text-indigo-500 shrink-0" />
+                <Paperclip size={16} className="text-primary-500 shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">{m.title}</p>
                   {m.type && <span className="text-[10px] text-zinc-400 uppercase">{m.type}</span>}

@@ -96,7 +96,7 @@ export default function ImportPage() {
     }
   }
 
-  const inputClass = "w-full px-3 py-2 rounded-xl text-sm bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-indigo-500 transition"
+  const inputClass = "w-full px-3 py-2 rounded-xl text-sm bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-primary-500 transition"
 
   return (
     <div className="m-2 sm:m-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm max-w-3xl">
@@ -107,7 +107,7 @@ export default function ImportPage() {
         </div>
         <button
           onClick={() => router.push("/import/history")}
-          className="text-xs text-indigo-600 dark:text-indigo-400 font-medium hover:underline"
+          className="text-xs text-primary-600 dark:text-primary-400 font-medium hover:underline"
         >
           Ver histórico
         </button>
@@ -118,11 +118,11 @@ export default function ImportPage() {
         {[1, 2, 3, 4].map((s) => (
           <div key={s} className="flex items-center gap-2">
             <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-              step >= s ? "bg-indigo-600 text-white" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400"
+              step >= s ? "bg-primary-600 text-white" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400"
             }`}>
               {s}
             </div>
-            {s < 4 && <div className={`w-8 h-0.5 ${step > s ? "bg-indigo-600" : "bg-zinc-200 dark:bg-zinc-800"}`} />}
+            {s < 4 && <div className={`w-8 h-0.5 ${step > s ? "bg-primary-600" : "bg-zinc-200 dark:bg-zinc-800"}`} />}
           </div>
         ))}
       </div>
@@ -147,7 +147,7 @@ export default function ImportPage() {
 
           <button
             onClick={handleDownloadTemplate}
-            className="flex items-center gap-2 text-sm text-indigo-600 dark:text-indigo-400 font-medium hover:underline"
+            className="flex items-center gap-2 text-sm text-primary-600 dark:text-primary-400 font-medium hover:underline"
           >
             <Download size={14} />
             Descarregar template para {userTypeLabels[userType].toLowerCase()}
@@ -156,7 +156,7 @@ export default function ImportPage() {
           <div className="flex justify-end pt-2">
             <button
               onClick={() => setStep(2)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition shadow-lg shadow-indigo-600/20"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 transition shadow-lg shadow-primary-600/20"
             >
               Seguinte <ArrowRight size={14} />
             </button>
@@ -174,7 +174,7 @@ export default function ImportPage() {
 
           <div
             onClick={() => fileRef.current?.click()}
-            className="border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl p-8 text-center cursor-pointer hover:border-indigo-400 transition"
+            className="border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl p-8 text-center cursor-pointer hover:border-primary-400 transition"
           >
             <input
               ref={fileRef}
@@ -208,7 +208,7 @@ export default function ImportPage() {
             <button
               onClick={handleValidate}
               disabled={!file || validating}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition disabled:opacity-50 shadow-lg shadow-indigo-600/20"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 transition disabled:opacity-50 shadow-lg shadow-primary-600/20"
             >
               {validating ? <Loader2 size={14} className="animate-spin" /> : null}
               {validating ? "Validando..." : "Validar ficheiro"}
@@ -265,7 +265,7 @@ export default function ImportPage() {
             <button
               onClick={handleExecute}
               disabled={executing || validation.validCount === 0}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition disabled:opacity-50 shadow-lg shadow-indigo-600/20"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 transition disabled:opacity-50 shadow-lg shadow-primary-600/20"
             >
               {executing ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
               {executing ? "Importando..." : `Importar ${validation.validCount} registos`}
@@ -323,14 +323,14 @@ export default function ImportPage() {
           <div className="flex items-center gap-3 pt-2">
             <a
               href={`/api/import/${result.jobId}/export`}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-800 hover:bg-primary-50 dark:hover:bg-primary-950/30 transition"
             >
               <Download size={14} />
               Exportar relatório
             </a>
             <button
               onClick={() => { setStep(1); setFile(null); setValidation(null); setResult(null); setError("") }}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition shadow-lg shadow-indigo-600/20"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 transition shadow-lg shadow-primary-600/20"
             >
               Nova importação
             </button>

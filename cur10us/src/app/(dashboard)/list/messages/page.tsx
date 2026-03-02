@@ -41,7 +41,7 @@ const MessageListPage = () => {
     <tr
       key={item.id}
       className={`border-b border-zinc-100 dark:border-zinc-800/50 text-sm hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors ${
-        !item.read ? "border-l-2 border-l-indigo-500" : ""
+        !item.read ? "border-l-2 border-l-primary-500" : ""
       }`}
     >
       <td className="py-2.5 sm:py-3 px-1.5 sm:px-2">
@@ -64,7 +64,7 @@ const MessageListPage = () => {
         <span className={`px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-bold ${
           item.read
             ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-400"
-            : "bg-indigo-100 dark:bg-indigo-950/40 text-indigo-600"
+            : "bg-primary-100 dark:bg-primary-950/40 text-primary-600"
         }`}>
           {item.read ? "Lida" : "N\u00e3o lida"}
         </span>
@@ -92,7 +92,7 @@ const MessageListPage = () => {
             </button>
             <button
               onClick={() => setCreateOpen(true)}
-              className="flex items-center justify-center gap-1.5 px-2.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-indigo-600 text-white font-semibold text-xs sm:text-sm active:scale-95 shadow-lg shadow-indigo-600/20 transition"
+              className="flex items-center justify-center gap-1.5 px-2.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-primary-600 text-white font-semibold text-xs sm:text-sm active:scale-95 shadow-lg shadow-primary-600/20 transition"
             >
               <Send size={16} />
               <span className="hidden sm:inline">Nova</span>
@@ -104,7 +104,7 @@ const MessageListPage = () => {
       <div className="overflow-x-auto -mx-2.5 px-2.5 sm:-mx-4 sm:px-4 md:mx-0 md:px-0">
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 size={24} className="animate-spin text-indigo-500" />
+            <Loader2 size={24} className="animate-spin text-primary-500" />
           </div>
         ) : data.length === 0 ? (
           <div className="text-center py-12 text-zinc-400 text-sm">Nenhuma mensagem encontrada</div>

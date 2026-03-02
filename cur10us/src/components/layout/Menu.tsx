@@ -119,8 +119,8 @@ const Menu = () => {
                 key={item.label}
                 className={`flex items-center justify-center lg:justify-start gap-4 py-2 rounded-lg md:px-2 transition-colors ${
                   isActive
-                    ? "bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400"
-                    : "text-zinc-500 dark:text-zinc-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:text-indigo-600 dark:hover:text-indigo-400"
+                    ? "bg-primary-50 dark:bg-primary-950/50 text-primary-600 dark:text-primary-400"
+                    : "text-zinc-500 dark:text-zinc-400 hover:bg-primary-50 dark:hover:bg-primary-950/50 hover:text-primary-600 dark:hover:text-primary-400"
                 }`}
               >
                 <item.icon size={20} />

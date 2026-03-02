@@ -63,7 +63,7 @@ const SettingsPage = () => {
           </div>
           <button
             onClick={toggleTheme}
-            className={`relative w-11 h-6 rounded-full transition-colors ${darkMode ? "bg-indigo-600" : "bg-zinc-300 dark:bg-zinc-600"}`}
+            className={`relative w-11 h-6 rounded-full transition-colors ${darkMode ? "bg-primary-600" : "bg-zinc-300 dark:bg-zinc-600"}`}
           >
             <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${darkMode ? "translate-x-5" : ""}`} />
           </button>
@@ -79,7 +79,7 @@ const SettingsPage = () => {
           <select
             value={locale}
             onChange={(e) => { setLocale(e.target.value); savePref({ locale: e.target.value }) }}
-            className="px-3 py-1.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm text-zinc-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="px-3 py-1.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm text-zinc-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             <option value="pt">Português</option>
             <option value="en">English</option>
@@ -103,7 +103,7 @@ const SettingsPage = () => {
           </div>
           <button
             onClick={() => { const v = !notifications; setNotifications(v); savePref({ notifyPlatform: v }) }}
-            className={`relative w-11 h-6 rounded-full transition-colors ${notifications ? "bg-indigo-600" : "bg-zinc-300 dark:bg-zinc-600"}`}
+            className={`relative w-11 h-6 rounded-full transition-colors ${notifications ? "bg-primary-600" : "bg-zinc-300 dark:bg-zinc-600"}`}
           >
             <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${notifications ? "translate-x-5" : ""}`} />
           </button>
@@ -115,7 +115,7 @@ const SettingsPage = () => {
           </div>
           <button
             onClick={() => { const v = !emailNotifs; setEmailNotifs(v); savePref({ notifyEmail: v }) }}
-            className={`relative w-11 h-6 rounded-full transition-colors ${emailNotifs ? "bg-indigo-600" : "bg-zinc-300 dark:bg-zinc-600"}`}
+            className={`relative w-11 h-6 rounded-full transition-colors ${emailNotifs ? "bg-primary-600" : "bg-zinc-300 dark:bg-zinc-600"}`}
           >
             <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${emailNotifs ? "translate-x-5" : ""}`} />
           </button>
