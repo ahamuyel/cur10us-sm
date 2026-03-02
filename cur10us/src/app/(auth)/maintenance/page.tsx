@@ -1,12 +1,22 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { Wrench } from "lucide-react"
+import { Wrench, LogIn } from "lucide-react"
+import Link from "next/link"
 
 export default function MaintenancePage() {
+  const { data: session } = useSession()
   const router = useRouter()
   const [checking, setChecking] = useState(false)
+
+  // Super admin should not stay on maintenance page
+  useEffect(() => {
+    if (session?.user?.role === "super_admin") {
+      router.replace("/admin")
+    }
+  }, [session, router])
 
   useEffect(() => {
     const interval = setInterval(async () => {
@@ -43,6 +53,14 @@ export default function MaintenancePage() {
             <span>Verificação automática a cada 15 segundos</span>
           )}
         </div>
+
+        <Link
+          href="/signin"
+          className="inline-flex items-center gap-1.5 mt-8 text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
+        >
+          <LogIn className="w-3.5 h-3.5" />
+          Acesso administrativo
+        </Link>
       </div>
     </div>
   )
