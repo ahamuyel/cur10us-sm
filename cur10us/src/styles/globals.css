@@ -30,6 +30,9 @@ html, body {
 :root {
   --color-background: #ffffff;
   --color-foreground: #09090b;
+  --school-primary: #6366f1;
+  --school-primary-light: #eef2ff;
+  --school-primary-dark: #312e81;
 }
 
 .dark {

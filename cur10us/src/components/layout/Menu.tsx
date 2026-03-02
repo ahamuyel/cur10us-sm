@@ -119,9 +119,13 @@ const Menu = () => {
                 key={item.label}
                 className={`flex items-center justify-center lg:justify-start gap-4 py-2 rounded-lg md:px-2 transition-colors ${
                   isActive
-                    ? "bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400"
-                    : "text-zinc-500 dark:text-zinc-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:text-indigo-600 dark:hover:text-indigo-400"
+                    ? ""
+                    : "text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100"
                 }`}
+                style={isActive ? {
+                  backgroundColor: "color-mix(in srgb, var(--school-primary) 12%, transparent)",
+                  color: "var(--school-primary)",
+                } : undefined}
               >
                 <item.icon size={20} />
                 <span className="hidden lg:block">{item.label}</span>
