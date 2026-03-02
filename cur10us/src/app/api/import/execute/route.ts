@@ -3,7 +3,22 @@ import { requirePermission, getSchoolId } from "@/lib/api-auth"
 import { parseFile, normalizeHeaders, validateRows, generateTempPassword } from "@/lib/import-utils"
 import { prisma } from "@/lib/prisma"
 import { hash } from "bcryptjs"
+import { Prisma } from "@prisma/client"
 import type { Role } from "@prisma/client"
+
+function friendlyPrismaError(err: unknown): string {
+  if (err instanceof Prisma.PrismaClientKnownRequestError) {
+    if (err.code === "P2002") {
+      const fields = (err.meta?.target as string[]) || []
+      if (fields.includes("email")) return "E-mail já existe na base de dados"
+      return `Registo duplicado (${fields.join(", ")})`
+    }
+    if (err.code === "P2003") return "Referência inválida (ex.: turma inexistente)"
+    if (err.code === "P2025") return "Registo relacionado não encontrado"
+  }
+  if (err instanceof Error) return err.message
+  return "Erro ao criar utilizador"
+}
 
 export async function POST(req: Request) {
   try {
@@ -34,14 +49,42 @@ export async function POST(req: Request) {
     const headerMap = normalizeHeaders(headers)
     const validated = validateRows(rows, headerMap, headers)
 
-    // Check existing emails
+    // Check existing emails in User table
     const validRows = validated.filter((r) => r.valid)
     const emails = validRows.map((r) => r.data.email.toLowerCase())
-    const existing = await prisma.user.findMany({
+
+    const existingUsers = await prisma.user.findMany({
+      where: { email: { in: emails } },
+      select: { id: true, email: true, role: true },
+    })
+    const existingUserMap = new Map(existingUsers.map((u) => [u.email.toLowerCase(), u]))
+
+    // Check for orphaned users (User exists but no role-specific record)
+    const roleTable = userType === "student" ? "student" : userType === "teacher" ? "teacher" : "parent"
+    const orphanedUserIds = existingUsers.map((u) => u.id)
+    let orphanedSet = new Set<string>()
+
+    if (orphanedUserIds.length > 0) {
+      const linkedRecords = await (prisma[roleTable] as any).findMany({
+        where: { userId: { in: orphanedUserIds } },
+        select: { userId: true },
+      })
+      const linkedUserIds = new Set(linkedRecords.map((r: { userId: string }) => r.userId))
+      orphanedSet = new Set(
+        existingUsers
+          .filter((u) => !linkedUserIds.has(u.id))
+          .map((u) => u.email.toLowerCase())
+      )
+    }
+
+    // Check existing emails in role-specific table too
+    const existingRoleRecords = await (prisma[roleTable] as any).findMany({
       where: { email: { in: emails } },
       select: { email: true },
     })
-    const existingSet = new Set(existing.map((u) => u.email.toLowerCase()))
+    const existingRoleEmailSet = new Set(
+      existingRoleRecords.map((r: { email: string }) => r.email.toLowerCase())
+    )
 
     // Get class map if student
     let classMap: Record<string, string> = {}
@@ -67,6 +110,7 @@ export async function POST(req: Request) {
 
     const successes: { email: string; password: string; name: string }[] = []
     const failures: { rowNumber: number; email: string; errors: string[] }[] = []
+    const processedEmails = new Set<string>()
 
     for (const row of validated) {
       if (!row.valid) {
@@ -74,90 +118,121 @@ export async function POST(req: Request) {
         continue
       }
 
-      if (existingSet.has(row.data.email.toLowerCase())) {
-        failures.push({ rowNumber: row.rowNumber, email: row.data.email, errors: ["E-mail já registado"] })
+      const emailLower = row.data.email.toLowerCase()
+
+      // Skip duplicates within the same file
+      if (processedEmails.has(emailLower)) {
+        failures.push({ rowNumber: row.rowNumber, email: row.data.email, errors: ["E-mail duplicado no ficheiro"] })
+        continue
+      }
+      processedEmails.add(emailLower)
+
+      // Check if email already has a complete record (User + role)
+      if (existingRoleEmailSet.has(emailLower) && existingUserMap.has(emailLower)) {
+        failures.push({ rowNumber: row.rowNumber, email: row.data.email, errors: ["E-mail já registado com conta completa"] })
         continue
       }
 
       try {
         const tempPass = generateTempPassword()
-        const hashedPassword = await hash(tempPass, 12)
-
-        // Create user
-        const user = await prisma.user.create({
-          data: {
-            name: row.data.nome,
-            email: row.data.email.toLowerCase(),
-            hashedPassword,
-            role: userType as Role,
-            isActive: true,
-            mustChangePassword: true,
-            profileComplete: true,
-            provider: "credentials",
-            schoolId,
-          },
-        })
-
-        // Create role-specific record
+        const hashedPassword = await hash(tempPass, 10)
         const phone = row.data.telefone || undefined
         const address = row.data.endereco || undefined
 
-        if (userType === "student") {
-          await prisma.student.create({
-            data: {
-              name: row.data.nome,
-              email: row.data.email.toLowerCase(),
-              phone,
-              address,
-              gender: (row.data.genero as "masculino" | "feminino") || undefined,
-              dateOfBirth: row.data.dataNascimento ? new Date(row.data.dataNascimento) : undefined,
-              documentType: row.data.tipoDocumento || undefined,
-              documentNumber: row.data.numeroDocumento || undefined,
-              classId: row.data.turma ? classMap[row.data.turma] : undefined,
-              userId: user.id,
-              schoolId,
-            },
-          })
-        } else if (userType === "teacher") {
-          await prisma.teacher.create({
-            data: {
-              name: row.data.nome,
-              email: row.data.email.toLowerCase(),
-              phone,
-              address,
-              userId: user.id,
-              schoolId,
-            },
-          })
-        } else if (userType === "parent") {
-          await prisma.parent.create({
-            data: {
-              name: row.data.nome,
-              email: row.data.email.toLowerCase(),
-              phone,
-              address,
-              userId: user.id,
-              schoolId,
-            },
-          })
-        }
+        // Use a transaction to ensure User + role record are created atomically
+        await prisma.$transaction(async (tx) => {
+          let userRecord: { id: string }
 
-        existingSet.add(row.data.email.toLowerCase())
+          // Reuse orphaned User record or create new one
+          if (orphanedSet.has(emailLower)) {
+            const existing = existingUserMap.get(emailLower)!
+            await tx.user.update({
+              where: { id: existing.id },
+              data: {
+                name: row.data.nome,
+                hashedPassword,
+                role: userType as Role,
+                isActive: true,
+                mustChangePassword: true,
+                profileComplete: true,
+                schoolId,
+              },
+            })
+            userRecord = existing
+          } else {
+            userRecord = await tx.user.create({
+              data: {
+                name: row.data.nome,
+                email: emailLower,
+                hashedPassword,
+                role: userType as Role,
+                isActive: true,
+                mustChangePassword: true,
+                profileComplete: true,
+                provider: "credentials",
+                schoolId,
+              },
+            })
+          }
+
+          // Create role-specific record in the same transaction
+          if (userType === "student") {
+            await tx.student.create({
+              data: {
+                name: row.data.nome,
+                email: emailLower,
+                phone,
+                address,
+                gender: (row.data.genero as "masculino" | "feminino") || undefined,
+                dateOfBirth: row.data.dataNascimento ? new Date(row.data.dataNascimento) : undefined,
+                documentType: row.data.tipoDocumento || undefined,
+                documentNumber: row.data.numeroDocumento || undefined,
+                classId: row.data.turma ? classMap[row.data.turma] : undefined,
+                userId: userRecord.id,
+                schoolId,
+              },
+            })
+          } else if (userType === "teacher") {
+            await tx.teacher.create({
+              data: {
+                name: row.data.nome,
+                email: emailLower,
+                phone,
+                address,
+                userId: userRecord.id,
+                schoolId,
+              },
+            })
+          } else if (userType === "parent") {
+            await tx.parent.create({
+              data: {
+                name: row.data.nome,
+                email: emailLower,
+                phone,
+                address,
+                userId: userRecord.id,
+                schoolId,
+              },
+            })
+          }
+        })
+
         successes.push({ email: row.data.email, password: tempPass, name: row.data.nome })
       } catch (err) {
         failures.push({
           rowNumber: row.rowNumber,
           email: row.data.email,
-          errors: [err instanceof Error ? err.message : "Erro ao criar utilizador"],
+          errors: [friendlyPrismaError(err)],
         })
       }
     }
 
     // Update job with results
+    const validCount = validRows.length
     await prisma.importJob.update({
       where: { id: job.id },
       data: {
-        status: failures.length === rows.length ? "falhada" : "concluida",
+        status: successes.length === 0 ? "falhada" : failures.length === 0 ? "concluida" : "parcial",
         successCount: successes.length,
         failedCount: failures.length,
         errors: failures.length > 0 ? failures : undefined,
@@ -168,6 +243,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       jobId: job.id,
       totalRows: rows.length,
+      validCount,
       successCount: successes.length,
       failedCount: failures.length,
       successes,

@@ -14,6 +14,7 @@ const statusColors: Record<string, string> = {
   // Import statuses
   processando: "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400",
   concluida: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400",
+  parcial: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400",
   falhada: "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400",
 }
 
@@ -33,6 +34,7 @@ const statusLabels: Record<string, string> = {
   // Import statuses
   processando: "Processando",
   concluida: "Concluída",
+  parcial: "Parcial",
   falhada: "Falhada",
 }
 
