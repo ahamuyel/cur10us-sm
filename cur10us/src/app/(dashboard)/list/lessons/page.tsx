@@ -94,7 +94,7 @@ const LessonListPage = () => {
           {item.materials && (item.materials as Material[]).length > 0 && (
             <button
               onClick={() => setMaterialsLesson(item)}
-              className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-cyan-50 dark:bg-cyan-950/30 text-cyan-600 hover:bg-cyan-100 dark:hover:bg-cyan-900/50 transition-all active:scale-90"
+              className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-cyan-50 dark:bg-cyan-950/30 text-cyan-600 hover:bg-cyan-100 dark:hover:bg-cyan-900/50 transition-all active:scale-90"
               title="Materiais"
             >
               <Paperclip size={13} />
@@ -104,20 +104,20 @@ const LessonListPage = () => {
             <>
               <button
                 onClick={() => setAttendanceLesson(item)}
-                className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-all active:scale-90"
+                className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-all active:scale-90"
                 title="Registar Presença"
               >
                 <ClipboardCheck size={13} />
               </button>
               <button
                 onClick={() => setEditItem(item)}
-                className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-indigo-600 hover:text-white transition-all active:scale-90"
+                className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-indigo-600 hover:text-white transition-all active:scale-90"
               >
                 <Pencil size={13} />
               </button>
               <button
                 onClick={() => setDeleteItem(item)}
-                className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-rose-600 hover:text-white transition-all active:scale-90"
+                className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-rose-600 hover:text-white transition-all active:scale-90"
               >
                 <Trash2 size={13} />
               </button>
