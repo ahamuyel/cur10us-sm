@@ -36,7 +36,7 @@ export async function POST(req: Request) {
     const validated = validateRows(rows, headerMap, headers)
 
     // Check for duplicate emails within the file
-    const emails = validated.filter((r) => r.valid).map((r) => r.data.email.toLowerCase())
+    const emails = validated.filter((r) => r.valid && r.data.email?.trim()).map((r) => r.data.email!.toLowerCase().trim())
     const duplicateEmails = emails.filter((e, i) => emails.indexOf(e) !== i)
 
     if (duplicateEmails.length > 0) {
@@ -49,7 +49,7 @@ export async function POST(req: Request) {
     }
 
     // Check for existing emails in DB
-    const validEmails = validated.filter((r) => r.valid).map((r) => r.data.email.toLowerCase())
+    const validEmails = validated.filter((r) => r.valid && r.data.email?.trim()).map((r) => r.data.email!.toLowerCase().trim())
     if (validEmails.length > 0) {
       const existingUsers = await prisma.user.findMany({
         where: { email: { in: validEmails } },
