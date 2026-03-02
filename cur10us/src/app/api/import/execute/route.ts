@@ -107,8 +107,8 @@ export async function POST(req: Request) {
             data: {
               name: row.data.nome,
               email: emailFinal,
-              phone: row.data.telefone ?? null,
-              address: row.data.endereco ?? null,
+              phone: row.data.telefone ?? "",
+              address: row.data.endereco ?? "",
               gender: (row.data.genero as "masculino" | "feminino") ?? null,
               dateOfBirth: row.data.dataNascimento ? new Date(row.data.dataNascimento) : null,
               documentType: row.data.tipoDocumento ?? null,
