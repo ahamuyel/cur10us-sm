@@ -9,30 +9,49 @@ import FAQSection from "@/components/landing/FAQSection"
 import CTASection from "@/components/landing/CTASection"
 import Footer from "@/components/landing/Footer"
 
-async function getStats() {
-  const [schools, students, teachers, classes] = await Promise.all([
+export type PlatformBranding = {
+  name: string
+  description: string | null
+  logo: string | null
+  contactEmail: string | null
+  contactPhone: string | null
+}
+
+async function getData() {
+  const [schools, students, teachers, classes, config] = await Promise.all([
     prisma.school.count({ where: { status: "ativa" } }),
     prisma.student.count(),
     prisma.teacher.count(),
     prisma.class.count(),
+    prisma.platformConfig.findUnique({
+      where: { id: "singleton" },
+      select: { name: true, description: true, logo: true, contactEmail: true, contactPhone: true },
+    }),
   ])
-  return { schools, students, teachers, classes }
+  const branding: PlatformBranding = {
+    name: config?.name || "Cur10usX",
+    description: config?.description || null,
+    logo: config?.logo || null,
+    contactEmail: config?.contactEmail || "suporte@cur10usx.com",
+    contactPhone: config?.contactPhone || null,
+  }
+  return { stats: { schools, students, teachers, classes }, branding }
 }
 
 export default async function Home() {
-  const stats = await getStats()
+  const { stats, branding } = await getData()
 
   return (
     <main className="min-h-screen bg-zinc-50 dark:bg-black text-zinc-900 dark:text-zinc-100">
-      <LandingNavbar />
-      <HeroSection />
+      <LandingNavbar branding={branding} />
+      <HeroSection branding={branding} />
       <StatsSection {...stats} />
       <HowItWorksSection />
       <FeaturesSection />
       <ProfilesSection />
       <FAQSection />
       <CTASection />
-      <Footer />
+      <Footer branding={branding} />
     </main>
   )
 }

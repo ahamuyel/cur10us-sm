@@ -1,6 +1,7 @@
 import Link from "next/link"
+import type { PlatformBranding } from "@/app/page"
 
-export default function Footer() {
+export default function Footer({ branding }: { branding: PlatformBranding }) {
   return (
     <footer className="border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
       <div className="max-w-6xl mx-auto px-6 py-12">
@@ -8,10 +9,14 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <span className="text-lg font-bold tracking-tight">
-              Cur10us<span className="text-indigo-600 dark:text-indigo-400">X</span>
+              {branding.name === "Cur10usX" ? (
+                <>Cur10us<span className="text-indigo-600 dark:text-indigo-400">X</span></>
+              ) : (
+                branding.name
+              )}
             </span>
             <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2 leading-relaxed">
-              Plataforma de gestão escolar moderna, pensada para o contexto angolano.
+              {branding.description || "Plataforma de gestão escolar moderna, pensada para o contexto angolano."}
             </p>
           </div>
 
@@ -40,7 +45,8 @@ export default function Footer() {
           <div>
             <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Contacto</h4>
             <ul className="space-y-2 text-sm text-zinc-500 dark:text-zinc-400">
-              <li>suporte@cur10usx.com</li>
+              <li>{branding.contactEmail || "suporte@cur10usx.com"}</li>
+              {branding.contactPhone && <li>{branding.contactPhone}</li>}
               <li>Luanda, Angola</li>
             </ul>
           </div>
@@ -48,7 +54,7 @@ export default function Footer() {
 
         <div className="border-t border-zinc-200 dark:border-zinc-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-zinc-500 dark:text-zinc-500">
-            &copy; {new Date().getFullYear()} Cur10usX. Todos os direitos reservados.
+            &copy; {new Date().getFullYear()} {branding.name}. Todos os direitos reservados.
           </p>
           <div className="flex items-center gap-4 text-sm text-zinc-500 dark:text-zinc-400">
             <Link href="/termos" className="hover:text-zinc-900 dark:hover:text-zinc-100 transition">Termos de uso</Link>

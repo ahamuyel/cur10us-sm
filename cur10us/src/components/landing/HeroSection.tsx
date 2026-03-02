@@ -1,7 +1,8 @@
 import Link from "next/link"
 import { ArrowRight, GraduationCap } from "lucide-react"
+import type { PlatformBranding } from "@/app/page"
 
-export default function HeroSection() {
+export default function HeroSection({ branding }: { branding: PlatformBranding }) {
   return (
     <section className="relative overflow-hidden">
       <div className="absolute inset-0 -z-10">
@@ -24,9 +25,8 @@ export default function HeroSection() {
         </h1>
 
         <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed">
-          O Cur10usX centraliza a gestão de alunos, professores, notas, assiduidade
-          e comunicação numa única plataforma. Simples de configurar, acessível
-          de qualquer dispositivo.
+          {branding.description ||
+            `O ${branding.name} centraliza a gestão de alunos, professores, notas, assiduidade e comunicação numa única plataforma. Simples de configurar, acessível de qualquer dispositivo.`}
         </p>
 
         <div className="flex gap-3 flex-wrap justify-center pt-2">
