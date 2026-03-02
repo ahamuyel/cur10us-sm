@@ -207,8 +207,8 @@ model Teacher {
   id        String   @id @default(cuid())
   name      String
   email     String   @unique
-  phone     String
-  address   String
+  phone     String?
+  address   String?
   foto      String?
   userId    String?  @unique
   user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
@@ -228,13 +228,15 @@ model Student {
   id             String    @id @default(cuid())
   name           String
   email          String    @unique
-  phone          String
-  address        String
+  phone          String?   // ← era String, agora opcional
+  address        String?   // ← era String, agora opcional
   foto           String?
   gender         Gender?
   dateOfBirth    DateTime?
   documentType   String?
   documentNumber String?
+  grade          String?   // ← novo
+  course         String?   // ← novo
   classId        String?
   class          Class?    @relation(fields: [classId], references: [id], onDelete: SetNull)
   userId         String?   @unique
@@ -254,8 +256,8 @@ model Parent {
   id        String    @id @default(cuid())
   name      String
   email     String    @unique
-  phone     String
-  address   String
+  phone     String?
+  address   String?
   foto      String?
   userId    String?   @unique
   user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
