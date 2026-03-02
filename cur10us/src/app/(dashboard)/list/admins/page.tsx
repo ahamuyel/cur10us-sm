@@ -20,6 +20,7 @@ type AdminPermissions = {
   canManageSubjects: boolean
   canManageLessons: boolean
   canManageExams: boolean
+  canManageAssignments: boolean
   canManageResults: boolean
   canManageAttendance: boolean
   canManageMessages: boolean

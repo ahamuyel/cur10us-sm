@@ -5,7 +5,7 @@ import { createCourseSchema } from "@/lib/validations/academic"
 
 export async function GET(req: Request) {
   try {
-    const { error: authError, session } = await requirePermission(["school_admin"], "canManageCourses", { requireSchool: true })
+    const { error: authError, session } = await requirePermission(["school_admin", "teacher"], "canManageCourses", { requireSchool: true })
     if (authError) return authError
 
     const schoolId = getSchoolId(session!)

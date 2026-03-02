@@ -32,7 +32,7 @@ const columns = [
 
 const MessageListPage = () => {
   const { data: session } = useSession()
-  const isAdmin = session?.user?.role === "admin"
+  const isAdmin = session?.user?.role === "school_admin"
   const { data, totalPages, page, search, setSearch, setPage, loading, refetch } = useEntityList<Message>({ endpoint: "/api/messages", limit: 5 })
 
   const [createOpen, setCreateOpen] = useState(false)

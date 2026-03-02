@@ -1,10 +1,10 @@
+import { auth } from "@/lib/auth"
 import { NextResponse } from "next/server"
-import type { NextRequest } from "next/server"
 
 const authPages = ["/signin", "/signup", "/forgot-password", "/reset-password", "/registar-escola"]
 const publicPaths = ["/", "/aplicacao", "/aplicacao/status"]
 
-export function middleware(req: NextRequest) {
+export default auth((req) => {
   const { pathname } = req.nextUrl
 
   // Public paths — always accessible
@@ -12,12 +12,7 @@ export function middleware(req: NextRequest) {
     return NextResponse.next()
   }
 
-  // Check for session token cookie (set by Auth.js)
-  const token =
-    req.cookies.get("authjs.session-token")?.value ||
-    req.cookies.get("__Secure-authjs.session-token")?.value
-
-  const isLoggedIn = !!token
+  const isLoggedIn = !!req.auth
 
   // Auth pages — redirect to dashboard if already logged in
   if (authPages.some((p) => pathname.startsWith(p))) {
@@ -33,7 +28,7 @@ export function middleware(req: NextRequest) {
   }
 
   return NextResponse.next()
-}
+})
 
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.png$|.*\\.svg$).*)"],

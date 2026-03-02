@@ -20,6 +20,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Dados inválidos" }, { status: 400 })
     }
 
+    if (file.size > 5 * 1024 * 1024) {
+      return NextResponse.json({ error: "Ficheiro demasiado grande (máx. 5MB)" }, { status: 400 })
+    }
+
     const buffer = Buffer.from(await file.arrayBuffer())
     const { headers, rows } = parseFile(buffer, file.name)
 
@@ -77,7 +81,7 @@ export async function POST(req: Request) {
 
       try {
         const tempPass = generateTempPassword()
-        const hashedPassword = await hash(tempPass, 10) // cost 10 for bulk
+        const hashedPassword = await hash(tempPass, 12)
 
         // Create user
         const user = await prisma.user.create({

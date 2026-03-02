@@ -63,8 +63,8 @@ export async function POST(req: Request) {
       headers,
       rows: validated,
       totalRows: rows.length,
-      validRows: validated.filter((r) => r.valid).length,
-      invalidRows: validated.filter((r) => !r.valid).length,
+      validCount: validated.filter((r) => r.valid).length,
+      invalidCount: validated.filter((r) => !r.valid).length,
       hasErrors: validated.some((r) => !r.valid),
     })
   } catch (error) {

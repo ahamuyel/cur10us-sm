@@ -32,9 +32,17 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     }
 
     const body = await req.json()
+    const validStatuses = ["pendente", "em_analise", "aprovada", "matriculada", "rejeitada"]
+    if (!body.status || !validStatuses.includes(body.status)) {
+      return NextResponse.json({ error: "Estado inválido" }, { status: 400 })
+    }
+
     const application = await prisma.application.update({
       where: { id },
-      data: { status: body.status },
+      data: {
+        status: body.status,
+        ...(body.status === "rejeitada" && body.rejectReason ? { rejectReason: body.rejectReason } : {}),
+      },
     })
 
     return NextResponse.json(application)

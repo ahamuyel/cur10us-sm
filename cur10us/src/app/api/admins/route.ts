@@ -112,6 +112,7 @@ export async function POST(req: Request) {
             canManageSubjects: permissions?.canManageSubjects ?? false,
             canManageLessons: permissions?.canManageLessons ?? false,
             canManageExams: permissions?.canManageExams ?? false,
+            canManageAssignments: permissions?.canManageAssignments ?? false,
             canManageResults: permissions?.canManageResults ?? false,
             canManageAttendance: permissions?.canManageAttendance ?? false,
             canManageMessages: permissions?.canManageMessages ?? false,

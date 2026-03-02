@@ -33,7 +33,7 @@ const columns = [
 
 const ExamListPage = () => {
   const { data: session } = useSession()
-  const isAdmin = session?.user?.role === "admin"
+  const isAdmin = session?.user?.role === "school_admin"
   const { data, totalPages, page, search, setSearch, setPage, loading, refetch } = useEntityList<Exam>({ endpoint: "/api/exams", limit: 5 })
 
   const [createOpen, setCreateOpen] = useState(false)

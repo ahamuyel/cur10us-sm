@@ -16,6 +16,7 @@ type AdminData = {
     canManageSubjects: boolean
     canManageLessons: boolean
     canManageExams: boolean
+    canManageAssignments: boolean
     canManageResults: boolean
     canManageAttendance: boolean
     canManageMessages: boolean
@@ -41,6 +42,7 @@ const PERMISSION_OPTIONS = [
   { key: "canManageSubjects", label: "Disciplinas" },
   { key: "canManageLessons", label: "Aulas" },
   { key: "canManageExams", label: "Provas" },
+  { key: "canManageAssignments", label: "Tarefas" },
   { key: "canManageResults", label: "Resultados" },
   { key: "canManageAttendance", label: "Assiduidade" },
   { key: "canManageMessages", label: "Mensagens" },
@@ -58,6 +60,7 @@ const defaultPermissions = {
   canManageSubjects: false,
   canManageLessons: false,
   canManageExams: false,
+  canManageAssignments: false,
   canManageResults: false,
   canManageAttendance: false,
   canManageMessages: false,
