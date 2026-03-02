@@ -53,23 +53,31 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
     const { subjectIds, ...courseData } = parsed.data
 
-    const course = await prisma.course.update({
-      where: { id },
-      data: {
-        ...courseData,
-        ...(subjectIds !== undefined
-          ? {
-              courseSubjects: {
-                deleteMany: {},
-                create: subjectIds.map((subjectId) => ({ subjectId })),
-              },
-            }
-          : {}),
-      },
+    const course = await prisma.$transaction(async (tx) => {
+      // Update course name if provided
+      const updated = await tx.course.update({
+        where: { id },
+        data: courseData,
+      })
+
+      // Update subject associations if provided
+      if (subjectIds !== undefined) {
+        await tx.courseSubject.deleteMany({ where: { courseId: id } })
+        if (subjectIds.length > 0) {
+          await tx.courseSubject.createMany({
+            data: subjectIds.map((subjectId) => ({ courseId: id, subjectId })),
+          })
+        }
+      }
+
+      return updated
     })
+
     return NextResponse.json(course)
-  } catch {
-    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
+  } catch (error) {
+    console.error("Erro ao atualizar curso:", error)
+    const message = error instanceof Error ? error.message : "Erro interno do servidor"
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 
