@@ -2,7 +2,6 @@ import * as XLSX from "xlsx"
 import crypto from "crypto"
 import { importRowSchema, type ImportRow, type ValidatedRow } from "@/lib/validations/import"
 
-// Header normalization map
 const HEADER_MAP: Record<string, string> = {
   "nome": "nome",
   "nome completo": "nome",
@@ -53,24 +52,18 @@ export function normalizeHeaders(headers: string[]): Record<number, string> {
 }
 
 export function parseFile(buffer: Buffer, filename: string): { headers: string[]; rows: Record<string, string>[] } {
-  const ext = filename.split(".").pop()?.toLowerCase()
-
-  if (ext === "csv") {
-    const workbook = XLSX.read(buffer, { type: "buffer", codepage: 65001 })
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
-    const data = XLSX.utils.sheet_to_json<Record<string, string>>(sheet, { defval: "" })
-    const headers = data.length > 0 ? Object.keys(data[0]) : []
-    return { headers, rows: data }
-  }
-
-  const workbook = XLSX.read(buffer, { type: "buffer" })
+  const workbook = XLSX.read(buffer, { type: "buffer", codepage: 65001 })
   const sheet = workbook.Sheets[workbook.SheetNames[0]]
   const data = XLSX.utils.sheet_to_json<Record<string, string>>(sheet, { defval: "" })
   const headers = data.length > 0 ? Object.keys(data[0]) : []
   return { headers, rows: data }
 }
 
-export function validateRows(rows: Record<string, string>[], headerMap: Record<number, string>, originalHeaders: string[]): ValidatedRow[] {
+export function validateRows(
+  rows: Record<string, string>[],
+  headerMap: Record<number, string>,
+  originalHeaders: string[]
+): ValidatedRow[] {
   return rows.map((row, index) => {
     const mappedData: Record<string, string> = {}
     originalHeaders.forEach((h, i) => {
@@ -80,7 +73,6 @@ export function validateRows(rows: Record<string, string>[], headerMap: Record<n
       }
     })
 
-    // Normalize gender values
     if (mappedData.genero) {
       const g = mappedData.genero.toLowerCase()
       if (g === "m" || g === "masc" || g === "masculino") mappedData.genero = "masculino"
