@@ -16,7 +16,7 @@ export default function DashboardHub() {
       } else {
         router.replace(`/dashboard/${session.user.id}`)
       }
-    }
+    } 
     if (status === "unauthenticated") {
       router.replace("/signin")
     }
