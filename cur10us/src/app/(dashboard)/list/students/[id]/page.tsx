@@ -28,7 +28,7 @@ export default function StudentPortfolioPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-6 h-6 animate-spin text-primary-500" />
+        <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
       </div>
     )
   }
@@ -55,7 +55,7 @@ export default function StudentPortfolioPage() {
             {student.foto ? (
               <Image src={student.foto} alt={student.name} fill className="rounded-full object-cover border-4 border-zinc-200 dark:border-zinc-700" />
             ) : (
-              <div className="w-full h-full rounded-full bg-primary-100 dark:bg-primary-950/40 flex items-center justify-center text-primary-600 dark:text-primary-400 text-2xl font-bold border-4 border-zinc-200 dark:border-zinc-700">
+              <div className="w-full h-full rounded-full bg-indigo-100 dark:bg-indigo-950/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 text-2xl font-bold border-4 border-zinc-200 dark:border-zinc-700">
                 {student.name.charAt(0)}
               </div>
             )}
@@ -69,7 +69,7 @@ export default function StudentPortfolioPage() {
                 </span>
               )}
               {student.gender && (
-                <span className="px-2 py-0.5 bg-primary-50 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400 rounded text-xs font-bold capitalize">
+                <span className="px-2 py-0.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded text-xs font-bold capitalize">
                   {student.gender}
                 </span>
               )}
@@ -83,7 +83,7 @@ export default function StudentPortfolioPage() {
           </div>
           <Link
             href={`/list/students/${id}/certificate`}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 transition shadow-lg shadow-primary-600/20 shrink-0"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition shadow-lg shadow-indigo-600/20 shrink-0"
           >
             <FileText size={16} /> Certificado
           </Link>
@@ -202,12 +202,12 @@ export default function StudentPortfolioPage() {
 
 function SummaryCard({ icon: Icon, label, value, color }: { icon: React.ElementType; label: string; value: string; color: string }) {
   const bgMap: Record<string, string> = {
-    indigo: "bg-primary-50 dark:bg-primary-950/40",
+    indigo: "bg-indigo-50 dark:bg-indigo-950/40",
     emerald: "bg-emerald-50 dark:bg-emerald-950/40",
     amber: "bg-amber-50 dark:bg-amber-950/40",
   }
   const textMap: Record<string, string> = {
-    indigo: "text-primary-600 dark:text-primary-400",
+    indigo: "text-indigo-600 dark:text-indigo-400",
     emerald: "text-emerald-600 dark:text-emerald-400",
     amber: "text-amber-600 dark:text-amber-400",
   }

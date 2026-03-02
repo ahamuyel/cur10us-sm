@@ -70,7 +70,7 @@ const AdminListPage = () => {
     <tr key={item.id} className="border-b border-zinc-100 dark:border-zinc-800/50 text-sm hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors">
       <td className="py-2.5 sm:py-3 px-1.5 sm:px-2">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 sm:w-8 sm:h-8 shrink-0 rounded-full bg-primary-100 dark:bg-primary-950/40 flex items-center justify-center text-primary-600 dark:text-primary-400 text-xs font-bold">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 shrink-0 rounded-full bg-indigo-100 dark:bg-indigo-950/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 text-xs font-bold">
             {item.name.charAt(0)}
           </div>
           <span className="font-bold text-zinc-900 dark:text-zinc-100 truncate text-xs sm:text-sm max-w-[120px] sm:max-w-none">
@@ -88,7 +88,7 @@ const AdminListPage = () => {
             Principal
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary-50 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400 rounded-lg text-[10px] sm:text-xs font-bold uppercase">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-lg text-[10px] sm:text-xs font-bold uppercase">
             <Shield size={12} />
             Secundario
           </span>
@@ -111,7 +111,7 @@ const AdminListPage = () => {
             <>
               <button
                 onClick={() => setEditItem(item)}
-                className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-primary-600 hover:text-white transition-all active:scale-90"
+                className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-indigo-600 hover:text-white transition-all active:scale-90"
               >
                 <Pencil size={13} />
               </button>
@@ -152,7 +152,7 @@ const AdminListPage = () => {
             {canManage && (
               <button
                 onClick={() => setCreateOpen(true)}
-                className="flex items-center justify-center gap-1.5 px-2.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-primary-600 text-white font-semibold text-xs sm:text-sm active:scale-95 shadow-lg shadow-primary-600/20 transition"
+                className="flex items-center justify-center gap-1.5 px-2.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-indigo-600 text-white font-semibold text-xs sm:text-sm active:scale-95 shadow-lg shadow-indigo-600/20 transition"
               >
                 <UserPlus size={16} />
                 <span className="hidden sm:inline">Adicionar</span>
@@ -165,7 +165,7 @@ const AdminListPage = () => {
       <div className="overflow-x-auto -mx-2.5 px-2.5 sm:-mx-4 sm:px-4 md:mx-0 md:px-0">
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 size={24} className="animate-spin text-primary-500" />
+            <Loader2 size={24} className="animate-spin text-indigo-500" />
           </div>
         ) : data.length === 0 ? (
           <div className="text-center py-12 text-zinc-400 text-sm">Nenhum administrador encontrado</div>

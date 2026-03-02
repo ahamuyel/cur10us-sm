@@ -26,7 +26,7 @@ export default function StudentCertificatePage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-6 h-6 animate-spin text-primary-500" />
+        <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
       </div>
     )
   }
@@ -51,7 +51,7 @@ export default function StudentCertificatePage() {
       <div className="print:hidden m-2 sm:m-3 flex justify-end">
         <button
           onClick={() => window.print()}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 transition shadow-lg shadow-primary-600/20"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition shadow-lg shadow-indigo-600/20"
         >
           <Printer size={16} /> Imprimir
         </button>
@@ -67,7 +67,7 @@ export default function StudentCertificatePage() {
           {student.school.city && (
             <p className="text-sm text-zinc-500 print:text-zinc-600 mt-1">{student.school.city}</p>
           )}
-          <p className="text-lg font-semibold text-primary-600 print:text-zinc-800 mt-4 uppercase tracking-wider">
+          <p className="text-lg font-semibold text-indigo-600 print:text-zinc-800 mt-4 uppercase tracking-wider">
             Certificado Escolar
           </p>
         </div>
