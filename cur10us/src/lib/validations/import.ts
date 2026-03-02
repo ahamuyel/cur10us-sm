@@ -10,6 +10,8 @@ export const importRowSchema = z.object({
   tipoDocumento: z.string().optional(),
   numeroDocumento: z.string().optional(),
   turma: z.string().optional(),
+  curso: z.string().optional(),  // ← novo
+  classe: z.string().optional(), // ← novo
 })
 
 export type ImportRow = z.infer<typeof importRowSchema>
