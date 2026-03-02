@@ -34,24 +34,15 @@ const HEADER_MAP: Record<string, string> = {
   "número de documento": "numeroDocumento",
   "bilhete": "numeroDocumento",
   "bi": "numeroDocumento",
-  "turma": "turma",              // "10ª A"
+  "turma": "turma",
   "class": "turma",
-  "curso": "curso",              // ← novo  "Ciências e Tecnologia"
-  "course": "curso",             // ← novo
-  "classe": "classe",            // ← novo  "10ª"
-  "grade": "classe",             // ← novo
-  "ano": "classe",               // ← novo
+  "curso": "curso",
+  "course": "curso",
+  "classe": "classe",
+  "grade": "classe",
+  "ano": "classe",
 }
 
-// Na função generateTemplate, actualizar os headers:
-export function generateTemplate(userType: string): Buffer {
-  const headers: Record<string, string[]> = {
-    student: ["Nome", "Email", "Telefone", "Endereço", "Género", "Data de Nascimento", "Tipo Documento", "Número Documento", "Turma", "Curso", "Classe"],
-    teacher: ["Nome", "Email", "Telefone", "Endereço"],
-    parent:  ["Nome", "Email", "Telefone", "Endereço"],
-  }
-  // ... resto da função igual
-}
 export function normalizeHeaders(headers: string[]): Record<number, string> {
   const map: Record<number, string> = {}
   headers.forEach((h, i) => {
@@ -72,7 +63,6 @@ export function parseFile(buffer: Buffer, filename: string): { headers: string[]
     return { headers, rows: data }
   }
 
-  // xlsx
   const workbook = XLSX.read(buffer, { type: "buffer" })
   const sheet = workbook.Sheets[workbook.SheetNames[0]]
   const data = XLSX.utils.sheet_to_json<Record<string, string>>(sheet, { defval: "" })
@@ -82,7 +72,6 @@ export function parseFile(buffer: Buffer, filename: string): { headers: string[]
 
 export function validateRows(rows: Record<string, string>[], headerMap: Record<number, string>, originalHeaders: string[]): ValidatedRow[] {
   return rows.map((row, index) => {
-    // Map row keys to normalized names
     const mappedData: Record<string, string> = {}
     originalHeaders.forEach((h, i) => {
       const normalizedKey = headerMap[i]
@@ -102,7 +91,7 @@ export function validateRows(rows: Record<string, string>[], headerMap: Record<n
 
     if (parsed.success) {
       return {
-        rowNumber: index + 2, // +2 for 1-indexed + header row
+        rowNumber: index + 2,
         data: parsed.data,
         valid: true,
         errors: [],
@@ -124,17 +113,15 @@ export function generateTempPassword(): string {
 
 export function generateTemplate(userType: string): Buffer {
   const headers: Record<string, string[]> = {
-    student: ["Nome", "Email", "Telefone", "Endereço", "Género", "Data de Nascimento", "Tipo Documento", "Número Documento", "Turma"],
+    student: ["Nome", "Email", "Telefone", "Endereço", "Género", "Data de Nascimento", "Tipo Documento", "Número Documento", "Turma", "Curso", "Classe"],
     teacher: ["Nome", "Email", "Telefone", "Endereço"],
-    parent: ["Nome", "Email", "Telefone", "Endereço"],
+    parent:  ["Nome", "Email", "Telefone", "Endereço"],
   }
 
   const cols = headers[userType] || headers.student
   const ws = XLSX.utils.aoa_to_sheet([cols])
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, "Template")
-
-  // Set column widths
   ws["!cols"] = cols.map(() => ({ wch: 20 }))
 
   return Buffer.from(XLSX.write(wb, { type: "buffer", bookType: "xlsx" }))
