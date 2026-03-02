@@ -107,14 +107,14 @@ export async function POST(req: Request) {
             data: {
               name: row.data.nome,
               email: emailFinal,
-              phone: row.data.telefone || undefined,
-              address: row.data.endereco || undefined,
-              gender: row.data.genero as "masculino" | "feminino" | undefined,
-              dateOfBirth: row.data.dataNascimento ? new Date(row.data.dataNascimento) : undefined,
-              documentType: row.data.tipoDocumento || undefined,
-              documentNumber: row.data.numeroDocumento || undefined,
-              classId: row.data.turma ? classMap[row.data.turma] : undefined,
-              grade: row.data.classe || undefined,
+              phone: row.data.telefone ?? null,
+              address: row.data.endereco ?? null,
+              gender: (row.data.genero as "masculino" | "feminino") ?? null,
+              dateOfBirth: row.data.dataNascimento ? new Date(row.data.dataNascimento) : null,
+              documentType: row.data.tipoDocumento ?? null,
+              documentNumber: row.data.numeroDocumento ?? null,
+              classId: row.data.turma ? classMap[row.data.turma] : null,
+              grade: row.data.classe ?? null,
               userId: user.id,
               schoolId,
             },
@@ -124,8 +124,8 @@ export async function POST(req: Request) {
             data: {
               name: row.data.nome,
               email: emailFinal,
-              phone: row.data.telefone || undefined,
-              address: row.data.endereco || undefined,
+              phone: row.data.telefone ?? null,
+              address: row.data.endereco ?? null,
               userId: user.id,
               schoolId,
             },
@@ -135,14 +135,13 @@ export async function POST(req: Request) {
             data: {
               name: row.data.nome,
               email: emailFinal,
-              phone: row.data.telefone || undefined,
-              address: row.data.endereco || undefined,
+              phone: row.data.telefone ?? null,
+              address: row.data.endereco ?? null,
               userId: user.id,
               schoolId,
             },
           })
         }
-
         // Só adicionar ao set se for email real
         if (row.data.email?.trim()) {
           existingSet.add(emailFinal)
