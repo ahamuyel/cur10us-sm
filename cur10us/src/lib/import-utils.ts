@@ -2,6 +2,63 @@ import * as XLSX from "xlsx"
 import crypto from "crypto"
 import { importRowSchema, type ImportRow, type ValidatedRow } from "@/lib/validations/import"
 
+/**
+ * Parse a date value from Excel/CSV. Handles:
+ * - Excel serial numbers (e.g. 39209 = 2007-05-15)
+ * - DD/MM/YYYY (common in Angola/Portugal)
+ * - YYYY-MM-DD (ISO)
+ * - JS Date objects (from cellDates)
+ * Returns ISO date string (YYYY-MM-DD) or empty string if invalid.
+ */
+export function parseDateValue(value: unknown): string {
+  if (!value && value !== 0) return ""
+
+  // JS Date object (from XLSX cellDates)
+  if (value instanceof Date) {
+    if (isNaN(value.getTime())) return ""
+    return value.toISOString().split("T")[0]
+  }
+
+  const str = String(value).trim()
+  if (!str) return ""
+
+  // Excel serial number (pure number, typically 1-60000 range for reasonable dates)
+  const num = Number(str)
+  if (!isNaN(num) && num > 0 && num < 100000 && !str.includes("/") && !str.includes("-")) {
+    // Excel epoch: 1900-01-01, but Excel incorrectly treats 1900 as a leap year
+    // so we subtract 1 for dates after Feb 28 1900 (serial > 59)
+    const excelEpoch = new Date(1899, 11, 30) // Dec 30, 1899
+    const date = new Date(excelEpoch.getTime() + num * 86400000)
+    if (date.getFullYear() >= 1900 && date.getFullYear() <= 2100) {
+      return date.toISOString().split("T")[0]
+    }
+    return ""
+  }
+
+  // DD/MM/YYYY or D/M/YYYY
+  const ddmmyyyy = str.match(/^(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{4})$/)
+  if (ddmmyyyy) {
+    const [, day, month, year] = ddmmyyyy
+    const d = new Date(Number(year), Number(month) - 1, Number(day))
+    if (!isNaN(d.getTime()) && d.getFullYear() >= 1900 && d.getFullYear() <= 2100) {
+      return d.toISOString().split("T")[0]
+    }
+    return ""
+  }
+
+  // YYYY-MM-DD (ISO)
+  const iso = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/)
+  if (iso) {
+    const d = new Date(str)
+    if (!isNaN(d.getTime()) && d.getFullYear() >= 1900 && d.getFullYear() <= 2100) {
+      return d.toISOString().split("T")[0]
+    }
+    return ""
+  }
+
+  return ""
+}
+
 // Header normalization map
 const HEADER_MAP: Record<string, string> = {
   "nome": "nome",
@@ -48,33 +105,35 @@ export function normalizeHeaders(headers: string[]): Record<number, string> {
   return map
 }
 
-export function parseFile(buffer: Buffer, filename: string): { headers: string[]; rows: Record<string, string>[] } {
+export function parseFile(buffer: Buffer, filename: string): { headers: string[]; rows: Record<string, unknown>[] } {
   const ext = filename.split(".").pop()?.toLowerCase()
+  const opts = ext === "csv"
+    ? { type: "buffer" as const, codepage: 65001, cellDates: true }
+    : { type: "buffer" as const, cellDates: true }
 
-  if (ext === "csv") {
-    const workbook = XLSX.read(buffer, { type: "buffer", codepage: 65001 })
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
-    const data = XLSX.utils.sheet_to_json<Record<string, string>>(sheet, { defval: "" })
-    const headers = data.length > 0 ? Object.keys(data[0]) : []
-    return { headers, rows: data }
-  }
-
-  // xlsx
-  const workbook = XLSX.read(buffer, { type: "buffer" })
+  const workbook = XLSX.read(buffer, opts)
   const sheet = workbook.Sheets[workbook.SheetNames[0]]
-  const data = XLSX.utils.sheet_to_json<Record<string, string>>(sheet, { defval: "" })
+  // raw: true preserves Date objects and numbers for proper parsing
+  const data = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: "", raw: true })
   const headers = data.length > 0 ? Object.keys(data[0]) : []
   return { headers, rows: data }
 }
 
-export function validateRows(rows: Record<string, string>[], headerMap: Record<number, string>, originalHeaders: string[]): ValidatedRow[] {
+export function validateRows(rows: Record<string, unknown>[], headerMap: Record<number, string>, originalHeaders: string[]): ValidatedRow[] {
   return rows.map((row, index) => {
     // Map row keys to normalized names
     const mappedData: Record<string, string> = {}
     originalHeaders.forEach((h, i) => {
       const normalizedKey = headerMap[i]
       if (normalizedKey) {
-        mappedData[normalizedKey] = String(row[h] || "").trim()
+        const rawValue = row[h]
+
+        // Special handling for date fields
+        if (normalizedKey === "dataNascimento") {
+          mappedData[normalizedKey] = parseDateValue(rawValue)
+        } else {
+          mappedData[normalizedKey] = String(rawValue ?? "").trim()
+        }
       }
     })
 
