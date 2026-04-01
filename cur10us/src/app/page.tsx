@@ -42,7 +42,7 @@ export default async function Home() {
   const { stats, branding } = await getData()
 
   return (
-    <main className="min-h-screen bg-zinc-50 dark:bg-black text-zinc-900 dark:text-zinc-100">
+    <main className="min-h-screen bg-zinc-50 dark:bg-black text-zinc-900 dark:text-zinc-100 scroll-smooth">
       <LandingNavbar branding={branding} />
       <HeroSection branding={branding} />
       <StatsSection {...stats} />
