@@ -64,6 +64,7 @@ export async function GET() {
       return NextResponse.json({
         user,
         student: student ? {
+          id: student.id,
           phone: student.phone,
           address: student.address,
           foto: student.foto,

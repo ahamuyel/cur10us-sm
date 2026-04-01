@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react"
 import { useParams, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import { Loader2, Users, UserRound, UserCheck, Presentation, GraduationCap, ClipboardList, Calendar, Inbox, Megaphone, Settings2 } from "lucide-react"
+import { Loader2, Users, UserRound, Presentation, GraduationCap, ClipboardList, Calendar, Inbox, Megaphone, Settings2 } from "lucide-react"
 
 import StatCard from "@/components/ui/StatCard"
 import CountChart from "@/components/ui/CountChart"
@@ -12,21 +12,7 @@ import FinanceChart from "@/components/ui/FinanceChart"
 import EventCalendar from "@/components/ui/EventCalendar"
 import Announcements from "@/components/ui/Announcements"
 import BigCalendar from "@/components/ui/BigCalendar"
-
-const calendarConfig: Record<string, { title: string; subtitle: string }> = {
-  teacher: {
-    title: "Agenda",
-    subtitle: "Visualize e gerencie suas aulas da semana",
-  },
-  student: {
-    title: "Minha Agenda",
-    subtitle: "Suas aulas e atividades da semana",
-  },
-  parent: {
-    title: "Agenda do Aluno",
-    subtitle: "Acompanhe as aulas e atividades do seu filho",
-  },
-}
+import StudentDashboard from "@/components/ui/StudentDashboard"
 
 type SchoolStats = {
   students: number
@@ -75,6 +61,8 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<SchoolStats | null>(null)
   const [layout, setLayout] = useState<CardConfig[]>(defaultLayout)
   const [customizeOpen, setCustomizeOpen] = useState(false)
+  const [studentId, setStudentId] = useState<string | null>(null)
+  const [childrenList, setChildrenList] = useState<{ id: string; name: string }[]>([])
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -106,6 +94,29 @@ export default function DashboardPage() {
     }
   }, [status, session])
 
+  // Resolve studentId for student or parent
+  useEffect(() => {
+    if (status !== "authenticated" || !session?.user) return
+    const role = session.user.role
+
+    if (role === "student") {
+      fetch("/api/profile")
+        .then((r) => r.json())
+        .then((d) => { if (d.student?.id) setStudentId(d.student.id) })
+        .catch(() => {})
+    } else if (role === "parent") {
+      fetch("/api/profile")
+        .then((r) => r.json())
+        .then((d) => {
+          if (d.parent?.students?.length > 0) {
+            setChildrenList(d.parent.students.map((s: { id: string; name: string }) => ({ id: s.id, name: s.name })))
+            setStudentId(d.parent.students[0].id)
+          }
+        })
+        .catch(() => {})
+    }
+  }, [status, session])
+
   const saveLayout = async (newLayout: CardConfig[]) => {
     setLayout(newLayout)
     await fetch("/api/user-preferences/dashboard", {
@@ -125,6 +136,7 @@ export default function DashboardPage() {
 
   const role = session?.user?.role
 
+  // ========== SCHOOL ADMIN DASHBOARD ==========
   if (role === "school_admin") {
     const cardComponents: Record<string, { icon: typeof Users; color: string; value: string | number; href?: string }> = stats ? {
       students: { icon: Users, color: "emerald", value: stats.students, href: "/list/students" },
@@ -245,18 +257,48 @@ export default function DashboardPage() {
     )
   }
 
-  const config = calendarConfig[role || ""] || calendarConfig.student
+  // ========== STUDENT & PARENT DASHBOARD ==========
+  if (role === "student" || role === "parent") {
+    return (
+      <div className="p-3 sm:p-4 lg:p-6">
+        {/* Parent child selector */}
+        {role === "parent" && childrenList.length > 1 && (
+          <div className="mb-4">
+            <label className="block text-xs font-medium text-zinc-500 mb-1.5">Seleccionar filho(a)</label>
+            <select
+              value={studentId || ""}
+              onChange={(e) => setStudentId(e.target.value)}
+              className="px-3 py-2 rounded-xl text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              {childrenList.map((child) => (
+                <option key={child.id} value={child.id}>{child.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
+        {studentId ? (
+          <StudentDashboard studentId={studentId} />
+        ) : (
+          <div className="flex items-center justify-center min-h-[40vh]">
+            <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // ========== TEACHER DASHBOARD (calendar view) ==========
   return (
     <div className="p-3 sm:p-4 lg:p-6 flex flex-col gap-4 sm:gap-6">
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 sm:gap-6">
         <section className="xl:col-span-8">
           <div className="bg-white dark:bg-zinc-900 rounded-2xl p-3 sm:p-4 shadow-sm border border-zinc-200 dark:border-zinc-800">
             <h1 className="text-base sm:text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-0.5">
-              {config.title}
+              Agenda
             </h1>
             <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mb-3 sm:mb-4">
-              {config.subtitle}
+              Visualize e gerencie suas aulas da semana
             </p>
             <BigCalendar />
           </div>
