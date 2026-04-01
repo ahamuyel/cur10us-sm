@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { requirePermission, getSchoolId } from "@/lib/api-auth"
-import { parseFile, normalizeHeaders, validateRows, generateTempPassword } from "@/lib/import-utils"
+import { parseFile, normalizeHeaders, validateRows, generateTempPassword, parseDateValue } from "@/lib/import-utils"
 import { prisma } from "@/lib/prisma"
 import { hash } from "bcryptjs"
 import { Prisma } from "@prisma/client"
@@ -16,7 +16,11 @@ function friendlyPrismaError(err: unknown): string {
     if (err.code === "P2003") return "Referência inválida (ex.: turma inexistente)"
     if (err.code === "P2025") return "Registo relacionado não encontrado"
   }
-  if (err instanceof Error) return err.message
+  if (err instanceof Error) {
+    if (err.message.includes("DateTime") || err.message.includes("Could not convert"))
+      return "Data de nascimento inválida — verifique o formato (DD/MM/AAAA)"
+    return err.message
+  }
   return "Erro ao criar utilizador"
 }
 
@@ -184,7 +188,7 @@ export async function POST(req: Request) {
                 phone,
                 address,
                 gender: (row.data.genero as "masculino" | "feminino") || undefined,
-                dateOfBirth: row.data.dataNascimento ? new Date(row.data.dataNascimento) : undefined,
+                dateOfBirth: row.data.dataNascimento ? new Date(row.data.dataNascimento) : undefined, // Already parsed by validateRows via parseDateValue
                 documentType: row.data.tipoDocumento || undefined,
                 documentNumber: row.data.numeroDocumento || undefined,
                 classId: row.data.turma ? classMap[row.data.turma] : undefined,
