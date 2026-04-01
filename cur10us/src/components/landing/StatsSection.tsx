@@ -27,7 +27,7 @@ function AnimatedCounter({ target, duration = 2000 }: { target: number; duration
           const animate = (now: number) => {
             const elapsed = now - start
             const progress = Math.min(elapsed / duration, 1)
-            const eased = 1 - Math.pow(1 - progress, 3) // ease-out cubic
+            const eased = 1 - Math.pow(1 - progress, 3)
             setCount(Math.floor(eased * target))
             if (progress < 1) requestAnimationFrame(animate)
           }
@@ -45,27 +45,60 @@ function AnimatedCounter({ target, duration = 2000 }: { target: number; duration
 }
 
 const statItems = [
-  { key: "schools" as const, icon: School, label: "Escolas registadas" },
-  { key: "students" as const, icon: Users, label: "Alunos na plataforma" },
-  { key: "teachers" as const, icon: GraduationCap, label: "Professores activos" },
-  { key: "classes" as const, icon: BookOpen, label: "Turmas criadas" },
+  {
+    key: "schools" as const,
+    icon: School,
+    label: "Escolas registadas",
+    gradient: "from-indigo-500 to-indigo-600",
+    bg: "bg-indigo-50 dark:bg-indigo-950/50",
+    ring: "ring-indigo-100 dark:ring-indigo-900/50",
+  },
+  {
+    key: "students" as const,
+    icon: Users,
+    label: "Alunos na plataforma",
+    gradient: "from-violet-500 to-violet-600",
+    bg: "bg-violet-50 dark:bg-violet-950/50",
+    ring: "ring-violet-100 dark:ring-violet-900/50",
+  },
+  {
+    key: "teachers" as const,
+    icon: GraduationCap,
+    label: "Professores activos",
+    gradient: "from-cyan-500 to-cyan-600",
+    bg: "bg-cyan-50 dark:bg-cyan-950/50",
+    ring: "ring-cyan-100 dark:ring-cyan-900/50",
+  },
+  {
+    key: "classes" as const,
+    icon: BookOpen,
+    label: "Turmas criadas",
+    gradient: "from-emerald-500 to-emerald-600",
+    bg: "bg-emerald-50 dark:bg-emerald-950/50",
+    ring: "ring-emerald-100 dark:ring-emerald-900/50",
+  },
 ]
 
 export default function StatsSection(props: Props) {
   return (
-    <section className="border-y border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
-      <div className="max-w-6xl mx-auto grid grid-cols-2 lg:grid-cols-4 divide-x divide-zinc-200 dark:divide-zinc-800">
+    <section className="relative py-20 px-6">
+      <div className="max-w-6xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {statItems.map((stat) => {
           const Icon = stat.icon
           const value = props[stat.key]
           return (
-            <div key={stat.key} className="flex flex-col items-center py-10 px-4">
-              <Icon className="w-6 h-6 text-indigo-600 dark:text-indigo-400 mb-2" />
-              <span className="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-zinc-100">
+            <div
+              key={stat.key}
+              className={`relative flex flex-col items-center py-8 px-4 rounded-2xl ${stat.bg} ring-1 ${stat.ring} transition-all hover:scale-[1.03]`}
+            >
+              <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center mb-4 shadow-lg`}>
+                <Icon className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-4xl sm:text-5xl font-bold text-zinc-900 dark:text-zinc-100 tabular-nums">
                 <AnimatedCounter target={value} />
-                {value > 0 && "+"}
+                {value > 0 && <span className="text-2xl">+</span>}
               </span>
-              <span className="text-sm text-zinc-500 dark:text-zinc-400 mt-1 text-center">
+              <span className="text-sm text-zinc-500 dark:text-zinc-400 mt-2 text-center font-medium">
                 {stat.label}
               </span>
             </div>
