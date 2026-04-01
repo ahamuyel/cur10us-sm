@@ -6,27 +6,33 @@ export default function AuthLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-black text-zinc-900 dark:text-zinc-100 flex flex-col">
-      {/* Header */}
-      <header className="px-6 py-4">
-        <Link href="/" className="inline-flex items-center gap-2">
-          <span className="text-lg font-bold tracking-tight">
-            Cur10us<span className="text-indigo-600 dark:text-indigo-400">X</span>
-          </span>
-        </Link>
-      </header>
+    <div className="flex min-h-svh flex-col items-center justify-center bg-zinc-100 dark:bg-zinc-950 p-6 md:p-10">
+      {/* Background decoration */}
+      <div className="fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-indigo-400/10 dark:bg-indigo-600/5 blur-[100px]" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[400px] h-[400px] rounded-full bg-violet-400/10 dark:bg-violet-600/5 blur-[100px]" />
+      </div>
 
-      {/* Content */}
-      <main className="flex-1 flex items-center justify-center px-6 py-12 relative overflow-hidden">
-        {/* Background gradient blobs */}
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-indigo-400/20 dark:bg-indigo-600/10 blur-3xl" />
-          <div className="absolute bottom-[-20%] right-[-10%] w-[400px] h-[400px] rounded-full bg-violet-400/20 dark:bg-violet-600/10 blur-3xl" />
-          <div className="absolute top-[30%] right-[20%] w-[350px] h-[350px] rounded-full bg-fuchsia-400/15 dark:bg-fuchsia-600/8 blur-3xl" />
+      <div className="w-full max-w-sm">
+        {/* Logo */}
+        <div className="flex justify-center mb-8">
+          <Link href="/" className="flex items-center gap-2.5">
+            <span className="text-2xl font-bold tracking-tight">
+              Cur10us
+              <span className="bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400 bg-clip-text text-transparent">
+                X
+              </span>
+            </span>
+          </Link>
         </div>
 
         {children}
-      </main>
+
+        {/* Footer */}
+        <p className="mt-8 text-center text-xs text-zinc-400 dark:text-zinc-500">
+          &copy; {new Date().getFullYear()} Cur10usX. Todos os direitos reservados.
+        </p>
+      </div>
     </div>
   )
 }
