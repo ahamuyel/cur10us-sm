@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<title>Cur10usX — Documentação do Projecto</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    color: #18181b;
+    line-height: 1.7;
+    font-size: 11pt;
+  }
+
+  /* Cover page */
+  .cover {
+    page-break-after: always;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+    color: white;
+    padding: 60px;
+  }
+  .cover h1 {
+    font-size: 52pt;
+    font-weight: 800;
+    letter-spacing: -2px;
+    margin-bottom: 8px;
+  }
+  .cover h1 span { opacity: 0.8; }
+  .cover .subtitle {
+    font-size: 16pt;
+    font-weight: 300;
+    opacity: 0.9;
+    margin-bottom: 40px;
+  }
+  .cover .meta {
+    font-size: 10pt;
+    opacity: 0.7;
+    margin-top: 60px;
+  }
+  .cover .badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 20px;
+    padding: 6px 20px;
+    font-size: 10pt;
+    font-weight: 500;
+    margin-bottom: 30px;
+  }
+
+  /* TOC */
+  .toc {
+    page-break-after: always;
+    padding: 60px;
+  }
+  .toc h2 {
+    font-size: 24pt;
+    font-weight: 700;
+    color: #6366f1;
+    margin-bottom: 30px;
+  }
+  .toc-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 10px 0;
+    border-bottom: 1px solid #f4f4f5;
+    font-size: 11pt;
+  }
+  .toc-item .num { color: #6366f1; font-weight: 600; margin-right: 12px; }
+  .toc-section { font-weight: 600; font-size: 12pt; padding-top: 16px; border-bottom: 2px solid #e4e4e7; }
+
+  /* Content pages */
+  .page {
+    padding: 50px 60px;
+    page-break-after: always;
+  }
+  .page:last-child { page-break-after: auto; }
+
+  h2 {
+    font-size: 22pt;
+    font-weight: 700;
+    color: #18181b;
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
+  }
+  h2 .accent { color: #6366f1; }
+
+  h3 {
+    font-size: 14pt;
+    font-weight: 600;
+    color: #27272a;
+    margin-top: 28px;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #f4f4f5;
+  }
+
+  h4 {
+    font-size: 11pt;
+    font-weight: 600;
+    color: #3f3f46;
+    margin-top: 18px;
+    margin-bottom: 6px;
+  }
+
+  p { margin-bottom: 10px; color: #3f3f46; }
+  .section-intro {
+    font-size: 11pt;
+    color: #71717a;
+    margin-bottom: 24px;
+    border-left: 3px solid #6366f1;
+    padding-left: 14px;
+  }
+
+  ul, ol { margin-bottom: 12px; padding-left: 24px; }
+  li { margin-bottom: 4px; color: #3f3f46; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0 20px;
+    font-size: 10pt;
+  }
+  th {
+    background: #f4f4f5;
+    font-weight: 600;
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 2px solid #e4e4e7;
+    color: #27272a;
+  }
+  td {
+    padding: 7px 12px;
+    border-bottom: 1px solid #f4f4f5;
+    color: #3f3f46;
+  }
+  tr:nth-child(even) td { background: #fafafa; }
+
+  .badge-sm {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 9pt;
+    font-weight: 600;
+  }
+  .badge-indigo { background: #eef2ff; color: #4f46e5; }
+  .badge-emerald { background: #ecfdf5; color: #059669; }
+  .badge-amber { background: #fffbeb; color: #d97706; }
+  .badge-rose { background: #fff1f2; color: #e11d48; }
+  .badge-violet { background: #f5f3ff; color: #7c3aed; }
+  .badge-cyan { background: #ecfeff; color: #0891b2; }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin: 14px 0;
+  }
+  .card {
+    border: 1px solid #e4e4e7;
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .card h5 {
+    font-size: 11pt;
+    font-weight: 600;
+    color: #27272a;
+    margin-bottom: 6px;
+  }
+  .card p { font-size: 10pt; color: #71717a; margin-bottom: 0; }
+
+  code {
+    background: #f4f4f5;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 9.5pt;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    color: #6366f1;
+  }
+
+  .tech-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin: 14px 0;
+  }
+  .tech-item {
+    background: #f9fafb;
+    border: 1px solid #f4f4f5;
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+  }
+  .tech-item .name { font-weight: 600; font-size: 10pt; }
+  .tech-item .ver { font-size: 9pt; color: #a1a1aa; }
+
+  .flow-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .flow-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #6366f1;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 10pt;
+    flex-shrink: 0;
+  }
+
+  .footer {
+    position: fixed;
+    bottom: 20px;
+    left: 60px;
+    right: 60px;
+    font-size: 8pt;
+    color: #a1a1aa;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  @media print {
+    .cover { height: 100vh; }
+    .page { page-break-after: always; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ==================== COVER ==================== -->
+<div class="cover">
+  <div class="badge">Documentação Técnica & Funcional</div>
+  <h1>Cur10us<span>X</span></h1>
+  <div class="subtitle">Plataforma de Gestão Escolar para Angola</div>
+  <p style="font-size: 11pt; opacity: 0.8; max-width: 500px;">
+    Solução completa para gestão académica multi-escola — alunos, professores, notas, assiduidade, comunicação e muito mais.
+  </p>
+  <div class="meta">
+    Versão 0.1.0 · Abril 2026<br>
+    Documento gerado automaticamente
+  </div>
+</div>
+
+<!-- ==================== TOC ==================== -->
+<div class="toc">
+  <h2>Índice</h2>
+
+  <div class="toc-item toc-section"><span><span class="num">I</span> Visão Geral para Utilizadores</span></div>
+  <div class="toc-item"><span><span class="num">1</span> O que é o Cur10usX</span></div>
+  <div class="toc-item"><span><span class="num">2</span> Perfis de Utilizador</span></div>
+  <div class="toc-item"><span><span class="num">3</span> Funcionalidades por Perfil</span></div>
+  <div class="toc-item"><span><span class="num">4</span> Fluxo de Onboarding</span></div>
+  <div class="toc-item"><span><span class="num">5</span> Módulos e Funcionalidades</span></div>
+
+  <div class="toc-item toc-section"><span><span class="num">II</span> Documentação Técnica</span></div>
+  <div class="toc-item"><span><span class="num">6</span> Arquitectura e Stack Tecnológico</span></div>
+  <div class="toc-item"><span><span class="num">7</span> Estrutura do Projecto</span></div>
+  <div class="toc-item"><span><span class="num">8</span> Modelos de Dados (Prisma)</span></div>
+  <div class="toc-item"><span><span class="num">9</span> API Routes</span></div>
+  <div class="toc-item"><span><span class="num">10</span> Autenticação e Permissões</span></div>
+  <div class="toc-item"><span><span class="num">11</span> Sistema de Feature Flags</span></div>
+  <div class="toc-item"><span><span class="num">12</span> Configuração e Deploy</span></div>
+</div>
+
+<!-- ==================== PART I: USERS ==================== -->
+
+<div class="page">
+  <h2><span class="accent">1.</span> O que é o Cur10usX</h2>
+  <p class="section-intro">
+    O Cur10usX é uma plataforma de gestão escolar moderna, pensada para o contexto angolano. Centraliza a gestão de alunos, professores, notas, assiduidade e comunicação numa única plataforma acessível de qualquer dispositivo.
+  </p>
+
+  <h3>Problema</h3>
+  <p>Muitas escolas em Angola ainda gerem matrículas, notas e assiduidade em papel ou em ficheiros Excel dispersos. A comunicação entre escola, professores e encarregados é fragmentada e lenta.</p>
+
+  <h3>Solução</h3>
+  <p>O Cur10usX oferece uma plataforma unificada onde cada interveniente da comunidade escolar — gestor, professor, aluno e encarregado — tem acesso à informação relevante para o seu papel, em tempo real.</p>
+
+  <h3>Características Principais</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h5>Multi-Escola</h5>
+      <p>Cada escola é um tenant isolado com dados, utilizadores e configurações independentes.</p>
+    </div>
+    <div class="card">
+      <h5>Modular</h5>
+      <p>17 módulos activáveis por escola. Cada instituição liga apenas o que precisa.</p>
+    </div>
+    <div class="card">
+      <h5>Responsivo</h5>
+      <p>Funciona em computador, tablet e telemóvel. Dark mode incluído.</p>
+    </div>
+    <div class="card">
+      <h5>Seguro</h5>
+      <p>Autenticação robusta, permissões granulares, dados encriptados e isolados por escola.</p>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+  <h2><span class="accent">2.</span> Perfis de Utilizador</h2>
+  <p class="section-intro">O sistema suporta 5 perfis com diferentes níveis de acesso e funcionalidades.</p>
+
+  <table>
+    <tr><th>Perfil</th><th>Descrição</th><th>Acesso</th></tr>
+    <tr>
+      <td><span class="badge-sm badge-violet">Super Admin</span></td>
+      <td>Administrador da plataforma. Gere escolas, utilizadores globais e configurações do sistema.</td>
+      <td>Painel /admin com gestão de todas as escolas</td>
+    </tr>
+    <tr>
+      <td><span class="badge-sm badge-indigo">Gestor Escolar</span></td>
+      <td>Administrador da escola. Acesso total à gestão académica, turmas, professores, alunos e configurações.</td>
+      <td>Dashboard com estatísticas, todas as listas e configurações</td>
+    </tr>
+    <tr>
+      <td><span class="badge-sm badge-emerald">Professor</span></td>
+      <td>Lança notas, regista assiduidade, gere tarefas e exames das suas turmas.</td>
+      <td>Agenda, listas de alunos, notas, assiduidade, tarefas</td>
+    </tr>
+    <tr>
+      <td><span class="badge-sm badge-amber">Aluno</span></td>
+      <td>Consulta notas, assiduidade, horários, tarefas e submete trabalhos.</td>
+      <td>Dashboard de progresso, notas, assiduidade, tarefas, agenda</td>
+    </tr>
+    <tr>
+      <td><span class="badge-sm badge-rose">Encarregado</span></td>
+      <td>Acompanha o desempenho do(s) educando(s): notas, faltas e comunicação.</td>
+      <td>Dashboard do filho, notas, assiduidade, mensagens</td>
+    </tr>
+  </table>
+
+  <h3>Administradores Secundários</h3>
+  <p>O gestor escolar pode criar administradores secundários com permissões granulares. Cada permissão controla o acesso a uma área específica:</p>
+  <div style="columns: 2; font-size: 10pt; margin-top: 8px;">
+    <ul>
+      <li>Gerir solicitações</li>
+      <li>Gerir professores</li>
+      <li>Gerir alunos</li>
+      <li>Gerir encarregados</li>
+      <li>Gerir turmas</li>
+      <li>Gerir cursos</li>
+      <li>Gerir disciplinas</li>
+      <li>Gerir aulas</li>
+      <li>Gerir exames</li>
+      <li>Gerir tarefas</li>
+      <li>Gerir resultados</li>
+      <li>Gerir assiduidade</li>
+      <li>Gerir mensagens</li>
+      <li>Gerir avisos</li>
+    </ul>
+  </div>
+</div>
+
+<div class="page">
+  <h2><span class="accent">3.</span> Funcionalidades por Perfil</h2>
+  <p class="section-intro">Cada perfil tem acesso a funcionalidades específicas para o seu papel.</p>
+
+  <h3>Gestor Escolar</h3>
+  <ul>
+    <li><strong>Dashboard</strong> — Stat cards personalizáveis (alunos, professores, turmas, média geral, etc.), gráficos de distribuição e assiduidade</li>
+    <li><strong>Gestão completa</strong> — CRUD de alunos, professores, encarregados, turmas, disciplinas, cursos</li>
+    <li><strong>Solicitações</strong> — Aprovar/rejeitar candidaturas de matrícula online</li>
+    <li><strong>Importação em massa</strong> — Upload de Excel/CSV para criar alunos, professores ou encarregados em lote (até 500 por ficheiro)</li>
+    <li><strong>Configurações da escola</strong> — Activar/desactivar módulos, logo, dados de contacto</li>
+    <li><strong>Administradores secundários</strong> — Criar admins com permissões específicas</li>
+  </ul>
+
+  <h3>Professor</h3>
+  <ul>
+    <li><strong>Agenda</strong> — Calendário semanal com horário de aulas</li>
+    <li><strong>Notas</strong> — Lançar notas por trimestre (provas, tarefas, trabalhos, participação)</li>
+    <li><strong>Assiduidade</strong> — Registar presenças, ausências e atrasos por aula</li>
+    <li><strong>Tarefas</strong> — Criar tarefas com prazo, avaliar submissões</li>
+    <li><strong>Exames</strong> — Agendar exames por turma e disciplina</li>
+  </ul>
+
+  <h3>Aluno</h3>
+  <ul>
+    <li><strong>Dashboard de Progresso</strong> — Média geral, assiduidade, gráficos por disciplina, evolução por trimestre, meta académica</li>
+    <li><strong>Notas</strong> — Consultar todas as notas por disciplina e trimestre</li>
+    <li><strong>Assiduidade</strong> — Ver presenças, faltas e percentagem</li>
+    <li><strong>Tarefas</strong> — Ver tarefas pendentes, submeter trabalhos</li>
+    <li><strong>Agenda</strong> — Horário de aulas e exames</li>
+  </ul>
+
+  <h3>Encarregado de Educação</h3>
+  <ul>
+    <li><strong>Dashboard do educando</strong> — Mesmo dashboard de progresso do aluno, com selector de filho(a)</li>
+    <li><strong>Notas e assiduidade</strong> — Acompanhamento em tempo real</li>
+    <li><strong>Comunicação</strong> — Mensagens internas com a escola</li>
+  </ul>
+</div>
+
+<div class="page">
+  <h2><span class="accent">4.</span> Fluxo de Onboarding</h2>
+  <p class="section-intro">Do registo da escola à utilização diária — 4 passos simples.</p>
+
+  <div class="flow-step">
+    <div class="flow-num">1</div>
+    <div><h4>Registo da Escola</h4><p>O responsável preenche o formulário com dados da escola (nome, NIF, email, telefone, cidade, província) e cria a conta de administrador.</p></div>
+  </div>
+  <div class="flow-step">
+    <div class="flow-num">2</div>
+    <div><h4>Aprovação</h4><p>O super admin da plataforma analisa e aprova o registo. A escola passa ao estado "ativa" e o admin recebe notificação.</p></div>
+  </div>
+  <div class="flow-step">
+    <div class="flow-num">3</div>
+    <div><h4>Configuração</h4><p>O gestor escolar configura: cria turmas, disciplinas e cursos; adiciona professores e alunos (individualmente ou via importação em massa).</p></div>
+  </div>
+  <div class="flow-step">
+    <div class="flow-num">4</div>
+    <div><h4>Utilização</h4><p>Professores lançam notas e assiduidade. Alunos e encarregados acompanham o progresso nos seus dashboards.</p></div>
+  </div>
+
+  <h3>Candidaturas Online</h3>
+  <p>Candidatos externos podem solicitar matrícula sem necessitar de conta:</p>
+  <ol>
+    <li>Aceder a <code>/aplicacao</code> e seleccionar a escola</li>
+    <li>Preencher formulário com dados pessoais e académicos</li>
+    <li>Receber código de acompanhamento</li>
+    <li>Verificar estado em <code>/aplicacao/status</code></li>
+    <li>Se aprovada, a escola procede à matrícula directamente na plataforma</li>
+  </ol>
+</div>
+
+<div class="page">
+  <h2><span class="accent">5.</span> Módulos e Funcionalidades</h2>
+  <p class="section-intro">O sistema é modular — cada escola activa apenas os módulos que necessita.</p>
+
+  <h3>Módulos Base (Activos por defeito)</h3>
+  <table>
+    <tr><th>Módulo</th><th>Descrição</th></tr>
+    <tr><td>Alunos</td><td>Gestão de matrículas, perfis, turmas e acompanhamento individual</td></tr>
+    <tr><td>Professores</td><td>Gestão de professores, atribuição de disciplinas e turmas</td></tr>
+    <tr><td>Encarregados</td><td>Gestão de encarregados de educação e ligação a alunos</td></tr>
+    <tr><td>Turmas</td><td>Criação de turmas com classe, capacidade e período (regular/pós-laboral)</td></tr>
+    <tr><td>Disciplinas</td><td>Gestão de disciplinas do currículo</td></tr>
+    <tr><td>Cursos</td><td>Cursos com associação de disciplinas</td></tr>
+    <tr><td>Assiduidade</td><td>Registo de presenças, ausências e atrasos com estatísticas</td></tr>
+    <tr><td>Avisos</td><td>Comunicações à comunidade escolar com prioridades</td></tr>
+    <tr><td>Notas Básicas</td><td>Lançamento de notas por trimestre, exames e trabalhos</td></tr>
+  </table>
+
+  <h3>Módulos Opcionais</h3>
+  <table>
+    <tr><th>Módulo</th><th>Descrição</th></tr>
+    <tr><td>Submissões</td><td>Submissão e avaliação de trabalhos pelos alunos</td></tr>
+    <tr><td>Portfólio</td><td>Portfólio académico do aluno (em desenvolvimento)</td></tr>
+    <tr><td>Certificados</td><td>Emissão de certificados e declarações</td></tr>
+    <tr><td>Relatórios Avançados</td><td>Análises e relatórios detalhados de desempenho</td></tr>
+    <tr><td>Mensagens Internas</td><td>Sistema de mensagens entre utilizadores</td></tr>
+    <tr><td>Calendário</td><td>Calendário escolar com horários de aulas</td></tr>
+    <tr><td>Finanças</td><td>Gestão financeira, propinas e pagamentos</td></tr>
+    <tr><td>Inventário</td><td>Gestão de inventário e recursos materiais</td></tr>
+  </table>
+</div>
+
+<!-- ==================== PART II: DEVS ==================== -->
+
+<div class="page">
+  <h2><span class="accent">6.</span> Arquitectura e Stack Tecnológico</h2>
+  <p class="section-intro">Stack moderno baseado em Next.js com App Router, Prisma ORM e PostgreSQL.</p>
+
+  <h3>Stack Principal</h3>
+  <div class="tech-grid">
+    <div class="tech-item"><div class="name">Next.js</div><div class="ver">v16.1.6 (App Router)</div></div>
+    <div class="tech-item"><div class="name">React</div><div class="ver">v19.2.3</div></div>
+    <div class="tech-item"><div class="name">TypeScript</div><div class="ver">v5.9</div></div>
+    <div class="tech-item"><div class="name">Tailwind CSS</div><div class="ver">v4</div></div>
+    <div class="tech-item"><div class="name">Prisma</div><div class="ver">v6.19.2</div></div>
+    <div class="tech-item"><div class="name">PostgreSQL</div><div class="ver">Neon (serverless)</div></div>
+    <div class="tech-item"><div class="name">NextAuth.js</div><div class="ver">v5 beta</div></div>
+    <div class="tech-item"><div class="name">Recharts</div><div class="ver">v3.7.0</div></div>
+    <div class="tech-item"><div class="name">Zod</div><div class="ver">v4.3.6</div></div>
+  </div>
+
+  <h3>Dependências Auxiliares</h3>
+  <table>
+    <tr><th>Pacote</th><th>Função</th></tr>
+    <tr><td><code>bcryptjs</code></td><td>Hashing de passwords (10 rounds)</td></tr>
+    <tr><td><code>resend</code></td><td>Envio de emails transaccionais</td></tr>
+    <tr><td><code>xlsx</code></td><td>Parsing e geração de ficheiros Excel/CSV</td></tr>
+    <tr><td><code>lucide-react</code></td><td>Biblioteca de ícones (563 ícones)</td></tr>
+    <tr><td><code>react-big-calendar</code></td><td>Calendário interactivo de aulas</td></tr>
+    <tr><td><code>@reduxjs/toolkit</code></td><td>State management (usado pontualmente)</td></tr>
+  </table>
+
+  <h3>Arquitectura</h3>
+  <p>A aplicação segue o padrão <strong>monolítico full-stack</strong> do Next.js:</p>
+  <ul>
+    <li><strong>Frontend</strong> — React Server Components + Client Components (App Router)</li>
+    <li><strong>Backend</strong> — Next.js API Route Handlers (REST)</li>
+    <li><strong>ORM</strong> — Prisma com PostgreSQL (Neon serverless)</li>
+    <li><strong>Auth</strong> — NextAuth v5 com JWT strategy, providers Credentials + Google</li>
+    <li><strong>Multi-tenancy</strong> — Isolamento por <code>schoolId</code> em todos os modelos</li>
+  </ul>
+</div>
+
+<div class="page">
+  <h2><span class="accent">7.</span> Estrutura do Projecto</h2>
+  <p class="section-intro">Organização dos ficheiros seguindo convenções do Next.js App Router.</p>
+
+  <h3>Directórios Principais</h3>
+  <table>
+    <tr><th>Path</th><th>Descrição</th></tr>
+    <tr><td><code>src/app/(auth)/</code></td><td>Páginas de autenticação (signin, signup, forgot-password, registar-escola)</td></tr>
+    <tr><td><code>src/app/(dashboard)/</code></td><td>Páginas autenticadas — dashboard, listas, perfil, settings, import</td></tr>
+    <tr><td><code>src/app/(minha-area)/</code></td><td>Área do aluno pré-matrícula</td></tr>
+    <tr><td><code>src/app/admin/</code></td><td>Painel do super admin (gestão de escolas e plataforma)</td></tr>
+    <tr><td><code>src/app/api/</code></td><td>~94 API route handlers (REST)</td></tr>
+    <tr><td><code>src/components/ui/</code></td><td>Componentes reutilizáveis (StatCard, charts, tables, modals)</td></tr>
+    <tr><td><code>src/components/layout/</code></td><td>Layout (Menu, Navbar, MobileNav, gates)</td></tr>
+    <tr><td><code>src/components/landing/</code></td><td>Componentes da landing page (Hero, Features, Pricing, etc.)</td></tr>
+    <tr><td><code>src/lib/</code></td><td>Utilitários (auth, prisma, validations, features, import-utils)</td></tr>
+    <tr><td><code>src/provider/</code></td><td>Context providers (ThemeProvider, AuthProvider)</td></tr>
+    <tr><td><code>src/styles/</code></td><td>CSS global (Tailwind v4)</td></tr>
+    <tr><td><code>prisma/</code></td><td>Schema e migrations</td></tr>
+  </table>
+
+  <h3>Padrões de Código</h3>
+  <ul>
+    <li><strong>API Routes</strong> — Cada rota usa <code>requirePermission()</code> ou <code>requireRole()</code> para auth, <code>getSchoolId()</code> para multi-tenancy</li>
+    <li><strong>Validação</strong> — Schemas Zod em <code>src/lib/validations/</code> para todos os inputs</li>
+    <li><strong>Client Components</strong> — Marcados com <code>"use client"</code>, usam hooks (<code>useState</code>, <code>useEffect</code>, <code>useSession</code>)</li>
+    <li><strong>Server Components</strong> — Landing page e layouts usam Server Components com <code>async/await</code></li>
+  </ul>
+</div>
+
+<div class="page">
+  <h2><span class="accent">8.</span> Modelos de Dados</h2>
+  <p class="section-intro">30 modelos Prisma + 13 enums. Todos os modelos multi-tenant possuem <code>schoolId</code>.</p>
+
+  <h3>Modelos Centrais</h3>
+  <table>
+    <tr><th>Modelo</th><th>Campos-chave</th><th>Relações</th></tr>
+    <tr><td>User</td><td>name, email, role, hashedPassword, schoolId, isActive</td><td>→ Student, Teacher, Parent</td></tr>
+    <tr><td>School</td><td>name, slug, nif, status, features (JSON), logo</td><td>→ todos os modelos académicos</td></tr>
+    <tr><td>Student</td><td>name, email, gender, dateOfBirth, classId, userId</td><td>→ Results, Attendances, Submissions</td></tr>
+    <tr><td>Teacher</td><td>name, email, userId</td><td>→ Subjects, Classes, Lessons, Exams</td></tr>
+    <tr><td>Parent</td><td>name, email, userId</td><td>→ Students (many-to-many)</td></tr>
+  </table>
+
+  <h3>Modelos Académicos</h3>
+  <table>
+    <tr><th>Modelo</th><th>Campos-chave</th></tr>
+    <tr><td>Class</td><td>name, grade, capacity, period (regular/pos_laboral), courseId</td></tr>
+    <tr><td>Subject</td><td>name, schoolId (unique por escola)</td></tr>
+    <tr><td>Course</td><td>name, schoolId → CourseSubject (junction)</td></tr>
+    <tr><td>Lesson</td><td>day, startTime, endTime, room, subjectId, classId, teacherId</td></tr>
+    <tr><td>Exam</td><td>title, date, subjectId, classId, teacherId</td></tr>
+    <tr><td>Assignment</td><td>title, dueDate, maxScore, subjectId, classId</td></tr>
+    <tr><td>Result</td><td>score (Float), type, trimester, academicYear, studentId, subjectId</td></tr>
+    <tr><td>Attendance</td><td>date, status (presente/ausente/atrasado), studentId, classId</td></tr>
+    <tr><td>AssignmentSubmission</td><td>content, status, score, feedback, studentId</td></tr>
+  </table>
+
+  <h3>Enums</h3>
+  <div style="columns: 2; font-size: 10pt;">
+    <ul>
+      <li><strong>Role:</strong> super_admin, school_admin, teacher, student, parent</li>
+      <li><strong>SchoolStatus:</strong> pendente, aprovada, ativa, suspensa, rejeitada</li>
+      <li><strong>AttendanceStatus:</strong> presente, ausente, atrasado</li>
+      <li><strong>Trimester:</strong> primeiro, segundo, terceiro</li>
+      <li><strong>Gender:</strong> masculino, feminino</li>
+      <li><strong>ClassPeriod:</strong> regular, pos_laboral</li>
+      <li><strong>AssignmentStatus:</strong> pendente, entregue, avaliada, atrasada</li>
+      <li><strong>ImportStatus:</strong> pendente, processando, concluida, parcial, falhada</li>
+      <li><strong>AnnouncementPriority:</strong> informativo, importante, urgente</li>
+      <li><strong>AdminLevel:</strong> primary, secondary</li>
+    </ul>
+  </div>
+</div>
+
+<div class="page">
+  <h2><span class="accent">9.</span> API Routes</h2>
+  <p class="section-intro">~94 endpoints REST organizados por domínio. Todos protegidos por autenticação e multi-tenancy.</p>
+
+  <table>
+    <tr><th>Grupo</th><th>Endpoints</th><th>Descrição</th></tr>
+    <tr><td>Auth</td><td>6</td><td>Signup, signin, forgot/reset password, register school</td></tr>
+    <tr><td>Admin</td><td>17</td><td>Gestão de escolas, super admins, dashboard admin, settings</td></tr>
+    <tr><td>Admins Secundários</td><td>5</td><td>CRUD de admins com permissões granulares</td></tr>
+    <tr><td>Students</td><td>6</td><td>CRUD, portfolio, dashboard de progresso, transferência</td></tr>
+    <tr><td>Teachers</td><td>5</td><td>CRUD, classes e subjects do professor</td></tr>
+    <tr><td>Parents</td><td>3</td><td>CRUD de encarregados</td></tr>
+    <tr><td>Classes</td><td>3</td><td>CRUD de turmas, lista de alunos por turma</td></tr>
+    <tr><td>Subjects/Courses</td><td>5</td><td>CRUD de disciplinas e cursos</td></tr>
+    <tr><td>Lessons</td><td>3</td><td>CRUD de aulas, assiduidade por aula</td></tr>
+    <tr><td>Exams</td><td>2</td><td>CRUD de exames</td></tr>
+    <tr><td>Assignments</td><td>4</td><td>CRUD de tarefas, submissões de alunos</td></tr>
+    <tr><td>Results</td><td>4</td><td>CRUD de notas, médias, resumo por turma</td></tr>
+    <tr><td>Attendance</td><td>4</td><td>CRUD de assiduidade, estatísticas, alertas</td></tr>
+    <tr><td>Messages</td><td>2</td><td>Mensagens internas entre utilizadores</td></tr>
+    <tr><td>Announcements</td><td>3</td><td>Avisos com tracking de leitura</td></tr>
+    <tr><td>Applications</td><td>6</td><td>Candidaturas online — submit, track, approve, enroll</td></tr>
+    <tr><td>Notifications</td><td>3</td><td>Notificações do sistema</td></tr>
+    <tr><td>Import</td><td>6</td><td>Importação em massa — validate, execute, template, cleanup</td></tr>
+    <tr><td>Support</td><td>3</td><td>Tickets de suporte com mensagens</td></tr>
+    <tr><td>Profile/Prefs</td><td>4</td><td>Perfil, preferências, dashboard layout</td></tr>
+    <tr><td>Util</td><td>3</td><td>Search, health check, platform status</td></tr>
+  </table>
+
+  <h3>Padrão de Resposta</h3>
+  <p>Endpoints de listagem retornam: <code>{ data: [], total, page, totalPages }</code>. Erros retornam: <code>{ error: "mensagem" }</code> com HTTP status adequado (400, 401, 403, 404, 500).</p>
+</div>
+
+<div class="page">
+  <h2><span class="accent">10.</span> Autenticação e Permissões</h2>
+  <p class="section-intro">NextAuth v5 com JWT strategy, múltiplos providers e sistema de permissões granulares.</p>
+
+  <h3>Providers</h3>
+  <ul>
+    <li><strong>Credentials</strong> — Email + password (bcryptjs hash, 10 rounds)</li>
+    <li><strong>Google</strong> — OAuth 2.0 (opcional, controlado por <code>GOOGLE_AUTH_ENABLED</code>)</li>
+  </ul>
+
+  <h3>JWT Token</h3>
+  <p>O token JWT contém toda a informação necessária para autorização, evitando queries adicionais:</p>
+  <table>
+    <tr><th>Campo</th><th>Descrição</th></tr>
+    <tr><td><code>id</code></td><td>User ID</td></tr>
+    <tr><td><code>role</code></td><td>Role do utilizador (super_admin, school_admin, etc.)</td></tr>
+    <tr><td><code>schoolId</code>, <code>schoolSlug</code></td><td>Escola associada</td></tr>
+    <tr><td><code>adminLevel</code></td><td>primary ou secondary (para school_admin)</td></tr>
+    <tr><td><code>permissions</code></td><td>Array de permissões granulares</td></tr>
+    <tr><td><code>schoolFeatures</code></td><td>Features activas da escola (para UI)</td></tr>
+    <tr><td><code>mustChangePassword</code></td><td>Flag para forçar alteração de password</td></tr>
+  </table>
+
+  <h3>Funções de Autorização</h3>
+  <table>
+    <tr><th>Função</th><th>Uso</th></tr>
+    <tr><td><code>requireRole(roles[])</code></td><td>Verifica se o user tem uma das roles permitidas</td></tr>
+    <tr><td><code>requirePermission(roles[], permission?)</code></td><td>Verifica role + permissão granular para admins secundários</td></tr>
+    <tr><td><code>getSchoolId(session)</code></td><td>Extrai schoolId da sessão para filtragem multi-tenant</td></tr>
+  </table>
+
+  <h3>Fluxo de Password</h3>
+  <ul>
+    <li>Importação em massa gera passwords temporárias (6 bytes random, base64url)</li>
+    <li>Flag <code>mustChangePassword</code> activa — gate component bloqueia acesso até alteração</li>
+    <li>Forgot password envia token por email (via Resend), válido por 1 hora</li>
+  </ul>
+</div>
+
+<div class="page">
+  <h2><span class="accent">11.</span> Sistema de Feature Flags</h2>
+  <p class="section-intro">Cada escola tem um conjunto de features activáveis, armazenado como JSON no modelo School.</p>
+
+  <h3>Como Funciona</h3>
+  <ol>
+    <li>O campo <code>School.features</code> armazena um objecto JSON: <code>{ "students": true, "finances": false, ... }</code></li>
+    <li>Na criação da escola, as features padrão são activadas automaticamente</li>
+    <li>O gestor escolar pode activar/desactivar módulos nas configurações</li>
+    <li>As features são propagadas para o JWT token na sessão (<code>schoolFeatures</code>)</li>
+    <li>O menu e componentes verificam <code>isFeatureEnabled()</code> antes de renderizar</li>
+  </ol>
+
+  <h3>Integração com Menu</h3>
+  <p>O ficheiro <code>src/lib/features.ts</code> define o mapeamento entre features e items de menu. Quando uma feature é desactivada, os items de menu correspondentes ficam invisíveis para todos os utilizadores dessa escola.</p>
+
+  <h3>Configuração</h3>
+  <table>
+    <tr><th>Variável</th><th>Descrição</th></tr>
+    <tr><td><code>DEFAULT_ENABLED_FEATURES</code></td><td>9 módulos activos por defeito em novas escolas</td></tr>
+    <tr><td><code>ALL_FEATURES</code></td><td>17 módulos totais disponíveis</td></tr>
+    <tr><td><code>featureLabels</code></td><td>Nomes de exibição em português</td></tr>
+    <tr><td><code>featureDescriptions</code></td><td>Descrições para o painel de configuração</td></tr>
+    <tr><td><code>menuFeatureMap</code></td><td>Mapeamento path → feature flag</td></tr>
+  </table>
+
+  <h2 style="margin-top: 36px;"><span class="accent">12.</span> Configuração e Deploy</h2>
+  <p class="section-intro">Variáveis de ambiente necessárias para executar o projecto.</p>
+
+  <table>
+    <tr><th>Variável</th><th>Descrição</th></tr>
+    <tr><td><code>DATABASE_URL</code></td><td>Connection string PostgreSQL (Neon)</td></tr>
+    <tr><td><code>AUTH_SECRET</code></td><td>Secret para JWT signing</td></tr>
+    <tr><td><code>NEXTAUTH_URL</code></td><td>URL base da aplicação</td></tr>
+    <tr><td><code>GOOGLE_CLIENT_ID</code></td><td>Google OAuth client ID (opcional)</td></tr>
+    <tr><td><code>GOOGLE_CLIENT_SECRET</code></td><td>Google OAuth client secret (opcional)</td></tr>
+    <tr><td><code>GOOGLE_AUTH_ENABLED</code></td><td>"true" para activar login com Google</td></tr>
+    <tr><td><code>RESEND_API_KEY</code></td><td>API key do Resend para emails</td></tr>
+    <tr><td><code>EMAIL_FROM</code></td><td>Endereço de envio de emails</td></tr>
+  </table>
+
+  <h3>Comandos de Desenvolvimento</h3>
+  <table>
+    <tr><th>Comando</th><th>Descrição</th></tr>
+    <tr><td><code>npm run dev</code></td><td>Servidor de desenvolvimento</td></tr>
+    <tr><td><code>npm run build</code></td><td>Build de produção</td></tr>
+    <tr><td><code>npx prisma migrate dev</code></td><td>Executar migrations</td></tr>
+    <tr><td><code>npx prisma studio</code></td><td>Interface visual para a base de dados</td></tr>
+    <tr><td><code>npx tsc --noEmit</code></td><td>Verificação de tipos TypeScript</td></tr>
+  </table>
+</div>
+
+</body>
+</html>
