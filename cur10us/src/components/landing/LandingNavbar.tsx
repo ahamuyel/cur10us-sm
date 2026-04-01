@@ -3,12 +3,14 @@
 import Link from "next/link"
 import Image from "next/image"
 import { useState, useEffect } from "react"
-import { Menu, X } from "lucide-react"
+import { Menu, X, Sun, Moon } from "lucide-react"
+import { useTheme } from "@/provider/theme"
 import type { PlatformBranding } from "@/app/page"
 
 const navLinks = [
   { label: "Como funciona", href: "#como-funciona" },
   { label: "Funcionalidades", href: "#funcionalidades" },
+  { label: "Preços", href: "#precos" },
   { label: "Para quem", href: "#para-quem" },
   { label: "FAQ", href: "#faq" },
 ]
@@ -16,6 +18,7 @@ const navLinks = [
 export default function LandingNavbar({ branding }: { branding: PlatformBranding }) {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const { theme, toggleTheme } = useTheme()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -70,6 +73,15 @@ export default function LandingNavbar({ branding }: { branding: PlatformBranding
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Theme toggle */}
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100/50 dark:hover:bg-zinc-800/50 transition"
+            aria-label="Alternar tema"
+          >
+            {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+
           <Link
             href="/signup"
             className="hidden sm:inline-block text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition px-4 py-2 rounded-lg hover:bg-zinc-100/50 dark:hover:bg-zinc-800/50"
@@ -96,7 +108,7 @@ export default function LandingNavbar({ branding }: { branding: PlatformBranding
       {/* Mobile menu */}
       <div
         className={`md:hidden overflow-hidden transition-all duration-300 ease-out ${
-          open ? "max-h-80 opacity-100" : "max-h-0 opacity-0"
+          open ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
         }`}
       >
         <div className="border-t border-zinc-200/50 dark:border-zinc-800/50 backdrop-blur-xl bg-white/80 dark:bg-zinc-950/80 px-6 py-4 space-y-1">
