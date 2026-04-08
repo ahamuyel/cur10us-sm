@@ -4,6 +4,7 @@ import { requirePermission, getSchoolId } from "@/lib/api-auth"
 import { createResultSchema } from "@/lib/validations/academic"
 import { createNotification } from "@/lib/notifications"
 import { buildOrderBy } from "@/lib/query-helpers"
+import { getOrDefaultAcademicYearId } from "@/lib/academic-year"
 
 export async function GET(req: Request) {
   try {
@@ -86,12 +87,27 @@ export async function POST(req: Request) {
 
     const { date, trimester, academicYear, assignmentId, ...rest } = parsed.data
 
+    // Auto-fill academicYearId from current year
+    const academicYearId = await getOrDefaultAcademicYearId(schoolId, body.academicYearId)
+
+    // Lock: prevent adding results to a closed year
+    if (academicYearId) {
+      const year = await prisma.academicYear.findUnique({ where: { id: academicYearId } })
+      if (year?.status === "encerrado") {
+        return NextResponse.json({ error: "Ano letivo encerrado. Não é possível adicionar notas." }, { status: 403 })
+      }
+      if (year?.status === "em_encerramento") {
+        return NextResponse.json({ error: "Ano letivo em encerramento. Novas notas bloqueadas." }, { status: 403 })
+      }
+    }
+
     const result = await prisma.result.create({
       data: {
         ...rest,
         date: new Date(date),
         trimester: trimester || null,
         academicYear: academicYear || null,
+        academicYearId: academicYearId || null,
         assignmentId: assignmentId || null,
         schoolId,
       },
