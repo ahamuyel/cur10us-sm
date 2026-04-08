@@ -30,6 +30,10 @@ export const ALL_FEATURES = [
   "inventory",
   "calendar",
   "internalMessages",
+  "evaluationEngine",
+  "yearTransition",
+  "globalCatalog",
+  "academicHistory",
 ] as const
 
 export type FeatureKey = (typeof ALL_FEATURES)[number]
@@ -52,6 +56,10 @@ export const featureLabels: Record<FeatureKey, string> = {
   inventory: "Inventário",
   calendar: "Calendário e Aulas",
   internalMessages: "Mensagens Internas",
+  evaluationEngine: "Motor de Avaliação",
+  yearTransition: "Transição de Ano",
+  globalCatalog: "Catálogo Global",
+  academicHistory: "Histórico Académico",
 }
 
 // Default features for new schools
@@ -94,6 +102,10 @@ export const featureDescriptions: Record<FeatureKey, string> = {
   inventory: "Gestão de inventário e recursos",
   calendar: "Calendário escolar e horários de aulas",
   internalMessages: "Sistema de mensagens internas",
+  evaluationEngine: "Motor de avaliação configurável",
+  yearTransition: "Transição de ano letivo",
+  globalCatalog: "Catálogo global de disciplinas/cursos",
+  academicHistory: "Histórico académico e portabilidade",
 }
 
 // Reverse map: feature → affected menu items
@@ -115,6 +127,10 @@ export const featureMenuItems: Record<FeatureKey, string[]> = {
   inventory: [],
   calendar: ["Aulas"],
   internalMessages: ["Mensagens"],
+  evaluationEngine: [],
+  yearTransition: [],
+  globalCatalog: [],
+  academicHistory: [],
 }
 
 // Map menu paths to features
