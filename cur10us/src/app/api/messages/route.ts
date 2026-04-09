@@ -5,7 +5,7 @@ import { createMessageSchema } from "@/lib/validations/academic"
 
 export async function GET(req: Request) {
   try {
-    const { error: authError, session } = await requirePermission(["school_admin", "teacher", "student", "parent"], undefined, { requireSchool: true })
+    const { error: authError, session } = await requirePermission(["school_admin", "teacher", "student", "parent"], "canManageMessages", { requireSchool: true })
     if (authError) return authError
 
     const schoolId = getSchoolId(session!)
