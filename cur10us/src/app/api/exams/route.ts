@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requirePermission, getSchoolId } from "@/lib/api-auth"
 import { createExamSchema } from "@/lib/validations/academic"
+import { getOrDefaultAcademicYearId } from "@/lib/academic-year"
 
 export async function GET(req: Request) {
   try {
@@ -56,6 +57,7 @@ export async function POST(req: Request) {
     }
 
     const { title, date, subjectId, classId, teacherId } = parsed.data
+    const academicYearId = await getOrDefaultAcademicYearId(schoolId, body.academicYearId)
 
     const exam = await prisma.exam.create({
       data: {
@@ -64,6 +66,7 @@ export async function POST(req: Request) {
         subjectId,
         classId,
         teacherId,
+        academicYearId: academicYearId || null,
         schoolId,
       },
     })

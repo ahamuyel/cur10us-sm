@@ -50,6 +50,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
     }
 
+    // Verificar que a disciplina global existe
+    const globalSubject = await prisma.globalSubject.findUnique({
+      where: { id: parsed.data.globalSubjectId },
+    })
+    if (!globalSubject) {
+      return NextResponse.json({ error: "Disciplina global não encontrada. Use o catálogo global." }, { status: 404 })
+    }
+
     const existing = await prisma.subject.findFirst({
       where: { name: parsed.data.name, schoolId },
     })
@@ -57,9 +65,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Esta disciplina já existe nesta escola" }, { status: 409 })
     }
 
-    const subject = await prisma.subject.create({
-      data: { ...parsed.data, schoolId },
-    })
+    // Criar disciplina local + mapeamento escola↔global
+    const [subject] = await prisma.$transaction([
+      prisma.subject.create({
+        data: { name: parsed.data.name, globalSubjectId: parsed.data.globalSubjectId, schoolId },
+      }),
+      prisma.schoolSubject.upsert({
+        where: { globalSubjectId_schoolId: { globalSubjectId: parsed.data.globalSubjectId, schoolId } },
+        update: { active: true, localName: parsed.data.name !== globalSubject.name ? parsed.data.name : null },
+        create: { globalSubjectId: parsed.data.globalSubjectId, schoolId, localName: parsed.data.name !== globalSubject.name ? parsed.data.name : null },
+      }),
+    ])
     return NextResponse.json(subject, { status: 201 })
   } catch {
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })

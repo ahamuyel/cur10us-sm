@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { requirePermission, getSchoolId } from "@/lib/api-auth"
+import { requirePermission, getSchoolId, requireFeature } from "@/lib/api-auth"
 import { previewTransition } from "@/lib/year-transition"
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -11,6 +11,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       { requireSchool: true }
     )
     if (authError) return authError
+
+    const featureError = requireFeature(session!, "yearTransition")
+    if (featureError) return featureError
 
     const schoolId = getSchoolId(session!)
     const { id: closedYearId } = await params

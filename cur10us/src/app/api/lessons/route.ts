@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { requirePermission, getSchoolId } from "@/lib/api-auth"
 import { createLessonSchema } from "@/lib/validations/academic"
 import { buildOrderBy } from "@/lib/query-helpers"
+import { getOrDefaultAcademicYearId } from "@/lib/academic-year"
 
 export async function GET(req: Request) {
   try {
@@ -82,11 +83,13 @@ export async function POST(req: Request) {
     }
 
     const { materials, ...rest } = parsed.data
+    const academicYearId = await getOrDefaultAcademicYearId(schoolId, body.academicYearId)
 
     const created = await prisma.lesson.create({
       data: {
         ...rest,
         materials: materials || undefined,
+        academicYearId: academicYearId || null,
         schoolId,
       },
     })

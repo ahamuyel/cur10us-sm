@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { requirePermission, getSchoolId } from "@/lib/api-auth"
+import { requirePermission, getSchoolId, requireFeature } from "@/lib/api-auth"
 import { evaluateClass } from "@/lib/evaluation-engine"
 
 export async function GET(req: Request) {
@@ -10,6 +10,9 @@ export async function GET(req: Request) {
       { requireSchool: true }
     )
     if (authError) return authError
+
+    const featureError = requireFeature(session!, "evaluationEngine")
+    if (featureError) return featureError
 
     const schoolId = getSchoolId(session!)
     const { searchParams } = new URL(req.url)

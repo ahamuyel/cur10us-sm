@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { requirePermission, getSchoolId } from "@/lib/api-auth"
 import { createAttendanceSchema } from "@/lib/validations/academic"
 import { buildOrderBy } from "@/lib/query-helpers"
+import { getOrDefaultAcademicYearId } from "@/lib/academic-year"
 
 export async function GET(req: Request) {
   try {
@@ -92,6 +93,7 @@ export async function POST(req: Request) {
     }
 
     const { date, classId, lessonId, records } = parsed.data
+    const academicYearId = await getOrDefaultAcademicYearId(schoolId, body.academicYearId)
 
     const created = await prisma.attendance.createMany({
       data: records.map((r) => ({
@@ -100,6 +102,7 @@ export async function POST(req: Request) {
         lessonId: lessonId || null,
         studentId: r.studentId,
         status: r.status,
+        academicYearId: academicYearId || null,
         schoolId,
       })),
       skipDuplicates: true,

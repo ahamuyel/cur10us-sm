@@ -1,19 +1,26 @@
 import { z } from "zod"
 
-// Subject
+// Subject — exige referência ao catálogo global
 export const createSubjectSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres").max(100, "Nome muito longo"),
+  globalSubjectId: z.string().min(1, "Referência ao catálogo global é obrigatória"),
 })
-export const updateSubjectSchema = createSubjectSchema.partial()
+export const updateSubjectSchema = z.object({
+  name: z.string().min(2).max(100).optional(),
+})
 
-// Course
+// Course — exige referência ao catálogo global
 export const createCourseSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres").max(100, "Nome muito longo"),
+  globalCourseId: z.string().min(1, "Referência ao catálogo global é obrigatória"),
   subjectIds: z.array(z.string()).optional(),
 })
-export const updateCourseSchema = createCourseSchema.partial()
+export const updateCourseSchema = z.object({
+  name: z.string().min(2).max(100).optional(),
+  subjectIds: z.array(z.string()).optional(),
+})
 
-// Class
+// Class — exige academicYearId
 export const createClassSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório").max(20, "Nome muito longo"),
   grade: z.number().int().min(1, "Classe deve ser entre 1 e 13").max(13, "Classe deve ser entre 1 e 13"),
@@ -21,6 +28,8 @@ export const createClassSchema = z.object({
   period: z.enum(["regular", "pos_laboral"]).optional(),
   courseId: z.string().optional().nullable(),
   supervisorId: z.string().optional().nullable(),
+  academicYearId: z.string().min(1, "Ano letivo é obrigatório"),
+  globalClassId: z.string().optional().nullable(),
 })
 export const updateClassSchema = createClassSchema.partial()
 
