@@ -20,7 +20,7 @@ export const updateCourseSchema = z.object({
   subjectIds: z.array(z.string()).optional(),
 })
 
-// Class — exige academicYearId
+// Class — academicYearId optional (API defaults to current year)
 export const createClassSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório").max(20, "Nome muito longo"),
   grade: z.number().int().min(1, "Classe deve ser entre 1 e 13").max(13, "Classe deve ser entre 1 e 13"),
@@ -28,7 +28,7 @@ export const createClassSchema = z.object({
   period: z.enum(["regular", "pos_laboral"]).optional(),
   courseId: z.string().optional().nullable(),
   supervisorId: z.string().optional().nullable(),
-  academicYearId: z.string().min(1, "Ano letivo é obrigatório"),
+  academicYearId: z.string().optional().nullable(),
   globalClassId: z.string().optional().nullable(),
 })
 export const updateClassSchema = createClassSchema.partial()

@@ -1,12 +1,15 @@
 "use client"
 import { useState, useEffect } from "react"
 import FormField from "@/components/ui/FormField"
-import { createCourseSchema } from "@/lib/validations/academic"
+import { createCourseSchema, updateCourseSchema } from "@/lib/validations/academic"
 import { X } from "lucide-react"
+
+type GlobalCourse = { id: string; name: string; code: string }
 
 type CourseData = {
   id?: string
   name: string
+  globalCourseId?: string
   subjectIds?: string[]
   subjects?: string[]
 }
@@ -25,16 +28,26 @@ const inputClass = "w-full px-3 py-2 rounded-xl text-sm bg-zinc-50 dark:bg-zinc-
 const CourseForm = ({ mode, initialData, onSuccess, onCancel }: Props) => {
   const [form, setForm] = useState({
     name: initialData?.name || "",
+    globalCourseId: initialData?.globalCourseId || "",
     subjectIds: initialData?.subjectIds || [],
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
   const [apiError, setApiError] = useState("")
   const [subjectOptions, setSubjectOptions] = useState<Option[]>([])
+  const [globalCourses, setGlobalCourses] = useState<GlobalCourse[]>([])
 
   useEffect(() => {
     fetch("/api/subjects?limit=100").then(r => r.json()).then(d => setSubjectOptions(d.data || []))
-  }, [])
+    if (mode === "create") {
+      fetch("/api/school-catalog/courses").then(r => r.json()).then(d => setGlobalCourses(d.data || [])).catch(() => {})
+    }
+  }, [mode])
+
+  const handleGlobalSelect = (id: string) => {
+    const gc = globalCourses.find((c) => c.id === id)
+    setForm((f) => ({ ...f, globalCourseId: id, name: gc?.name || f.name }))
+  }
 
   const toggleId = (id: string) => {
     setForm((f) => ({
@@ -48,7 +61,11 @@ const CourseForm = ({ mode, initialData, onSuccess, onCancel }: Props) => {
     setErrors({})
     setApiError("")
 
-    const parsed = createCourseSchema.safeParse(form)
+    const schema = mode === "edit" ? updateCourseSchema : createCourseSchema
+    const payload = mode === "edit"
+      ? { name: form.name, subjectIds: form.subjectIds }
+      : form
+    const parsed = schema.safeParse(payload)
     if (!parsed.success) {
       const fieldErrors: Record<string, string> = {}
       parsed.error.issues.forEach((issue) => {
@@ -65,7 +82,7 @@ const CourseForm = ({ mode, initialData, onSuccess, onCancel }: Props) => {
       const res = await fetch(url, {
         method: mode === "edit" ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -86,7 +103,22 @@ const CourseForm = ({ mode, initialData, onSuccess, onCancel }: Props) => {
         <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-600 text-sm">{apiError}</div>
       )}
 
-      <FormField label="Nome" error={errors.name}>
+      {mode === "create" && (
+        <FormField label="Curso do Catálogo Global" error={errors.globalCourseId}>
+          <select
+            className={inputClass}
+            value={form.globalCourseId}
+            onChange={(e) => handleGlobalSelect(e.target.value)}
+          >
+            <option value="">Selecionar curso...</option>
+            {globalCourses.map((gc) => (
+              <option key={gc.id} value={gc.id}>{gc.name} ({gc.code})</option>
+            ))}
+          </select>
+        </FormField>
+      )}
+
+      <FormField label="Nome local (pode personalizar)" error={errors.name}>
         <input className={inputClass} value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
       </FormField>
 
