@@ -948,3 +948,26 @@ model CycleCertificate {
 
   @@unique([studentId, cycleLevel, schoolId])
 }
+
+// ─── Audit Log ───────────────────────────────────────────────────
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String
+  userName    String
+  userRole    String
+  action      String   // CREATE, UPDATE, DELETE, LOGIN, LOGOUT, etc.
+  entity      String   // Student, Teacher, Class, Result, etc.
+  entityId    String?
+  schoolId    String?
+  description String?
+  oldValue    Json?
+  newValue    Json?
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([schoolId])
+  @@index([entity, entityId])
+  @@index([createdAt])
+}

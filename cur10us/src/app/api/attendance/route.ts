@@ -4,6 +4,7 @@ import { requirePermission, getSchoolId } from "@/lib/api-auth"
 import { createAttendanceSchema } from "@/lib/validations/academic"
 import { buildOrderBy } from "@/lib/query-helpers"
 import { getOrDefaultAcademicYearId } from "@/lib/academic-year"
+import { logAudit, auditUser } from "@/lib/audit"
 
 export async function GET(req: Request) {
   try {
@@ -107,6 +108,8 @@ export async function POST(req: Request) {
       })),
       skipDuplicates: true,
     })
+
+    logAudit({ ...auditUser(session!), action: "CREATE", entity: "Attendance", schoolId, description: `Presença registada para ${records.length} aluno(s) na turma ${classId}` })
 
     return NextResponse.json(created, { status: 201 })
   } catch {

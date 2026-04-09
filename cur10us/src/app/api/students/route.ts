@@ -6,10 +6,11 @@ import { requirePermission, getSchoolId } from "@/lib/api-auth"
 import { createStudentSchema } from "@/lib/validations/entities"
 import { sendTempCredentials } from "@/lib/email"
 import { buildOrderBy } from "@/lib/query-helpers"
+import { logAudit, auditUser } from "@/lib/audit"
 
 export async function GET(req: Request) {
   try {
-    const { error: authError, session } = await requirePermission(["school_admin", "teacher", "student", "parent"], undefined, { requireSchool: true })
+    const { error: authError, session } = await requirePermission(["school_admin", "teacher", "student", "parent"], "canManageStudents", { requireSchool: true })
     if (authError) return authError
 
     const schoolId = getSchoolId(session!)
@@ -123,6 +124,8 @@ export async function POST(req: Request) {
       const school = await prisma.school.findUnique({ where: { id: schoolId }, select: { name: true } })
       sendTempCredentials(studentData.email, studentData.name, school?.name || "", tempPassword).catch(() => {})
     }
+
+    logAudit({ ...auditUser(session!), action: "CREATE", entity: "Student", entityId: student.id, schoolId, description: `Aluno ${studentData.name} criado` })
 
     return NextResponse.json({ ...student, tempPassword }, { status: 201 })
   } catch {
