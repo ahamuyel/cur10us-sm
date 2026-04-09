@@ -12,6 +12,9 @@ import {
   Menu,
   LogOut,
   LifeBuoy,
+  BookOpen,
+  SlidersHorizontal,
+  BarChart3,
 } from "lucide-react"
 import { signOut } from "next-auth/react"
 import { useState } from "react"
@@ -24,6 +27,9 @@ const navItems = [
 ]
 
 const moreItems = [
+  { icon: BookOpen, label: "Catálogo", href: "/admin/catalog" },
+  { icon: SlidersHorizontal, label: "Config. Avaliação", href: "/admin/grading-config" },
+  { icon: BarChart3, label: "Estatísticas", href: "/admin/stats" },
   { icon: ShieldCheck, label: "Super Admins", href: "/admin/super-admins" },
   { icon: LifeBuoy, label: "Suporte", href: "/admin/support" },
   { icon: Settings, label: "Configurações", href: "/admin/settings" },
