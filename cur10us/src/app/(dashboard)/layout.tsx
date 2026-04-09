@@ -4,6 +4,7 @@ import MobileNav from "@/components/layout/MobileNav"
 import PendingAccountGate from "@/components/layout/PendingAccountGate"
 import MustChangePasswordGate from "@/components/layout/MustChangePasswordGate"
 import MaintenanceGuard from "@/components/layout/MaintenanceGuard"
+import SessionGuard from "@/components/layout/SessionGuard"
 import { SchoolBrandingProvider } from "@/provider/school-branding"
 import SidebarBrand from "@/components/layout/SidebarBrand"
 import FloatingHelpButton from "@/components/ui/FloatingHelpButton"
@@ -14,6 +15,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }>) {
   return (
+    <SessionGuard>
     <MaintenanceGuard>
     <SchoolBrandingProvider>
     <PendingAccountGate>
@@ -43,5 +45,6 @@ export default function DashboardLayout({
     </PendingAccountGate>
     </SchoolBrandingProvider>
     </MaintenanceGuard>
+    </SessionGuard>
   );
 }

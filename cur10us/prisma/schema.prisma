@@ -213,6 +213,7 @@ model User {
   providerId         String?
   mustChangePassword Boolean  @default(false)
   profileComplete    Boolean  @default(true)
+  sessionVersion     Int      @default(0)
   schoolId           String?
   school             School?  @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   createdAt          DateTime @default(now())
