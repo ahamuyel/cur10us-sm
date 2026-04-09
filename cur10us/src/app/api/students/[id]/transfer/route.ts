@@ -28,6 +28,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       return NextResponse.json({ error: "Turma não encontrada" }, { status: 404 })
     }
 
+    // Update student class
     const updated = await prisma.student.update({
       where: { id },
       data: { classId },
@@ -36,8 +37,33 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       },
     })
 
+    // Update active enrollment to new class (if exists)
+    const activeEnrollment = await prisma.enrollment.findFirst({
+      where: { studentId: id, schoolId, status: "ativa" },
+      orderBy: { enrolledAt: "desc" },
+    })
+    if (activeEnrollment) {
+      await prisma.enrollment.update({
+        where: { id: activeEnrollment.id },
+        data: { classId, status: "transferida", observation: `Transferido para turma ${targetClass.name}` },
+      })
+      // Create new enrollment in target class
+      await prisma.enrollment.create({
+        data: {
+          studentId: id,
+          classId,
+          academicYearId: activeEnrollment.academicYearId,
+          schoolId,
+          status: "ativa",
+        },
+      }).catch(() => {
+        // Ignore if unique constraint (already enrolled in this year)
+      })
+    }
+
     return NextResponse.json(updated)
-  } catch {
+  } catch (err) {
+    console.error("[students/transfer]", err)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
