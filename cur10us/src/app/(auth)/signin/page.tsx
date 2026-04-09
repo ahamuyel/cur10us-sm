@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
 import { useState } from "react"
 import { signIn as nextAuthSignIn, getSession } from "next-auth/react"
@@ -10,6 +10,8 @@ import { getDashboardPath } from "@/lib/routes"
 
 export default function SignInPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const reason = searchParams.get("reason")
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -63,6 +65,11 @@ export default function SignInPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
+            {reason === "session_expired" && (
+              <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-sm text-amber-600 dark:text-amber-400">
+                A sua sessão foi terminada porque iniciou sessão noutro dispositivo.
+              </div>
+            )}
             {error && (
               <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 text-sm text-red-600 dark:text-red-400">
                 {error}
