@@ -31,7 +31,8 @@ export async function GET(req: Request) {
     ])
 
     return NextResponse.json({ data, total, page, totalPages: Math.ceil(total / limit) })
-  } catch {
+  } catch (err) {
+    console.error("[catalog/subjects GET]", err)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -56,7 +57,8 @@ export async function POST(req: Request) {
 
     const subject = await prisma.globalSubject.create({ data: parsed.data })
     return NextResponse.json(subject, { status: 201 })
-  } catch {
+  } catch (err) {
+    console.error("[catalog/subjects POST]", err)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

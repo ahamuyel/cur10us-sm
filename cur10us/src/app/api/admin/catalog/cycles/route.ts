@@ -14,7 +14,8 @@ export async function GET() {
     })
 
     return NextResponse.json({ data })
-  } catch {
+  } catch (err) {
+    console.error("[catalog/cycles]", err)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -43,7 +44,8 @@ export async function POST(req: Request) {
 
     const cycle = await prisma.educationCycle.create({ data: parsed.data })
     return NextResponse.json(cycle, { status: 201 })
-  } catch {
+  } catch (err) {
+    console.error("[catalog/cycles]", err)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
