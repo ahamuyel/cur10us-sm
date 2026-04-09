@@ -14,6 +14,9 @@ import {
   LogOut,
   Loader2,
   LifeBuoy,
+  BookOpen,
+  SlidersHorizontal,
+  BarChart3,
 } from "lucide-react"
 import ThemeToggle from "@/components/ui/ThemeToggle"
 import AdminNavBar from "@/components/layout/AdminNavBar"
@@ -24,6 +27,9 @@ const sidebarItems = [
   { icon: School, label: "Escolas", href: "/admin/schools" },
   { icon: Users, label: "Utilizadores", href: "/admin/users" },
   { icon: Inbox, label: "Solicitações", href: "/admin/applications" },
+  { icon: BookOpen, label: "Catálogo", href: "/admin/catalog" },
+  { icon: SlidersHorizontal, label: "Config. Avaliação", href: "/admin/grading-config" },
+  { icon: BarChart3, label: "Estatísticas", href: "/admin/stats" },
   { icon: ShieldCheck, label: "Super Admins", href: "/admin/super-admins" },
   { icon: LifeBuoy, label: "Suporte", href: "/admin/support" },
   { icon: Settings, label: "Configurações", href: "/admin/settings" },
