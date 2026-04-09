@@ -27,6 +27,11 @@ import {
   HelpCircle,
   LifeBuoy,
   Upload,
+  CalendarRange,
+  UserPlus,
+  Calculator,
+  Scale,
+  SlidersHorizontal,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { isFeatureEnabled, menuFeatureMap, type FeatureKey } from "@/lib/features"
@@ -60,11 +65,16 @@ const menuItems: { title: string; items: MenuItem[] }[] = [
       { icon: CalendarCheck, label: "Assiduidade", href: "/list/attendance", visible: ["school_admin", "teacher", "student", "parent"], permission: "canManageAttendance" },
       { icon: MessageSquare, label: "Mensagens", href: "/list/messages", visible: ["school_admin", "teacher", "student", "parent"], permission: "canManageMessages" },
       { icon: Megaphone, label: "Avisos", href: "/list/announcements", visible: ["school_admin", "teacher", "student", "parent"], permission: "canManageAnnouncements" },
+      { icon: CalendarRange, label: "Anos Letivos", href: "/list/academic-years", visible: ["school_admin"], feature: "yearTransition" },
+      { icon: UserPlus, label: "Matrículas", href: "/list/enrollments", visible: ["school_admin"], permission: "canManageStudents" },
+      { icon: Calculator, label: "Avaliações", href: "/list/evaluation", visible: ["school_admin"], permission: "canManageResults", feature: "evaluationEngine" },
+      { icon: Scale, label: "Recursos", href: "/list/recurso", visible: ["school_admin"], permission: "canManageResults", feature: "evaluationEngine" },
     ],
   },
   {
     title: "OUTROS",
     items: [
+      { icon: SlidersHorizontal, label: "Config. Avaliação", href: "/settings/grading", visible: ["school_admin"], feature: "evaluationEngine" },
       { icon: Upload, label: "Importar", href: "/import", visible: ["school_admin"] },
       { icon: CircleUser, label: "Perfil", href: "/profile", visible: ["school_admin", "teacher", "student", "parent"] },
       { icon: Settings, label: "Configurações", href: "/settings", visible: ["school_admin", "teacher", "student", "parent"] },
