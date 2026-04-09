@@ -25,7 +25,8 @@ export async function GET(req: Request) {
     })
 
     return NextResponse.json({ data })
-  } catch {
+  } catch (err) {
+    console.error("[catalog/classes]", err)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -53,7 +54,8 @@ export async function POST(req: Request) {
       include: { cycle: true },
     })
     return NextResponse.json(globalClass, { status: 201 })
-  } catch {
+  } catch (err) {
+    console.error("[catalog/classes]", err)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
