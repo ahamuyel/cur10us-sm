@@ -30,13 +30,21 @@ export async function POST(
       return NextResponse.json({ error: "Este aluno não tem conta de acesso" }, { status: 400 })
     }
 
+    // Deactivate user account
     await prisma.user.update({
       where: { id: student.userId },
       data: { isActive: false },
     })
 
+    // Mark active enrollment as cancelled (desistência)
+    await prisma.enrollment.updateMany({
+      where: { studentId: id, schoolId, status: "ativa" },
+      data: { status: "cancelada", observation: "Desistência — conta desativada" },
+    })
+
     return NextResponse.json({ success: true })
-  } catch {
+  } catch (err) {
+    console.error("[students/deactivate]", err)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

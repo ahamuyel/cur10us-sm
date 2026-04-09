@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import Pagination from "@/components/ui/Pagination"
 import Table from "@/components/ui/Table"
@@ -12,7 +12,7 @@ import Image from "next/image"
 import Link from "next/link"
 import FilterPanel from "@/components/ui/FilterPanel"
 import SortButton from "@/components/ui/SortButton"
-import { Pencil, Trash2, UserPlus, UserX, Loader2 } from "lucide-react"
+import { Pencil, Trash2, UserPlus, UserX, ArrowRightLeft, Loader2 } from "lucide-react"
 
 type Student = {
   id: string
@@ -53,6 +53,42 @@ const StudentListPage = () => {
   const [editItem, setEditItem] = useState<Student | null>(null)
   const [deleteItem, setDeleteItem] = useState<Student | null>(null)
   const [deactivateItem, setDeactivateItem] = useState<Student | null>(null)
+  const [transferItem, setTransferItem] = useState<Student | null>(null)
+  const [transferClassId, setTransferClassId] = useState("")
+  const [transferLoading, setTransferLoading] = useState(false)
+  const [transferError, setTransferError] = useState("")
+  const [classOptions, setClassOptions] = useState<{ id: string; name: string; grade: number }[]>([])
+
+  useEffect(() => {
+    if (transferItem) {
+      fetch("/api/classes?limit=200").then(r => r.json()).then(d => setClassOptions(d.data || [])).catch(() => {})
+    }
+  }, [transferItem])
+
+  const handleTransfer = async () => {
+    if (!transferItem || !transferClassId) return
+    setTransferLoading(true)
+    setTransferError("")
+    try {
+      const res = await fetch(`/api/students/${transferItem.id}/transfer`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ classId: transferClassId }),
+      })
+      if (!res.ok) {
+        const d = await res.json()
+        setTransferError(d.error || "Erro ao transferir")
+        return
+      }
+      setTransferItem(null)
+      setTransferClassId("")
+      refetch()
+    } catch {
+      setTransferError("Erro de conexão")
+    } finally {
+      setTransferLoading(false)
+    }
+  }
 
   const handleDeactivate = async () => {
     if (!deactivateItem) return
@@ -113,6 +149,15 @@ const StudentListPage = () => {
           >
             <Pencil size={13} />
           </button>
+          {isAdmin && (
+            <button
+              onClick={() => { setTransferItem(item); setTransferClassId(""); setTransferError("") }}
+              title="Transferir de turma"
+              className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-violet-600 hover:text-white transition-all active:scale-90"
+            >
+              <ArrowRightLeft size={13} />
+            </button>
+          )}
           {isAdmin && item.hasAccount && item.userActive !== false && (
             <button
               onClick={() => setDeactivateItem(item)}
@@ -200,10 +245,58 @@ const StudentListPage = () => {
         onClose={() => setDeactivateItem(null)}
         onConfirm={handleDeactivate}
         itemName={deactivateItem?.name || ""}
-        title="Desactivar conta"
-        message={`Tem a certeza que deseja desactivar a conta de "${deactivateItem?.name}"? O utilizador não conseguirá aceder à plataforma.`}
+        title="Desistência / Desactivar"
+        message={`Tem a certeza que deseja desactivar a conta de "${deactivateItem?.name}"? A matrícula será cancelada e o utilizador não conseguirá aceder à plataforma.`}
         confirmLabel="Desactivar"
       />
+
+      <FormModal open={!!transferItem} onClose={() => setTransferItem(null)} title="Transferir Aluno">
+        {transferItem && (
+          <div className="flex flex-col gap-4">
+            {transferError && (
+              <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-600 text-sm">{transferError}</div>
+            )}
+            <div className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 text-sm">
+              <p className="font-medium text-zinc-900 dark:text-zinc-100">{transferItem.name}</p>
+              <p className="text-zinc-500 text-xs mt-0.5">
+                Turma actual: <strong>{transferItem.class?.name || "Sem turma"}</strong>
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5 text-zinc-700 dark:text-zinc-300">Nova turma</label>
+              <select
+                className="w-full px-3 py-2 rounded-xl text-sm bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                value={transferClassId}
+                onChange={(e) => setTransferClassId(e.target.value)}
+              >
+                <option value="">Selecionar turma...</option>
+                {classOptions
+                  .filter((c) => c.id !== transferItem.classId)
+                  .map((c) => (
+                    <option key={c.id} value={c.id}>{c.name} ({c.grade}.ª classe)</option>
+                  ))}
+              </select>
+            </div>
+            <div className="flex items-center gap-3 justify-end pt-2">
+              <button
+                type="button"
+                onClick={() => setTransferItem(null)}
+                className="px-4 py-2 rounded-xl text-sm font-medium text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleTransfer}
+                disabled={!transferClassId || transferLoading}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 transition disabled:opacity-50 shadow-lg shadow-violet-600/20"
+              >
+                <ArrowRightLeft size={14} />
+                {transferLoading ? "Transferindo..." : "Transferir"}
+              </button>
+            </div>
+          </div>
+        )}
+      </FormModal>
     </div>
   )
 }
