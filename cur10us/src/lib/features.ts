@@ -148,4 +148,8 @@ export const menuFeatureMap: Record<string, FeatureKey | undefined> = {
   "/list/assignments": "submissions",
   "/list/messages": "internalMessages",
   "/list/lessons": "calendar",
+  "/list/academic-years": "yearTransition",
+  "/list/evaluation": "evaluationEngine",
+  "/list/recurso": "evaluationEngine",
+  "/settings/grading": "evaluationEngine",
 }
