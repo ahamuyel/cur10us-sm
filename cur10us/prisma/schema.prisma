@@ -665,7 +665,32 @@ model AcademicYear {
   @@unique([name, schoolId])
 }
 
-// ─── Configuração de Avaliação por Escola ────────────────────────
+// ─── Configuração Global de Avaliação (Super Admin) ─────────────
+
+model GlobalGradingConfig {
+  id                String       @id @default(cuid())
+  classGrade        Int?
+  courseId          String?
+  trimesterWeights  Json? // [0.33, 0.33, 0.34]
+  passingGrade      Float        @default(10)
+  resourceMinGrade  Float?
+  maxFailedSubjects Int          @default(2)
+  trimesterFormula  Json? // { "provas": 0.6, "trabalhos": 0.3, "participacao": 0.1 }
+  finalFormula      Json? // { "media_trimestres": 0.8, "exame_final": 0.2 }
+  directFailGrade   Float?
+  roundingMode      RoundingMode @default(arredondar)
+  roundingScale     Int          @default(1)
+  recursoAllowed    Boolean      @default(true)
+  active            Boolean      @default(true)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  schoolConfigs GradingConfig[]
+
+  @@unique([classGrade, courseId])
+}
+
+// ─── Configuração de Avaliação por Escola (herda de Global) ─────
 
 model GradingConfig {
   id             String        @id @default(cuid())
@@ -674,40 +699,30 @@ model GradingConfig {
   academicYearId String?
   academicYear   AcademicYear? @relation(fields: [academicYearId], references: [id], onDelete: SetNull)
 
+  // Herança: referência à configuração global do Super Admin
+  globalGradingConfigId String?
+  globalGradingConfig   GlobalGradingConfig? @relation(fields: [globalGradingConfigId], references: [id], onDelete: SetNull)
+
+  // Overrides: campos que a escola quer sobrepor (JSON parcial)
+  // Ex: { "passingGrade": 12, "maxFailedSubjects": 1 }
+  overrides Json?
+
   // Granularidade: permite configurar por classe/curso (null = default da escola)
   classGrade Int?
   courseId   String?
   course     Course? @relation(fields: [courseId], references: [id], onDelete: SetNull)
 
-  // Pesos dos trimestres para média final (ex: [0.33, 0.33, 0.34])
-  trimesterWeights Json?
-
-  // Nota mínima de aprovação (default 10 em Angola, escala 0-20)
-  passingGrade Float @default(10)
-
-  // Nota mínima para recurso (ex: 8 — quem tem entre 8 e 9 pode fazer recurso)
-  resourceMinGrade Float?
-
-  // Número máximo de disciplinas reprovadas para transitar com recurso
-  maxFailedSubjects Int @default(2)
-
-  // Fórmula personalizada para média do trimestre (JSON com regras)
-  // Ex: { "provas": 0.6, "trabalhos": 0.3, "participacao": 0.1 }
-  trimesterFormula Json?
-
-  // Fórmula para média final do ano
-  // Ex: { "media_trimestres": 0.8, "exame_final": 0.2 }
-  finalFormula Json?
-
-  // Nota abaixo da qual reprova directamente (ex: 5.0)
-  directFailGrade Float?
-
-  // Arredondamento
-  roundingMode  RoundingMode @default(arredondar)
-  roundingScale Int          @default(1) // casas decimais
-
-  // Recurso permitido?
-  recursoAllowed Boolean @default(true)
+  // Campos directos (usados quando NÃO herda de global, ou para override completo)
+  trimesterWeights  Json?
+  passingGrade      Float        @default(10)
+  resourceMinGrade  Float?
+  maxFailedSubjects Int          @default(2)
+  trimesterFormula  Json?
+  finalFormula      Json?
+  directFailGrade   Float?
+  roundingMode      RoundingMode @default(arredondar)
+  roundingScale     Int          @default(1)
+  recursoAllowed    Boolean      @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

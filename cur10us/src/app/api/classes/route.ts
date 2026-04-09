@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requirePermission, getSchoolId } from "@/lib/api-auth"
 import { createClassSchema } from "@/lib/validations/academic"
+import { getOrDefaultAcademicYearId } from "@/lib/academic-year"
 
 export async function GET(req: Request) {
   try {
@@ -60,15 +61,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
     }
 
-    const existing = await prisma.class.findFirst({
-      where: { name: parsed.data.name, schoolId },
-    })
-    if (existing) {
-      return NextResponse.json({ error: "Esta turma já existe nesta escola" }, { status: 409 })
+    // Garantir academicYearId (do body ou do ano corrente)
+    const academicYearId = parsed.data.academicYearId || await getOrDefaultAcademicYearId(schoolId)
+    if (!academicYearId) {
+      return NextResponse.json({ error: "Nenhum ano letivo activo. Crie ou active um ano letivo primeiro." }, { status: 400 })
     }
 
+    const existing = await prisma.class.findFirst({
+      where: { name: parsed.data.name, schoolId, academicYearId },
+    })
+    if (existing) {
+      return NextResponse.json({ error: "Esta turma já existe nesta escola para este ano letivo" }, { status: 409 })
+    }
+
+    const { academicYearId: _, ...classData } = parsed.data
     const created = await prisma.class.create({
-      data: { ...parsed.data, schoolId },
+      data: { ...classData, academicYearId, schoolId },
     })
     return NextResponse.json(created, { status: 201 })
   } catch {

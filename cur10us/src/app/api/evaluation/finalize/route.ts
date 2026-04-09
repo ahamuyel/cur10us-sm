@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { requirePermission, getSchoolId } from "@/lib/api-auth"
+import { requirePermission, getSchoolId, requireFeature } from "@/lib/api-auth"
 import { evaluateClass } from "@/lib/evaluation-engine"
 
 export async function POST(req: Request) {
@@ -11,6 +11,9 @@ export async function POST(req: Request) {
       { requireSchool: true }
     )
     if (authError) return authError
+
+    const featureError = requireFeature(session!, "evaluationEngine")
+    if (featureError) return featureError
 
     const schoolId = getSchoolId(session!)
     const body = await req.json()

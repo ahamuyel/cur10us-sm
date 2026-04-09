@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requirePermission, getSchoolId } from "@/lib/api-auth"
 import { createAssignmentSchema } from "@/lib/validations/academic"
+import { getOrDefaultAcademicYearId } from "@/lib/academic-year"
 import { buildOrderBy } from "@/lib/query-helpers"
 
 export async function GET(req: Request) {
@@ -98,6 +99,7 @@ export async function POST(req: Request) {
     }
 
     const { title, dueDate, description, maxScore, subjectId, classId, teacherId } = parsed.data
+    const academicYearId = await getOrDefaultAcademicYearId(schoolId, body.academicYearId)
 
     const assignment = await prisma.assignment.create({
       data: {
@@ -108,6 +110,7 @@ export async function POST(req: Request) {
         subjectId,
         classId,
         teacherId,
+        academicYearId: academicYearId || null,
         schoolId,
       },
     })

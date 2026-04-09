@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma"
-import type { GradingConfig, Result, Trimester } from "@prisma/client"
+import type { GradingConfig, GlobalGradingConfig, Result, Trimester } from "@prisma/client"
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -75,57 +75,138 @@ export function applyRounding(
   }
 }
 
-// ─── Config Resolution (cascade) ────────────────────────────────
+// ─── Config Resolution (cascade com herança global→local) ───────
 
+/**
+ * Cascata de resolução:
+ * 1. Escola + ano + classe + curso (mais específico)
+ * 2. Escola + ano + classe
+ * 3. Escola + ano (default do ano)
+ * 4. Escola (default permanente)
+ * 5. Global + classe + curso ← herança do Super Admin
+ * 6. Global + classe
+ * 7. Global default (classGrade=null, courseId=null)
+ * 8. Hardcoded Angola (último recurso, nunca silencioso)
+ *
+ * Se a config escola tem globalGradingConfigId: merge global base + overrides locais
+ */
 export async function resolveGradingConfig(
   schoolId: string,
   academicYearId: string,
   grade?: number,
   courseId?: string | null
 ): Promise<ResolvedConfig> {
-  // Try from most specific to least specific
-  const candidates = await prisma.gradingConfig.findMany({
+  // Fetch school-level configs
+  const schoolConfigs = await prisma.gradingConfig.findMany({
     where: { schoolId },
+    include: { globalGradingConfig: true },
     orderBy: { createdAt: "desc" },
   })
 
+  // Try school-level cascade (most specific → least specific)
+  const schoolMatch = findSchoolConfig(schoolConfigs, academicYearId, grade, courseId)
+  if (schoolMatch) {
+    return schoolConfigToResolved(schoolMatch)
+  }
+
+  // Fetch global configs (Super Admin)
+  const globalConfigs = await prisma.globalGradingConfig.findMany({
+    where: { active: true },
+    orderBy: { createdAt: "desc" },
+  })
+
+  // Try global-level cascade
+  const globalMatch = findGlobalConfig(globalConfigs, grade, courseId)
+  if (globalMatch) {
+    return globalConfigToResolved(globalMatch)
+  }
+
+  // Last resort: Angola defaults
+  return ANGOLA_DEFAULTS
+}
+
+type SchoolConfigWithGlobal = GradingConfig & { globalGradingConfig: GlobalGradingConfig | null }
+
+function findSchoolConfig(
+  configs: SchoolConfigWithGlobal[],
+  academicYearId: string,
+  grade?: number,
+  courseId?: string | null
+): SchoolConfigWithGlobal | undefined {
   // 1. escola + ano + classe + curso
   if (grade && courseId) {
-    const match = candidates.find(
+    const match = configs.find(
       (c) => c.academicYearId === academicYearId && c.classGrade === grade && c.courseId === courseId
     )
-    if (match) return configToResolved(match)
+    if (match) return match
   }
 
   // 2. escola + ano + classe
   if (grade) {
-    const match = candidates.find(
+    const match = configs.find(
       (c) => c.academicYearId === academicYearId && c.classGrade === grade && !c.courseId
     )
-    if (match) return configToResolved(match)
+    if (match) return match
   }
 
   // 3. escola + ano
   {
-    const match = candidates.find(
+    const match = configs.find(
       (c) => c.academicYearId === academicYearId && !c.classGrade && !c.courseId
     )
-    if (match) return configToResolved(match)
+    if (match) return match
   }
 
-  // 4. escola (default, no year)
+  // 4. escola default (no year)
   {
-    const match = candidates.find(
+    const match = configs.find(
       (c) => !c.academicYearId && !c.classGrade && !c.courseId
     )
-    if (match) return configToResolved(match)
+    if (match) return match
   }
 
-  // 5. Angolan defaults
-  return ANGOLA_DEFAULTS
+  return undefined
 }
 
-function configToResolved(config: GradingConfig): ResolvedConfig {
+function findGlobalConfig(
+  configs: GlobalGradingConfig[],
+  grade?: number,
+  courseId?: string | null
+): GlobalGradingConfig | undefined {
+  // 5. global + classe + curso
+  if (grade && courseId) {
+    const match = configs.find((c) => c.classGrade === grade && c.courseId === courseId)
+    if (match) return match
+  }
+
+  // 6. global + classe
+  if (grade) {
+    const match = configs.find((c) => c.classGrade === grade && !c.courseId)
+    if (match) return match
+  }
+
+  // 7. global default
+  {
+    const match = configs.find((c) => !c.classGrade && !c.courseId)
+    if (match) return match
+  }
+
+  return undefined
+}
+
+/**
+ * Converte uma config escola para ResolvedConfig.
+ * Se a config referencia uma GlobalGradingConfig, faz merge: global base + overrides locais.
+ */
+function schoolConfigToResolved(config: SchoolConfigWithGlobal): ResolvedConfig {
+  if (config.globalGradingConfigId && config.globalGradingConfig) {
+    // Herança: começa com valores globais, aplica overrides da escola
+    const base = globalConfigToResolved(config.globalGradingConfig)
+    const overrides = (config.overrides as Record<string, unknown> | null) || {}
+    return mergeConfigWithOverrides(base, overrides)
+  }
+
+  // Config escola standalone (sem herança)
   return {
     trimesterWeights: (config.trimesterWeights as number[] | null) || ANGOLA_DEFAULTS.trimesterWeights,
     passingGrade: config.passingGrade,
@@ -137,6 +218,51 @@ function configToResolved(config: GradingConfig): ResolvedConfig {
     roundingMode: (config.roundingMode as "truncar" | "arredondar" | "teto") || "arredondar",
     roundingScale: config.roundingScale ?? 1,
     recursoAllowed: config.recursoAllowed ?? true,
+  }
+}
+
+function globalConfigToResolved(config: GlobalGradingConfig): ResolvedConfig {
+  return {
+    trimesterWeights: (config.trimesterWeights as number[] | null) || ANGOLA_DEFAULTS.trimesterWeights,
+    passingGrade: config.passingGrade,
+    resourceMinGrade: config.resourceMinGrade,
+    maxFailedSubjects: config.maxFailedSubjects,
+    trimesterFormula: (config.trimesterFormula as Record<string, number> | null) || null,
+    finalFormula: (config.finalFormula as Record<string, number> | null) || null,
+    directFailGrade: config.directFailGrade,
+    roundingMode: (config.roundingMode as "truncar" | "arredondar" | "teto") || "arredondar",
+    roundingScale: config.roundingScale ?? 1,
+    recursoAllowed: config.recursoAllowed ?? true,
+  }
+}
+
+/**
+ * Merge: aplica overrides (JSON parcial da escola) sobre a config base (global).
+ * Apenas os campos presentes no overrides substituem os valores base.
+ */
+function mergeConfigWithOverrides(
+  base: ResolvedConfig,
+  overrides: Record<string, unknown>
+): ResolvedConfig {
+  return {
+    trimesterWeights: (overrides.trimesterWeights as number[] | undefined) || base.trimesterWeights,
+    passingGrade: (overrides.passingGrade as number | undefined) ?? base.passingGrade,
+    resourceMinGrade: overrides.resourceMinGrade !== undefined
+      ? (overrides.resourceMinGrade as number | null)
+      : base.resourceMinGrade,
+    maxFailedSubjects: (overrides.maxFailedSubjects as number | undefined) ?? base.maxFailedSubjects,
+    trimesterFormula: overrides.trimesterFormula !== undefined
+      ? (overrides.trimesterFormula as Record<string, number> | null)
+      : base.trimesterFormula,
+    finalFormula: overrides.finalFormula !== undefined
+      ? (overrides.finalFormula as Record<string, number> | null)
+      : base.finalFormula,
+    directFailGrade: overrides.directFailGrade !== undefined
+      ? (overrides.directFailGrade as number | null)
+      : base.directFailGrade,
+    roundingMode: (overrides.roundingMode as "truncar" | "arredondar" | "teto" | undefined) || base.roundingMode,
+    roundingScale: (overrides.roundingScale as number | undefined) ?? base.roundingScale,
+    recursoAllowed: (overrides.recursoAllowed as boolean | undefined) ?? base.recursoAllowed,
   }
 }
 
