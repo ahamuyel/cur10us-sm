@@ -3,10 +3,11 @@ import { prisma } from "@/lib/prisma"
 import { requirePermission, getSchoolId } from "@/lib/api-auth"
 import { createClassSchema } from "@/lib/validations/academic"
 import { getOrDefaultAcademicYearId } from "@/lib/academic-year"
+import { logAudit, auditUser } from "@/lib/audit"
 
 export async function GET(req: Request) {
   try {
-    const { error: authError, session } = await requirePermission(["school_admin", "teacher", "student", "parent"], undefined, { requireSchool: true })
+    const { error: authError, session } = await requirePermission(["school_admin", "teacher", "student", "parent"], "canManageClasses", { requireSchool: true })
     if (authError) return authError
 
     const schoolId = getSchoolId(session!)
@@ -78,6 +79,9 @@ export async function POST(req: Request) {
     const created = await prisma.class.create({
       data: { ...classData, academicYearId, schoolId },
     })
+
+    logAudit({ ...auditUser(session!), action: "CREATE", entity: "Class", entityId: created.id, schoolId, description: `Turma ${classData.name} criada` })
+
     return NextResponse.json(created, { status: 201 })
   } catch {
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })

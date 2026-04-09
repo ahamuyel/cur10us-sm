@@ -5,10 +5,11 @@ import { createResultSchema } from "@/lib/validations/academic"
 import { createNotification } from "@/lib/notifications"
 import { buildOrderBy } from "@/lib/query-helpers"
 import { getOrDefaultAcademicYearId } from "@/lib/academic-year"
+import { logAudit, auditUser } from "@/lib/audit"
 
 export async function GET(req: Request) {
   try {
-    const { error: authError, session } = await requirePermission(["school_admin", "teacher", "student", "parent"], undefined, { requireSchool: true })
+    const { error: authError, session } = await requirePermission(["school_admin", "teacher", "student", "parent"], "canManageResults", { requireSchool: true })
     if (authError) return authError
 
     const schoolId = getSchoolId(session!)
@@ -126,6 +127,8 @@ export async function POST(req: Request) {
         schoolId,
       })
     }
+
+    logAudit({ ...auditUser(session!), action: "CREATE", entity: "Result", entityId: result.id, schoolId, description: `Nota ${rest.score} registada para aluno ${rest.studentId}` })
 
     return NextResponse.json(result, { status: 201 })
   } catch {
