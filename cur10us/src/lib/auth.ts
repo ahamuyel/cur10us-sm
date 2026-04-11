@@ -73,6 +73,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             isActive: user.isActive,
             mustChangePassword: user.mustChangePassword,
             profileComplete: user.profileComplete,
+            emailVerified: user.emailVerified ? new Date() : null,
             sessionVersion: updated.sessionVersion,
           }
         } catch (error) {
@@ -104,6 +105,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
 
         // New Google user — create inactive user with incomplete profile
+        // Google users are considered email verified since Google verifies their emails
         await prisma.user.create({
           data: {
             name: user.name ?? email.split("@")[0],
@@ -113,6 +115,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             image: user.image,
             isActive: false,
             profileComplete: false,
+            emailVerified: true,
             role: "student", // default, will be updated during profile completion
           },
         })
@@ -130,6 +133,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.isActive = (user as { isActive: boolean }).isActive
         token.mustChangePassword = (user as { mustChangePassword?: boolean }).mustChangePassword ?? false
         token.profileComplete = (user as { profileComplete: boolean }).profileComplete ?? true
+        token.emailVerified = (user as { emailVerified?: boolean }).emailVerified ? new Date() : null
         token.sessionVersion = (user as { sessionVersion?: number }).sessionVersion ?? 0
       }
 
@@ -152,6 +156,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           token.isActive = dbUser.isActive
           token.mustChangePassword = dbUser.mustChangePassword
           token.profileComplete = dbUser.profileComplete
+          token.emailVerified = dbUser.emailVerified ? new Date() : null
           token.sessionVersion = dbUser.sessionVersion
           token.adminLevel = dbUser.adminPermission?.level ?? null
           token.permissions = extractPermissions(dbUser.adminPermission as unknown as Record<string, unknown>)
@@ -175,6 +180,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.isActive = token.isActive as boolean
         session.user.mustChangePassword = (token.mustChangePassword as boolean) ?? false
         session.user.profileComplete = token.profileComplete as boolean
+        session.user.emailVerified = (token.emailVerified as Date | null) ?? null
         session.user.adminLevel = (token.adminLevel as string) ?? null
         session.user.permissions = (token.permissions as string[]) ?? []
         session.user.schoolFeatures = (token.schoolFeatures as Record<string, boolean>) ?? null

@@ -42,8 +42,25 @@ export default function SignInPage() {
       }
 
       const session = await getSession()
+
+      // Check if email is verified
+      if (!session?.user?.emailVerified) {
+        // Redirect to verify email page
+        router.push("/verify-email")
+        return
+      }
+
       const dashboard = getDashboardPath(session?.user?.id)
-      router.push(dashboard)
+
+      // Respect callbackUrl if provided, otherwise go to dashboard or minha-area
+      const callbackUrl = searchParams.get("callbackUrl")
+      if (callbackUrl && callbackUrl.startsWith("/")) {
+        router.push(callbackUrl)
+      } else if (!session?.user?.isActive || !session?.user?.schoolId) {
+        router.push("/minha-area")
+      } else {
+        router.push(dashboard)
+      }
       router.refresh()
     } catch {
       setError("Erro de conexão. Tente novamente.")
@@ -162,7 +179,10 @@ export default function SignInPage() {
             {/* Google login */}
             <button
               type="button"
-              onClick={() => nextAuthSignIn("google", { callbackUrl: "/" })}
+              onClick={() => {
+                const callbackUrl = searchParams.get("callbackUrl") || "/"
+                nextAuthSignIn("google", { callbackUrl })
+              }}
               disabled={loading}
               className="w-full h-10 flex items-center justify-center gap-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition disabled:opacity-50"
             >

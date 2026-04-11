@@ -1,15 +1,19 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { useSession, signOut } from "next-auth/react"
 
 /**
  * SessionGuard handles:
  * 1. Single session enforcement — if another login happened, this session is invalidated
  * 2. Auto-logout on browser close — uses sessionStorage flag (cleared when browser closes)
+ *
+ * Note: Session polling is handled by SessionProvider's refetchInterval.
+ * This guard only checks for invalidSession flag on the session object.
  */
 const SessionGuard = ({ children }: { children: React.ReactNode }) => {
   const { data: session, status } = useSession()
+  const checkedRef = useRef(false)
 
   // Auto-logout on browser close
   useEffect(() => {
@@ -19,11 +23,9 @@ const SessionGuard = ({ children }: { children: React.ReactNode }) => {
     const isReturning = sessionStorage.getItem(SESSION_KEY)
 
     if (!isReturning) {
-      // First load in this browser session — mark as alive
       sessionStorage.setItem(SESSION_KEY, "1")
     }
 
-    // On page visibility change, check if we need to clean up
     const handleVisibility = () => {
       if (document.visibilityState === "visible") {
         sessionStorage.setItem(SESSION_KEY, "1")
@@ -37,33 +39,16 @@ const SessionGuard = ({ children }: { children: React.ReactNode }) => {
   }, [status])
 
   // Check if session was invalidated (another login happened)
+  // Only check once when session first becomes available
   useEffect(() => {
-    if (status !== "authenticated" || !session) return
+    if (status !== "authenticated" || !session || checkedRef.current) return
+    checkedRef.current = true
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if ((session as any).invalidSession) {
       signOut({ callbackUrl: "/signin?reason=session_expired" })
     }
   }, [session, status])
-
-  // Periodic check for session validity (every 60s)
-  useEffect(() => {
-    if (status !== "authenticated") return
-
-    const interval = setInterval(async () => {
-      try {
-        const res = await fetch("/api/auth/session")
-        const data = await res.json()
-        if (data?.invalidSession) {
-          signOut({ callbackUrl: "/signin?reason=session_expired" })
-        }
-      } catch {
-        // Network error, ignore
-      }
-    }, 60_000)
-
-    return () => clearInterval(interval)
-  }, [status])
 
   return <>{children}</>
 }
