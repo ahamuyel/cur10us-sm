@@ -52,6 +52,7 @@ const cardLabels: Record<string, string> = {
   recentAnnouncements: "Avisos Recentes",
 }
 
+
 export default function DashboardPage() {
   const { data: session, status } = useSession()
   const params = useParams()

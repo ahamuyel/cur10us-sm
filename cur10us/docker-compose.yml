@@ -3,7 +3,13 @@ services:
     build: .
     ports:
       - "3000:3000"
+    volumes:
+      - ./:/app
+      - /app/node_modules
+      - /app/.next
+    command: npm run dev
     environment:
+      - NODE_ENV=development
       - DATABASE_URL=${DATABASE_URL}
       - AUTH_SECRET=${AUTH_SECRET}
       - AUTH_URL=${AUTH_URL:-http://localhost:3000}

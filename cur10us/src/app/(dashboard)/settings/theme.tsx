@@ -1,5 +1,6 @@
 "use client"
 import { useState, useEffect, ReactNode, createContext, useContext } from "react"
+import { useSession } from "next-auth/react"
 
 type Theme = "light" | "dark"
 
@@ -13,23 +14,25 @@ const ThemeContext = createContext<ThemeContextProps>({
   toggleTheme: () => {},
 })
 
-
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  const [theme, setTheme] = useState<Theme | null>(null) // null = não renderizado ainda
+  const { status } = useSession()
+  const [theme, setTheme] = useState<Theme | null>(null)
 
+  // Aplica tema do localStorage imediatamente — sem esperar sessão
   useEffect(() => {
     const stored = (localStorage.getItem("theme") as Theme) || "light"
     setTheme(stored)
+    document.documentElement.classList.remove("light", "dark")
+    document.documentElement.classList.add(stored)
+  }, [])
 
-    const root = document.documentElement
-    root.classList.remove("light", "dark")
-    root.classList.add(stored)
-
-    // Sync from DB preferences
+  // Sincroniza com DB apenas quando autenticado
+  useEffect(() => {
+    if (status !== "authenticated") return
     fetch("/api/user-preferences")
       .then((r) => r.ok ? r.json() : null)
       .then((pref) => {
-        if (pref?.theme && pref.theme !== stored) {
+        if (pref?.theme) {
           setTheme(pref.theme)
           document.documentElement.classList.remove("light", "dark")
           document.documentElement.classList.add(pref.theme)
@@ -37,7 +40,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
         }
       })
       .catch(() => {})
-  }, [])
+  }, [status])
 
   const toggleTheme = () => {
     if (!theme) return
@@ -47,7 +50,6 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     document.documentElement.classList.add(newTheme)
     localStorage.setItem("theme", newTheme)
 
-    // Save to DB
     fetch("/api/user-preferences", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -55,7 +57,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     }).catch(() => {})
   }
 
-  if (!theme) return null // não renderiza nada até que o tema esteja definido
+  if (!theme) return null
 
   return <ThemeContext.Provider value={{ theme, toggleTheme }}>{children}</ThemeContext.Provider>
 }
