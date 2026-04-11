@@ -2,8 +2,13 @@ import { NextResponse } from "next/server"
 import { hash } from "bcryptjs"
 import { prisma } from "@/lib/prisma"
 import { registerSchoolSchema } from "@/lib/validations/register-school"
+import { withCsrf } from "@/lib/csrf"
 
 export async function POST(req: Request) {
+  return withCsrf(handleRegisterSchool)(req, {})
+}
+
+async function handleRegisterSchool(req: Request) {
   try {
     const body = await req.json()
     const parsed = registerSchoolSchema.safeParse(body)

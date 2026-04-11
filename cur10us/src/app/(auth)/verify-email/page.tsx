@@ -1,9 +1,10 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import { CheckCircle, XCircle, Loader2, Mail } from "lucide-react"
 import Link from "next/link"
+import { csrfPost } from "@/lib/csrf-client"
 
 export default function VerifyEmailPage() {
   const router = useRouter()
@@ -49,11 +50,7 @@ export default function VerifyEmailPage() {
   async function handleResend() {
     setResending(true)
     try {
-      const res = await fetch("/api/auth/verify-email", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      })
+      const res = await csrfPost("/api/auth/verify-email", { email })
 
       if (!res.ok) {
         const data = await res.json()
