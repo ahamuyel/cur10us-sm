@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sudo *)",
+      "Bash(npx *)"
+    ]
+  },
+  "$version": 3
+}

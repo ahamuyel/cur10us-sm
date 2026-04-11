@@ -41,7 +41,8 @@ export default function SignUpPage() {
         return
       }
 
-      router.push("/aplicacao")
+      // Redirect to verify email page after successful signup
+      router.push("/verify-email?justRegistered=true")
     } catch {
       setError("Erro de conexão. Tente novamente.")
     } finally {
@@ -166,7 +167,7 @@ export default function SignUpPage() {
             {/* Google signup */}
             <button
               type="button"
-              onClick={() => nextAuthSignIn("google", { callbackUrl: "/" })}
+              onClick={() => nextAuthSignIn("google", { callbackUrl: "/minha-area" })}
               disabled={loading}
               className="w-full h-10 flex items-center justify-center gap-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition disabled:opacity-50"
             >

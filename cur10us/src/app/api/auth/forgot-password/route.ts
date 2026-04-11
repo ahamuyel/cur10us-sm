@@ -3,6 +3,17 @@ import { randomUUID } from "crypto"
 import { prisma } from "@/lib/prisma"
 import { forgotPasswordSchema } from "@/lib/validations/auth"
 import { Resend } from "resend"
+import { rateLimit } from "@/lib/rate-limit"
+
+const forgotLimiter = rateLimit({ maxRequests: 3, windowMs: 60 * 60 * 1000 }) // 3 per hour
+
+function getIp(req: Request): string {
+  return (
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    req.headers.get("x-real-ip") ||
+    "unknown"
+  )
+}
 
 export async function POST(req: Request) {
   try {
@@ -18,10 +29,14 @@ export async function POST(req: Request) {
 
     const { email } = parsed.data
 
+    // Rate limit check (always pass through to prevent enumeration, but track)
+    const ip = getIp(req)
+    const limit = await forgotLimiter(ip)
+
     // Always return success to prevent email enumeration
     const user = await prisma.user.findUnique({ where: { email } })
 
-    if (user) {
+    if (user && limit.success) {
       // Delete any existing tokens for this user
       await prisma.passwordResetToken.deleteMany({
         where: { userId: user.id },

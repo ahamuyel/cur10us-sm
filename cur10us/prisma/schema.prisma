@@ -214,12 +214,14 @@ model User {
   mustChangePassword Boolean  @default(false)
   profileComplete    Boolean  @default(true)
   sessionVersion     Int      @default(0)
+  emailVerified      Boolean  @default(false)
   schoolId           String?
   school             School?  @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
   passwordResetTokens   PasswordResetToken[]
+  emailVerificationToken EmailVerificationToken?
   teacher               Teacher?
   student               Student?
   parent                Parent?
@@ -243,6 +245,14 @@ model PasswordResetToken {
   token   String   @unique
   expires DateTime
   userId  String
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model EmailVerificationToken {
+  id      String   @id @default(cuid())
+  token   String   @unique
+  expires DateTime
+  userId  String   @unique
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
