@@ -41,7 +41,7 @@ type Summary = {
   aprovados: number
   reprovados: number
   emRecurso: number
-  classAverage: number
+  classAverage: number | null
 }
 
 const statusBadge = (status: string) => {
@@ -314,7 +314,7 @@ const EvaluationPage = () => {
           <div>
             <p className="font-bold">Avaliacoes finalizadas com sucesso!</p>
             <p className="mt-1 text-xs">
-              Total: {summary.total} | Aprovados: {summary.aprovados} | Reprovados: {summary.reprovados} | Em Recurso: {summary.emRecurso} | Media da Turma: {summary.classAverage.toFixed(1)}
+              Total: {summary.total} | Aprovados: {summary.aprovados} | Reprovados: {summary.reprovados} | Em Recurso: {summary.emRecurso} | Media da Turma: {summary.classAverage !== null ? summary.classAverage.toFixed(1) : "—"}
             </p>
           </div>
         </div>
@@ -349,7 +349,7 @@ const EvaluationPage = () => {
             <p className="text-[10px] sm:text-xs text-indigo-600 font-semibold uppercase tracking-wider flex items-center gap-1">
               <BarChart3 size={12} /> Media da Turma
             </p>
-            <p className="text-xl sm:text-2xl font-bold text-indigo-700 dark:text-indigo-400 mt-1">{summary.classAverage.toFixed(1)}</p>
+            <p className="text-xl sm:text-2xl font-bold text-indigo-700 dark:text-indigo-400 mt-1">{summary.classAverage !== null ? summary.classAverage.toFixed(1) : "—"}</p>
           </div>
         </div>
       )}
