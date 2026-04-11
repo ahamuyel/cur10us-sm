@@ -3,6 +3,7 @@ import { hash } from "bcryptjs"
 import { prisma } from "@/lib/prisma"
 import { resetPasswordSchema } from "@/lib/validations/auth"
 import { rateLimit } from "@/lib/rate-limit"
+import { withCsrf } from "@/lib/csrf"
 
 const resetLimiter = rateLimit({ maxRequests: 5, windowMs: 60 * 60 * 1000 }) // 5 per hour
 
@@ -15,6 +16,10 @@ function getIp(req: Request): string {
 }
 
 export async function POST(req: Request) {
+  return withCsrf(handleResetPassword)(req, {})
+}
+
+async function handleResetPassword(req: Request) {
   try {
     const ip = getIp(req)
     const limit = await resetLimiter(ip)

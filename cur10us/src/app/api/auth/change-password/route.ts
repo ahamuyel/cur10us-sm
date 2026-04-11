@@ -3,8 +3,13 @@ import { compare, hash } from "bcryptjs"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { changePasswordSchema } from "@/lib/validations/auth"
+import { withCsrf } from "@/lib/csrf"
 
 export async function POST(req: Request) {
+  return withCsrf(handleChangePassword)(req, {})
+}
+
+async function handleChangePassword(req: Request) {
   try {
     const session = await auth()
     if (!session?.user?.id) {

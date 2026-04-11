@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { forgotPasswordSchema } from "@/lib/validations/auth"
 import { Resend } from "resend"
 import { rateLimit } from "@/lib/rate-limit"
+import { withCsrf } from "@/lib/csrf"
 
 const forgotLimiter = rateLimit({ maxRequests: 3, windowMs: 60 * 60 * 1000 }) // 3 per hour
 
@@ -16,6 +17,10 @@ function getIp(req: Request): string {
 }
 
 export async function POST(req: Request) {
+  return withCsrf(handleForgotPassword)(req, {})
+}
+
+async function handleForgotPassword(req: Request) {
   try {
     const body = await req.json()
     const parsed = forgotPasswordSchema.safeParse(body)

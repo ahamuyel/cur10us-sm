@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { signUpSchema } from "@/lib/validations/auth"
 import { Resend } from "resend"
 import { rateLimit } from "@/lib/rate-limit"
+import { withCsrf } from "@/lib/csrf"
 
 const signupLimiter = rateLimit({ maxRequests: 5, windowMs: 10 * 60 * 1000 }) // 5 per 10 min
 
@@ -17,6 +18,10 @@ function getIp(req: Request): string {
 }
 
 export async function POST(req: Request) {
+  return withCsrf(handleSignup)(req, {})
+}
+
+async function handleSignup(req: Request) {
   try {
     const ip = getIp(req)
     const limit = await signupLimiter(ip)

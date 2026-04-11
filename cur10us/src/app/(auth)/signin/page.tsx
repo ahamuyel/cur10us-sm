@@ -15,16 +15,33 @@ export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
+  const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({})
   const [loading, setLoading] = useState(false)
+
+  function validateForm() {
+    const newErrors: { email?: string; password?: string } = {}
+    const parsed = signInSchema.safeParse({ email, password })
+    
+    if (!parsed.success) {
+      parsed.error.issues.forEach((issue) => {
+        const field = issue.path[0]
+        if (field === "email") {
+          newErrors.email = issue.message
+        } else if (field === "password") {
+          newErrors.password = issue.message
+        }
+      })
+    }
+    
+    setErrors(newErrors)
+    return parsed.success
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setError("")
+    setErrors({})
 
-    const parsed = signInSchema.safeParse({ email, password })
-    if (!parsed.success) {
-      setError(parsed.error.issues[0].message)
+    if (!validateForm()) {
       return
     }
 
@@ -37,7 +54,7 @@ export default function SignInPage() {
       })
 
       if (res?.error) {
-        setError("E-mail ou senha incorretos")
+        setErrors({ general: "E-mail ou senha incorretos" })
         return
       }
 
@@ -63,7 +80,7 @@ export default function SignInPage() {
       }
       router.refresh()
     } catch {
-      setError("Erro de conexão. Tente novamente.")
+      setErrors({ general: "Erro de conexão. Tente novamente." })
     } finally {
       setLoading(false)
     }
@@ -87,9 +104,9 @@ export default function SignInPage() {
                 A sua sessão foi terminada porque iniciou sessão noutro dispositivo.
               </div>
             )}
-            {error && (
+            {errors.general && (
               <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 text-sm text-red-600 dark:text-red-400">
-                {error}
+                {errors.general}
               </div>
             )}
 
@@ -108,9 +125,17 @@ export default function SignInPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={loading}
+                autoFocus
                 autoComplete="email"
-                className="w-full h-10 px-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-transparent text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition disabled:opacity-50"
+                className={`w-full h-10 px-3 rounded-xl border ${
+                  errors.email
+                    ? "border-red-500 focus:ring-red-500/40 focus:border-red-500"
+                    : "border-zinc-200 dark:border-zinc-700 focus:ring-indigo-500/40 focus:border-indigo-500"
+                } bg-transparent text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 transition disabled:opacity-50`}
               />
+              {errors.email && (
+                <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.email}</p>
+              )}
             </div>
 
             {/* Password */}
@@ -138,7 +163,11 @@ export default function SignInPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={loading}
                   autoComplete="current-password"
-                  className="w-full h-10 px-3 pr-10 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-transparent text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition disabled:opacity-50"
+                  className={`w-full h-10 px-3 pr-10 rounded-xl border ${
+                    errors.password
+                      ? "border-red-500 focus:ring-red-500/40 focus:border-red-500"
+                      : "border-zinc-200 dark:border-zinc-700 focus:ring-indigo-500/40 focus:border-indigo-500"
+                  } bg-transparent text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 transition disabled:opacity-50`}
                 />
                 <button
                   type="button"
@@ -148,6 +177,9 @@ export default function SignInPage() {
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
+              {errors.password && (
+                <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.password}</p>
+              )}
             </div>
 
             {/* Submit */}
@@ -180,8 +212,8 @@ export default function SignInPage() {
             <button
               type="button"
               onClick={() => {
-                const callbackUrl = searchParams.get("callbackUrl") || "/"
-                nextAuthSignIn("google", { callbackUrl })
+                const callbackUrl = searchParams.get("callbackUrl")
+                nextAuthSignIn("google", { callbackUrl: callbackUrl || "/minha-area" })
               }}
               disabled={loading}
               className="w-full h-10 flex items-center justify-center gap-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition disabled:opacity-50"

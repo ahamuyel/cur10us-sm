@@ -3,6 +3,7 @@ import { randomUUID } from "crypto"
 import { prisma } from "@/lib/prisma"
 import { Resend } from "resend"
 import { rateLimit } from "@/lib/rate-limit"
+import { withCsrf } from "@/lib/csrf"
 
 const verifyLimiter = rateLimit({ maxRequests: 3, windowMs: 60 * 60 * 1000 }) // 3 per hour
 const resendLimiter = rateLimit({ maxRequests: 5, windowMs: 60 * 60 * 1000 }) // 5 per hour
@@ -60,10 +61,14 @@ export async function POST(req: Request) {
 }
 
 /**
- * POST /api/auth/resend-verification
+ * PATCH /api/auth/resend-verification
  * Resends the verification email to the provided email address
  */
 export async function PATCH(req: Request) {
+  return withCsrf(handleResendVerification)(req, {})
+}
+
+async function handleResendVerification(req: Request) {
   try {
     const ip = getIp(req)
     const limit = await resendLimiter(ip)
