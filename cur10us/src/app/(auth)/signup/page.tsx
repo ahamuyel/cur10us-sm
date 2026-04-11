@@ -6,6 +6,7 @@ import { Eye, EyeOff, Loader2 } from "lucide-react"
 import { useState } from "react"
 import { signIn as nextAuthSignIn } from "next-auth/react"
 import { signUpSchema } from "@/lib/validations/auth"
+import { csrfPost } from "@/lib/csrf-client"
 
 export default function SignUpPage() {
   const router = useRouter()
@@ -13,37 +14,52 @@ export default function SignUpPage() {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
+  const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string; general?: string }>({})
   const [loading, setLoading] = useState(false)
+
+  function validateForm() {
+    const newErrors: { name?: string; email?: string; password?: string } = {}
+    const parsed = signUpSchema.safeParse({ name, email, password })
+    
+    if (!parsed.success) {
+      parsed.error.issues.forEach((issue) => {
+        const field = issue.path[0]
+        if (field === "name") {
+          newErrors.name = issue.message
+        } else if (field === "email") {
+          newErrors.email = issue.message
+        } else if (field === "password") {
+          newErrors.password = issue.message
+        }
+      })
+    }
+    
+    setErrors(newErrors)
+    return parsed.success
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setError("")
+    setErrors({})
 
-    const parsed = signUpSchema.safeParse({ name, email, password })
-    if (!parsed.success) {
-      setError(parsed.error.issues[0].message)
+    if (!validateForm()) {
       return
     }
 
     setLoading(true)
     try {
-      const res = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
-      })
-
+      const res = await csrfPost("/api/auth/signup", { name, email, password })
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.error || "Erro ao criar conta")
+        setErrors({ general: data.error || "Erro ao criar conta" })
         return
       }
 
-      router.push("/aplicacao")
+      // Redirect to verify email page after successful signup
+      router.push("/verify-email?justRegistered=true")
     } catch {
-      setError("Erro de conexão. Tente novamente.")
+      setErrors({ general: "Erro de conexão. Tente novamente." })
     } finally {
       setLoading(false)
     }
@@ -62,9 +78,9 @@ export default function SignUpPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {error && (
+            {errors.general && (
               <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 text-sm text-red-600 dark:text-red-400">
-                {error}
+                {errors.general}
               </div>
             )}
 
@@ -83,9 +99,17 @@ export default function SignUpPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 disabled={loading}
+                autoFocus
                 autoComplete="name"
-                className="w-full h-10 px-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-transparent text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition disabled:opacity-50"
+                className={`w-full h-10 px-3 rounded-xl border ${
+                  errors.name
+                    ? "border-red-500 focus:ring-red-500/40 focus:border-red-500"
+                    : "border-zinc-200 dark:border-zinc-700 focus:ring-indigo-500/40 focus:border-indigo-500"
+                } bg-transparent text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 transition disabled:opacity-50`}
               />
+              {errors.name && (
+                <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.name}</p>
+              )}
             </div>
 
             {/* Email */}
@@ -104,8 +128,15 @@ export default function SignUpPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={loading}
                 autoComplete="email"
-                className="w-full h-10 px-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-transparent text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition disabled:opacity-50"
+                className={`w-full h-10 px-3 rounded-xl border ${
+                  errors.email
+                    ? "border-red-500 focus:ring-red-500/40 focus:border-red-500"
+                    : "border-zinc-200 dark:border-zinc-700 focus:ring-indigo-500/40 focus:border-indigo-500"
+                } bg-transparent text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 transition disabled:opacity-50`}
               />
+              {errors.email && (
+                <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.email}</p>
+              )}
             </div>
 
             {/* Password */}
@@ -125,7 +156,11 @@ export default function SignUpPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={loading}
                   autoComplete="new-password"
-                  className="w-full h-10 px-3 pr-10 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-transparent text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition disabled:opacity-50"
+                  className={`w-full h-10 px-3 pr-10 rounded-xl border ${
+                    errors.password
+                      ? "border-red-500 focus:ring-red-500/40 focus:border-red-500"
+                      : "border-zinc-200 dark:border-zinc-700 focus:ring-indigo-500/40 focus:border-indigo-500"
+                  } bg-transparent text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 transition disabled:opacity-50`}
                 />
                 <button
                   type="button"
@@ -135,6 +170,9 @@ export default function SignUpPage() {
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
+              {errors.password && (
+                <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.password}</p>
+              )}
             </div>
 
             {/* Submit */}
@@ -166,7 +204,7 @@ export default function SignUpPage() {
             {/* Google signup */}
             <button
               type="button"
-              onClick={() => nextAuthSignIn("google", { callbackUrl: "/" })}
+              onClick={() => nextAuthSignIn("google", { callbackUrl: "/minha-area" })}
               disabled={loading}
               className="w-full h-10 flex items-center justify-center gap-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition disabled:opacity-50"
             >

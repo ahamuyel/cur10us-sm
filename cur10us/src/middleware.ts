@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
-const authPages = ["/signin", "/signup", "/forgot-password", "/reset-password", "/registar-escola"]
+const authPages = ["/signin", "/signup", "/forgot-password", "/reset-password", "/registar-escola", "/verify-email"]
 const publicPaths = ["/", "/aplicacao", "/aplicacao/status", "/maintenance"]
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
   // Public paths — always accessible
@@ -12,26 +12,26 @@ export function middleware(req: NextRequest) {
     return NextResponse.next()
   }
 
-  // Check for session token cookie (set by Auth.js)
-  const token =
-    req.cookies.get("authjs.session-token")?.value ||
-    req.cookies.get("__Secure-authjs.session-token")?.value
+  // Check for session cookie existence (not the full session, to avoid Edge + Prisma issue)
+  const hasSessionCookie = req.cookies.has("authjs.session-token")
 
-  const isLoggedIn = !!token
-
-  // Auth pages — redirect to dashboard if already logged in
+  // Auth pages — redirect to minha-area if already logged in
   if (authPages.some((p) => pathname.startsWith(p))) {
-    if (isLoggedIn) {
-      return NextResponse.redirect(new URL("/dashboard", req.url))
+    if (hasSessionCookie) {
+      return NextResponse.redirect(new URL("/minha-area", req.url))
     }
     return NextResponse.next()
   }
 
-  // Dashboard pages — redirect to signin if not logged in
-  if (!isLoggedIn) {
-    return NextResponse.redirect(new URL("/signin", req.url))
+  // Not logged in — redirect to signin
+  if (!hasSessionCookie) {
+    const signinUrl = new URL("/signin", req.url)
+    signinUrl.searchParams.set("callbackUrl", pathname)
+    return NextResponse.redirect(signinUrl)
   }
 
+  // For authenticated users, let server-side handling take over
+  // (session validation happens in API routes and page components)
   return NextResponse.next()
 }
 

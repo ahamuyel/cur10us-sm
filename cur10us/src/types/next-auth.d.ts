@@ -13,6 +13,7 @@ declare module "next-auth" {
       isActive: boolean
       mustChangePassword?: boolean
       profileComplete: boolean
+      emailVerified: Date | boolean | null
       adminLevel?: string | null
       permissions?: string[]
       schoolFeatures?: Record<string, boolean> | null
@@ -26,6 +27,7 @@ declare module "next-auth" {
     isActive: boolean
     mustChangePassword?: boolean
     profileComplete: boolean
+    emailVerified: Date | boolean | null
     adminLevel?: string | null
     permissions?: string[]
     schoolFeatures?: Record<string, boolean> | null
@@ -41,6 +43,7 @@ declare module "next-auth/jwt" {
     isActive: boolean
     mustChangePassword?: boolean
     profileComplete: boolean
+    emailVerified: Date | boolean | null
     adminLevel?: string | null
     permissions?: string[]
     schoolFeatures?: Record<string, boolean> | null
