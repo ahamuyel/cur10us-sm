@@ -2,7 +2,12 @@ import Link from "next/link"
 import { ArrowRight, Sparkles, GraduationCap, Users, Calendar, BarChart3 } from "lucide-react"
 import type { PlatformBranding } from "@/app/page"
 
-export default function HeroSection({ branding }: { branding: PlatformBranding }) {
+type Props = {
+  branding: PlatformBranding
+  schools: { name: string }[]
+}
+
+export default function HeroSection({ branding, schools }: Props) {
   return (
     <section className="relative overflow-hidden min-h-[90vh] flex items-center">
       {/* Gradient mesh background */}
@@ -57,21 +62,20 @@ export default function HeroSection({ branding }: { branding: PlatformBranding }
             {/* Social proof */}
             <div className="flex items-center gap-4 pt-2">
               <div className="flex -space-x-2">
-                {[
-                  "bg-indigo-500",
-                  "bg-violet-500",
-                  "bg-cyan-500",
-                  "bg-emerald-500",
-                ].map((color, i) => (
-                  <div
-                    key={i}
-                    className={`w-8 h-8 rounded-full ${color} border-2 border-white dark:border-zinc-950 flex items-center justify-center`}
-                  >
-                    <span className="text-[10px] font-bold text-white">
-                      {["ES", "CM", "LP", "HN"][i]}
-                    </span>
-                  </div>
-                ))}
+                {schools.length > 0
+                  ? schools.map((school, i) => {
+                    const colors = ["bg-indigo-500", "bg-violet-500", "bg-cyan-500", "bg-emerald-500"]
+                    const initials = school.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()
+                    return (
+                      <div key={i} className={`w-8 h-8 rounded-full ${colors[i % colors.length]} border-2 border-white dark:border-zinc-950 flex items-center justify-center`}>
+                        <span className="text-[10px] font-bold text-white">{initials}</span>
+                      </div>
+                    )
+                  })
+                  : ["bg-indigo-500", "bg-violet-500", "bg-cyan-500", "bg-emerald-500"].map((color, i) => (
+                    <div key={i} className={`w-8 h-8 rounded-full ${color} border-2 border-white dark:border-zinc-950`} />
+                  ))
+                }
               </div>
               <p className="text-sm text-zinc-500 dark:text-zinc-400">
                 Escolas em Angola já utilizam o{" "}

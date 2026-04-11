@@ -4,7 +4,7 @@ import { requireRole } from "@/lib/api-auth"
 
 export async function GET() {
   try {
-    const { error, session } = await requireRole(["school_admin", "teacher", "student", "parent"])
+    const { error, session } = await requireRole(["super_admin", "school_admin", "teacher", "student", "parent"])
     if (error) return error
 
     const pref = await prisma.dashboardPreference.findUnique({
@@ -19,10 +19,13 @@ export async function GET() {
 
 export async function PUT(req: Request) {
   try {
-    const { error, session } = await requireRole(["school_admin", "teacher", "student", "parent"])
+    const { error, session } = await requireRole(["super_admin", "school_admin", "teacher", "student", "parent"])
     if (error) return error
 
     const { layout } = await req.json()
+    if (!layout || typeof layout !== "object") {
+      return NextResponse.json({ error: "Layout inválido" }, { status: 400 })
+    }
 
     const pref = await prisma.dashboardPreference.upsert({
       where: { userId: session!.user.id },

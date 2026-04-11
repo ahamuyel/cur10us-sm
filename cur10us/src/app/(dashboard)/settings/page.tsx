@@ -8,14 +8,16 @@ import { useTheme } from "@/provider/theme"
 
 const SettingsPage = () => {
   const { theme, toggleTheme } = useTheme()
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const darkMode = theme === "dark"
   const [notifications, setNotifications] = useState(true)
   const [emailNotifs, setEmailNotifs] = useState(false)
   const [locale, setLocale] = useState("pt")
   const [saving, setSaving] = useState(false)
 
+  // Só carrega preferências quando a sessão está activa
   useEffect(() => {
+    if (status !== "authenticated") return
     fetch("/api/user-preferences")
       .then((r) => r.ok ? r.json() : null)
       .then((pref) => {
@@ -26,7 +28,7 @@ const SettingsPage = () => {
         }
       })
       .catch(() => {})
-  }, [])
+  }, [status])
 
   const savePref = async (updates: Record<string, unknown>) => {
     setSaving(true)
