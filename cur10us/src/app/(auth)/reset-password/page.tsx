@@ -6,6 +6,7 @@ import { Eye, EyeOff, KeyRound, CheckCircle2, ArrowLeft, Loader2 } from "lucide-
 import { useState, Suspense } from "react"
 import { signIn as nextAuthSignIn, getSession } from "next-auth/react"
 import { getDashboardPath } from "@/lib/routes"
+import { csrfPost } from "@/lib/csrf-client"
 
 function ResetPasswordForm() {
   const router = useRouter()
@@ -80,12 +81,7 @@ function ResetPasswordForm() {
 
     setLoading(true)
     try {
-      const res = await fetch("/api/auth/reset-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, password }),
-      })
-
+      const res = await csrfPost("/api/auth/reset-password", { token, password })
       const data = await res.json()
 
       if (!res.ok) {

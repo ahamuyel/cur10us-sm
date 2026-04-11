@@ -4,6 +4,7 @@ import Link from "next/link"
 import { Mail, ArrowLeft, CheckCircle2, Loader2 } from "lucide-react"
 import { useState } from "react"
 import { forgotPasswordSchema } from "@/lib/validations/auth"
+import { csrfPost } from "@/lib/csrf-client"
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
@@ -47,11 +48,7 @@ export default function ForgotPasswordPage() {
 
     setLoading(true)
     try {
-      await fetch("/api/auth/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      })
+      await csrfPost("/api/auth/forgot-password", { email })
 
       // Always show success to prevent email enumeration
       setSubmitted(true)
