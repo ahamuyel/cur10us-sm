@@ -20,6 +20,14 @@ export type PlatformBranding = {
   contactPhone: string | null
 }
 
+const topSchools = await prisma.school.findMany({
+  where: { status: "ativa" },
+  orderBy: { createdAt: "desc" },
+  take: 5,
+  select: {name: true},
+  // select: { id: true, name: true, logo: true },
+})
+
 async function getData() {
   const [schools, students, teachers, classes, config] = await Promise.all([
     prisma.school.count({ where: { status: "ativa" } }),
@@ -47,7 +55,7 @@ export default async function Home() {
   return (
     <main className="min-h-screen bg-zinc-50 dark:bg-black text-zinc-900 dark:text-zinc-100 scroll-smooth">
       <LandingNavbar branding={branding} />
-      <HeroSection branding={branding} />
+      <HeroSection branding={branding} schools={topSchools} />
       <StatsSection {...stats} />
       <HowItWorksSection />
       <FeaturesSection />
