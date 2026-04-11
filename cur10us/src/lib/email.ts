@@ -5,7 +5,7 @@ function getResend() {
   if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY)
   return _resend
 }
-const from = process.env.RESEND_FROM_EMAIL || "noreply@cur10usx.com"
+const from = process.env.RESEND_FROM_EMAIL ?? "onboarding@resend.dev"
 const baseUrl = process.env.AUTH_URL || "http://localhost:3000"
 
 function wrap(title: string, body: string) {
