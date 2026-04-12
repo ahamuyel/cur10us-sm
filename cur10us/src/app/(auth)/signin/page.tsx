@@ -68,11 +68,19 @@ export default function SignInPage() {
       }
 
       const dashboard = getDashboardPath(session?.user?.id)
+      const isSuperAdmin = session?.user?.role === "super_admin"
+      const isSchoolAdmin = session?.user?.role === "school_admin"
 
       // Respect callbackUrl if provided, otherwise go to dashboard or minha-area
       const callbackUrl = searchParams.get("callbackUrl")
       if (callbackUrl && callbackUrl.startsWith("/")) {
         router.push(callbackUrl)
+      } else if (isSuperAdmin) {
+        // Super admin goes straight to admin panel
+        router.push("/admin")
+      } else if (isSchoolAdmin && session?.user?.isActive && session?.user?.schoolId) {
+        // Enrolled school admin goes to dashboard
+        router.push(dashboard)
       } else if (!session?.user?.isActive || !session?.user?.schoolId) {
         router.push("/minha-area")
       } else {
@@ -87,7 +95,8 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="w-full max-w-sm mx-auto">
+      <div className="flex flex-col gap-6">
       {/* Card */}
       <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm overflow-hidden">
         <div className="p-8">
@@ -240,6 +249,7 @@ export default function SignInPage() {
           Criar conta
         </Link>
       </p>
+      </div>
     </div>
   )
 }

@@ -56,12 +56,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           const isValid = await compare(password, user.hashedPassword)
           if (!isValid) return null
 
-          // Increment session version to invalidate all other sessions
-          const updated = await prisma.user.update({
-            where: { id: user.id },
-            data: { sessionVersion: { increment: 1 } },
-          })
-
           return {
             id: user.id,
             name: user.name,
@@ -74,7 +68,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             mustChangePassword: user.mustChangePassword,
             profileComplete: user.profileComplete,
             emailVerified: user.emailVerified ? new Date() : null,
-            sessionVersion: updated.sessionVersion,
           }
         } catch (error) {
           console.error("Authorize error:", error)
@@ -93,12 +86,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         })
 
         if (existing) {
-          // Link Google provider if not already linked + increment session version
+          // Link Google provider if not already linked
           await prisma.user.update({
             where: { id: existing.id },
             data: {
               ...(!existing.provider ? { provider: "google", providerId: account.providerAccountId, image: user.image ?? existing.image } : {}),
-              sessionVersion: { increment: 1 },
             },
           })
           return true
@@ -125,7 +117,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     async jwt({ token, user }) {
       if (user) {
-        // Credentials/Google login — user object already has all fields
         token.role = (user as { role: string }).role
         token.id = user.id!
         token.schoolId = (user as { schoolId?: string | null }).schoolId ?? null
@@ -134,7 +125,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.mustChangePassword = (user as { mustChangePassword?: boolean }).mustChangePassword ?? false
         token.profileComplete = (user as { profileComplete: boolean }).profileComplete ?? true
         token.emailVerified = (user as { emailVerified?: boolean }).emailVerified ? new Date() : null
-        token.sessionVersion = (user as { sessionVersion?: number }).sessionVersion ?? 0
       }
 
       // Refresh from DB on every JWT rotation to pick up changes
@@ -144,11 +134,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           include: { school: { select: { slug: true, features: true } }, adminPermission: true },
         })
         if (dbUser) {
-          // Single session: if sessionVersion doesn't match, this session is invalid
-          if (token.sessionVersion !== undefined && dbUser.sessionVersion !== token.sessionVersion) {
-            return { ...token, invalidSession: true }
-          }
-
           token.id = dbUser.id
           token.role = dbUser.role
           token.schoolId = dbUser.schoolId ?? null
@@ -157,7 +142,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           token.mustChangePassword = dbUser.mustChangePassword
           token.profileComplete = dbUser.profileComplete
           token.emailVerified = dbUser.emailVerified ? new Date() : null
-          token.sessionVersion = dbUser.sessionVersion
           token.adminLevel = dbUser.adminPermission?.level ?? null
           token.permissions = extractPermissions(dbUser.adminPermission as unknown as Record<string, unknown>)
           token.schoolFeatures = (dbUser.school?.features as Record<string, boolean>) ?? null
@@ -167,11 +151,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return token
     },
     async session({ session, token }) {
-      // If session was invalidated by a newer login, signal the client
-      if (token.invalidSession) {
-        return { ...session, invalidSession: true } as typeof session & { invalidSession: boolean }
-      }
-
       if (session.user) {
         session.user.role = token.role as string
         session.user.id = token.id as string

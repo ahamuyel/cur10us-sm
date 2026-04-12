@@ -74,6 +74,7 @@ const menuItems: { title: string; items: MenuItem[] }[] = [
   {
     title: "OUTROS",
     items: [
+      { icon: Home, label: "Minha Área", href: "/minha-area", visible: ["school_admin", "teacher", "student", "parent"] },
       { icon: SlidersHorizontal, label: "Config. Avaliação", href: "/settings/grading", visible: ["school_admin"], feature: "evaluationEngine" },
       { icon: Upload, label: "Importar", href: "/import", visible: ["school_admin"] },
       { icon: CircleUser, label: "Perfil", href: "/profile", visible: ["school_admin", "teacher", "student", "parent"] },

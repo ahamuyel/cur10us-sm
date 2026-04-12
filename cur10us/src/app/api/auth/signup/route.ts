@@ -69,26 +69,37 @@ async function handleSignup(req: Request) {
       data: { token, expires, userId: user.id },
     })
 
-    // Send verification email
-    const verifyUrl = `${process.env.AUTH_URL || "http://localhost:3000"}/verify-email?token=${token}`
-
-    const resend = new Resend(process.env.RESEND_API_KEY)
-    await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || "noreply@cur10usx.com",
-      to: email,
-      subject: "Verifique o seu e-mail — Cur10usX",
-      html: `
-        <h2>Verifique o seu e-mail</h2>
-        <p>Olá ${name},</p>
-        <p>Obrigado por se registar no Cur10usX! Para completar o seu registo, clique no link abaixo:</p>
-        <p><a href="${verifyUrl}">Verificar o meu e-mail</a></p>
-        <p>Este link expira em 24 horas.</p>
-        <p>Se não fez esta solicitação, ignore este e-mail.</p>
-      `,
-    })
+    // Send verification email (don't fail if email service is down)
+    try {
+      const verifyUrl = `${process.env.AUTH_URL || "http://localhost:3000"}/verify-email?token=${token}`
+      const resend = new Resend(process.env.RESEND_API_KEY)
+      await resend.emails.send({
+        from: process.env.RESEND_FROM_EMAIL || "noreply@cur10usx.com",
+        to: email,
+        subject: "Verifique o seu e-mail — Cur10usX",
+        html: `
+          <h2>Verifique o seu e-mail</h2>
+          <p>Olá ${name},</p>
+          <p>Obrigado por se registar no Cur10usX! Para completar o seu registo, clique no link abaixo:</p>
+          <p><a href="${verifyUrl}">Verificar o meu e-mail</a></p>
+          <p>Este link expira em 24 horas.</p>
+          <p>Se não fez esta solicitação, ignore este e-mail.</p>
+        `,
+      })
+    } catch (e) {
+      console.error("Email send error:", e)
+    }
 
     return NextResponse.json({ success: true }, { status: 201 })
-  } catch {
+  } catch (error: unknown) {
+    console.error("Signup error:", error)
+    // Check if it's a Prisma unique constraint error
+    if (error && typeof error === "object" && "code" in error && (error as { code: string }).code === "P2002") {
+      return NextResponse.json(
+        { error: "Este e-mail já está cadastrado" },
+        { status: 409 }
+      )
+    }
     return NextResponse.json(
       { error: "Erro interno do servidor" },
       { status: 500 }
