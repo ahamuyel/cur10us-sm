@@ -25,32 +25,29 @@ export default function SignInPage() {
       if (session) {
         // User has a session but ended up on signin page (OAuth race condition)
         // Check for stored callback URL
-        const callbackCookie = document.cookie
-          .split('; ')
-          .find(row => row.startsWith('next-auth-callback-url='))
-          ?.split('=')[1]
-        
-        if (callbackCookie) {
-          // Clear the cookie
-          document.cookie = 'next-auth-callback-url=; max-age=0; path=/'
-          // Decode and redirect
-          const callbackUrl = decodeURIComponent(callbackCookie)
-          if (callbackUrl.startsWith("/")) {
-            router.push(callbackUrl)
-            return
-          }
+        const getCookieValue = (name: string) => {
+          const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'))
+          return match ? decodeURIComponent(match[2]) : null
         }
         
-        // No stored callback URL, redirect to default
-        const callbackUrl = searchParams.get("callbackUrl")
+        const callbackUrl = getCookieValue('next-auth-callback-url')
         if (callbackUrl && callbackUrl.startsWith("/")) {
+          // Clear the cookie
+          document.cookie = 'next-auth-callback-url=; max-age=0; path=/'
           router.push(callbackUrl)
+          return
+        }
+
+        // No stored callback URL, check URL params
+        const urlCallbackUrl = searchParams.get("callbackUrl")
+        if (urlCallbackUrl && urlCallbackUrl.startsWith("/")) {
+          router.push(urlCallbackUrl)
         } else {
           router.push("/minha-area")
         }
       }
     }
-    
+
     checkSessionAndRedirect()
   }, [router, searchParams])
 
@@ -260,7 +257,10 @@ export default function SignInPage() {
                 const callbackUrl = searchParams.get("callbackUrl") || "/minha-area"
                 const validCallbackUrl = callbackUrl.startsWith("/") ? callbackUrl : "/minha-area"
                 // Store callbackUrl in cookie as backup in case NextAuth loses it
-                document.cookie = `next-auth-callback-url=${encodeURIComponent(validCallbackUrl)}; path=/; max-age=600; SameSite=Lax`
+                // Use a more reliable cookie setting approach
+                const cookieValue = encodeURIComponent(validCallbackUrl)
+                const domain = window.location.hostname === 'localhost' ? undefined : '.vercel.app'
+                document.cookie = `next-auth-callback-url=${cookieValue}; path=/; max-age=600; SameSite=Lax; Secure${domain ? `; domain=${domain}` : ''}`
                 nextAuthSignIn("google", { callbackUrl: validCallbackUrl })
               }}
               disabled={loading}

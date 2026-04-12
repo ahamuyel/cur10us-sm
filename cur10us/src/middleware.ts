@@ -13,7 +13,13 @@ export async function middleware(req: NextRequest) {
   }
 
   // Check for session cookie existence (not the full session, to avoid Edge + Prisma issue)
-  const hasSessionCookie = req.cookies.has("authjs.session-token")
+  // Auth.js v5 uses "authjs.session-token" by default
+  // Fallback to legacy "next-auth.session-token" if needed
+  const hasSessionCookie = 
+    req.cookies.has("authjs.session-token") ||
+    req.cookies.has("next-auth.session-token") ||
+    // Fallback: check if ANY cookie contains "session" 
+    Array.from(req.cookies.getAll()).some(c => c.name.includes("session"))
 
   // Auth pages — redirect to minha-area if already logged in
   if (authPages.some((p) => pathname.startsWith(p))) {
