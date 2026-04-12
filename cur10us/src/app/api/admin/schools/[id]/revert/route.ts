@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireRole } from "@/lib/api-auth"
+import { revalidateSchoolData } from "@/lib/revalidate"
 
 const REVERT_MAP: Record<string, string> = {
   ativa: "aprovada",
@@ -32,6 +33,9 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
         rejectReason: targetStatus === "pendente" ? null : school.rejectReason,
       },
     })
+
+    // Revalidate school data
+    revalidateSchoolData(id)
 
     return NextResponse.json({ school: updated, previousStatus: school.status, newStatus: targetStatus })
   } catch {

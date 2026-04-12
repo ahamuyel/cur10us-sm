@@ -5,6 +5,7 @@ import { hash } from "bcryptjs"
 import crypto from "crypto"
 import { sendSchoolActivated, sendSchoolActivatedExistingAdmin } from "@/lib/email"
 import { getDefaultFeatures } from "@/lib/features"
+import { revalidateSchoolData } from "@/lib/revalidate"
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -94,6 +95,9 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     } catch {
       // Email delivery failure shouldn't block activation
     }
+
+    // Revalidate school data
+    revalidateSchoolData(id)
 
     return NextResponse.json({
       ...school,
