@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireRole } from "@/lib/api-auth"
 import { updateSchoolSchema } from "@/lib/validations/school"
+import { revalidateSchoolData } from "@/lib/revalidate"
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -45,6 +46,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         ...(features !== undefined && { features: features as unknown as Record<string, boolean> }),
       },
     })
+
+    // Revalidate all cached data for this school
+    revalidateSchoolData(id)
+
     return NextResponse.json(school)
   } catch {
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
@@ -58,6 +63,10 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
 
     const { id } = await params
     await prisma.school.delete({ where: { id } })
+
+    // Revalidate school listings after deletion
+    revalidateSchoolData(id)
+
     return NextResponse.json({ success: true })
   } catch {
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
