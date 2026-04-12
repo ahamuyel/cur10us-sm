@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { signIn as nextAuthSignIn, getSession } from "next-auth/react"
 import { signInSchema } from "@/lib/validations/auth"
 import { getDashboardPath } from "@/lib/routes"
@@ -17,6 +17,42 @@ export default function SignInPage() {
   const [password, setPassword] = useState("")
   const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({})
   const [loading, setLoading] = useState(false)
+
+  // Check if user just completed OAuth and has a session, then redirect to callbackUrl
+  useEffect(() => {
+    const checkSessionAndRedirect = async () => {
+      const session = await getSession()
+      if (session) {
+        // User has a session but ended up on signin page (OAuth race condition)
+        // Check for stored callback URL
+        const callbackCookie = document.cookie
+          .split('; ')
+          .find(row => row.startsWith('next-auth-callback-url='))
+          ?.split('=')[1]
+        
+        if (callbackCookie) {
+          // Clear the cookie
+          document.cookie = 'next-auth-callback-url=; max-age=0; path=/'
+          // Decode and redirect
+          const callbackUrl = decodeURIComponent(callbackCookie)
+          if (callbackUrl.startsWith("/")) {
+            router.push(callbackUrl)
+            return
+          }
+        }
+        
+        // No stored callback URL, redirect to default
+        const callbackUrl = searchParams.get("callbackUrl")
+        if (callbackUrl && callbackUrl.startsWith("/")) {
+          router.push(callbackUrl)
+        } else {
+          router.push("/minha-area")
+        }
+      }
+    }
+    
+    checkSessionAndRedirect()
+  }, [router, searchParams])
 
   function validateForm() {
     const newErrors: { email?: string; password?: string } = {}
@@ -221,8 +257,11 @@ export default function SignInPage() {
             <button
               type="button"
               onClick={() => {
-                const callbackUrl = searchParams.get("callbackUrl")
-                nextAuthSignIn("google", { callbackUrl: callbackUrl || "/minha-area" })
+                const callbackUrl = searchParams.get("callbackUrl") || "/minha-area"
+                const validCallbackUrl = callbackUrl.startsWith("/") ? callbackUrl : "/minha-area"
+                // Store callbackUrl in cookie as backup in case NextAuth loses it
+                document.cookie = `next-auth-callback-url=${encodeURIComponent(validCallbackUrl)}; path=/; max-age=600; SameSite=Lax`
+                nextAuthSignIn("google", { callbackUrl: validCallbackUrl })
               }}
               disabled={loading}
               className="w-full h-10 flex items-center justify-center gap-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition disabled:opacity-50"

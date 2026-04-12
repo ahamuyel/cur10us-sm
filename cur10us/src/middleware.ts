@@ -18,6 +18,14 @@ export async function middleware(req: NextRequest) {
   // Auth pages — redirect to minha-area if already logged in
   if (authPages.some((p) => pathname.startsWith(p))) {
     if (hasSessionCookie) {
+      // Check if there's a stored callback URL from OAuth flow (priority over default redirect)
+      const storedCallbackUrl = req.cookies.get("next-auth-callback-url")?.value
+      if (storedCallbackUrl && storedCallbackUrl.startsWith("/")) {
+        const response = NextResponse.redirect(new URL(storedCallbackUrl, req.url))
+        // Clear the cookie after using it
+        response.cookies.set("next-auth-callback-url", "", { maxAge: 0, path: "/" })
+        return response
+      }
       return NextResponse.redirect(new URL("/minha-area", req.url))
     }
     return NextResponse.next()
@@ -35,6 +43,7 @@ export async function middleware(req: NextRequest) {
   return NextResponse.next()
 }
 
+// Update matcher to ensure middleware doesn't interfere with Next.js internals
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.png$|.*\\.svg$).*)"],
+  matcher: ["/((?!_next/static|_next/image|_next/data|_next/font|favicon.ico|.*\\.png$|.*\\.svg$).*)"],
 }
