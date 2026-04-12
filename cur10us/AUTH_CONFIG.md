@@ -11,9 +11,13 @@ This document explains how to properly configure authentication for both localho
 The following improvements have been made to fix production authentication:
 
 1. **Enhanced middleware cookie detection** - Now checks multiple cookie name formats (`authjs.session-token`, `next-auth.session-token`, and fallback)
-2. **Explicit cookie configuration** - Added proper cookie settings with domain scoping for Vercel (`.vercel.app`)
-3. **Improved client-side callback URL handling** - Better cookie parsing and domain configuration
-4. **Secure cookie flags** - All production cookies now use Secure flag and proper SameSite settings
+2. **Explicit cookie configuration** - Added proper cookie settings with Secure flag and SameSite='lax'
+3. **Improved client-side callback URL handling** - Better cookie parsing with regex-based extraction
+4. **Secure cookie flags** - All production cookies now use Secure flag (HTTPS only)
+5. **Fixed cookie domain scoping** - Removed hardcoded `.vercel.app` domain; cookies now scoped to current host automatically
+
+### Critical Fix:
+**Removed `domain: '.vercel.app'`** from cookie configuration. This was causing cookies to be incorrectly scoped across all Vercel projects. Cookies now correctly scope to `cur10us-sm.vercel.app` only.
 
 ---
 
