@@ -257,10 +257,9 @@ export default function SignInPage() {
                 const callbackUrl = searchParams.get("callbackUrl") || "/minha-area"
                 const validCallbackUrl = callbackUrl.startsWith("/") ? callbackUrl : "/minha-area"
                 // Store callbackUrl in cookie as backup in case NextAuth loses it
-                // Use a more reliable cookie setting approach
+                // Don't set domain explicitly - let it default to current host
                 const cookieValue = encodeURIComponent(validCallbackUrl)
-                const domain = window.location.hostname === 'localhost' ? undefined : '.vercel.app'
-                document.cookie = `next-auth-callback-url=${cookieValue}; path=/; max-age=600; SameSite=Lax; Secure${domain ? `; domain=${domain}` : ''}`
+                document.cookie = `next-auth-callback-url=${cookieValue}; path=/; max-age=600; SameSite=Lax; Secure`
                 nextAuthSignIn("google", { callbackUrl: validCallbackUrl })
               }}
               disabled={loading}
