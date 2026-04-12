@@ -22,7 +22,7 @@ function ResetPasswordForm() {
 
   if (!token) {
     return (
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md mx-auto">
         <div className="rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm p-8 text-center">
           <h1 className="text-2xl font-bold mb-2">Link inválido</h1>
           <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">
@@ -41,7 +41,7 @@ function ResetPasswordForm() {
 
   if (success) {
     return (
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md mx-auto">
         <div className="rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm p-8 text-center">
           <div className="w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center mx-auto mb-6">
             {signingIn ? (
@@ -121,7 +121,7 @@ function ResetPasswordForm() {
   }
 
   return (
-    <div className="w-full max-w-md">
+    <div className="w-full max-w-md mx-auto">
       <div className="rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm p-8">
         <div className="text-center mb-8">
           <div className="w-14 h-14 rounded-full bg-indigo-100 dark:bg-indigo-950 flex items-center justify-center mx-auto mb-4">

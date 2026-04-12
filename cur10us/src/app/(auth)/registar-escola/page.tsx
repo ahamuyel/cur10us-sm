@@ -4,6 +4,7 @@ import Link from "next/link"
 import { Eye, EyeOff, School, Loader2 } from "lucide-react"
 import { useState } from "react"
 import { registerSchoolSchema } from "@/lib/validations/register-school"
+import { csrfPost } from "@/lib/csrf-client"
 
 const PROVINCIAS = [
   "Bengo", "Benguela", "Bié", "Cabinda", "Cuando Cubango",
@@ -60,11 +61,7 @@ export default function RegistarEscolaPage() {
 
     setLoading(true)
     try {
-      const res = await fetch("/api/auth/register-school", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(parsed.data),
-      })
+      const res = await csrfPost("/api/auth/register-school", parsed.data)
 
       const data = await res.json()
 
@@ -83,7 +80,7 @@ export default function RegistarEscolaPage() {
 
   if (success) {
     return (
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-sm sm:max-w-md mx-auto">
         <div className="rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm p-8 text-center">
           <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center mx-auto mb-6">
             <School className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
@@ -111,8 +108,8 @@ export default function RegistarEscolaPage() {
   const labelClass = "block text-sm font-medium mb-1.5 text-zinc-700 dark:text-zinc-300"
 
   return (
-    <div className="w-full max-w-lg">
-      <div className="rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm p-8">
+    <div className="w-full max-w-sm sm:max-w-md lg:max-w-xl mx-auto">
+      <div className="rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm p-5 sm:p-8">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold mb-2">Registe a sua escola</h1>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
