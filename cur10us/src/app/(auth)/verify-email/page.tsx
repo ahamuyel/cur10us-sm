@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import { CheckCircle, XCircle, Loader2, Mail } from "lucide-react"
 import Link from "next/link"
 import { csrfPost } from "@/lib/csrf-client"
@@ -68,7 +68,7 @@ export default function VerifyEmailPage() {
 
   if (status === "verifying") {
     return (
-      <div className="flex flex-col items-center gap-4 text-center">
+      <div className="w-full max-w-sm mx-auto flex flex-col items-center gap-4 text-center">
         <Loader2 className="w-12 h-12 text-indigo-600 dark:text-indigo-400 animate-spin" />
         <h1 className="text-xl font-semibold">A verificar e-mail...</h1>
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
@@ -80,7 +80,7 @@ export default function VerifyEmailPage() {
 
   if (status === "success") {
     return (
-      <div className="flex flex-col items-center gap-4 text-center">
+      <div className="w-full max-w-sm mx-auto flex flex-col items-center gap-4 text-center">
         <CheckCircle className="w-12 h-12 text-emerald-600 dark:text-emerald-400" />
         <h1 className="text-xl font-semibold">E-mail verificado!</h1>
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
@@ -98,7 +98,7 @@ export default function VerifyEmailPage() {
 
   if (status === "error") {
     return (
-      <div className="flex flex-col items-center gap-4 text-center">
+      <div className="w-full max-w-sm mx-auto flex flex-col items-center gap-4 text-center">
         <XCircle className="w-12 h-12 text-red-600 dark:text-red-400" />
         <h1 className="text-xl font-semibold">Falha na verificação</h1>
         <p className="text-sm text-zinc-500 dark:text-zinc-400">{error}</p>
@@ -117,7 +117,7 @@ export default function VerifyEmailPage() {
 
   // Resend state — no token provided
   return (
-    <div className="flex flex-col items-center gap-6 text-center">
+    <div className="w-full max-w-sm mx-auto flex flex-col items-center gap-6 text-center">
       <Mail className="w-12 h-12 text-indigo-600 dark:text-indigo-400" />
       <div>
         <h1 className="text-xl font-semibold">

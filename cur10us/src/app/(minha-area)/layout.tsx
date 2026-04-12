@@ -4,6 +4,8 @@ import { signOut, useSession } from "next-auth/react"
 import { LogOut } from "lucide-react"
 import ThemeToggle from "@/components/ui/ThemeToggle"
 
+/* Redirects are handled by root SessionGuard only. This layout just renders. */
+
 export default function MinhaAreaLayout({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession()
 
