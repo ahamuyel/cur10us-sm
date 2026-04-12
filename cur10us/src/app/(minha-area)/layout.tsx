@@ -1,13 +1,50 @@
 "use client"
 
+import { useEffect } from "react"
 import { signOut, useSession } from "next-auth/react"
-import { LogOut } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { LogOut, Loader2 } from "lucide-react"
 import ThemeToggle from "@/components/ui/ThemeToggle"
 
-/* Redirects are handled by root SessionGuard only. This layout just renders. */
-
 export default function MinhaAreaLayout({ children }: { children: React.ReactNode }) {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
+  const router = useRouter()
+
+  // Super admin: redirect to /admin
+  // School admin who is enrolled: redirect to dashboard
+  useEffect(() => {
+    if (status !== "authenticated" || !session?.user) return
+
+    if (session.user.role === "super_admin") {
+      router.replace("/admin")
+      return
+    }
+
+    if (session.user.role === "school_admin" && session.user.isActive && session.user.schoolId) {
+      router.replace(`/dashboard/${session.user.id}`)
+      return
+    }
+  }, [status, session, router])
+
+  if (status === "loading") {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
+      </div>
+    )
+  }
+
+  // Hide content while redirecting to prevent flash
+  if (status === "authenticated" && (
+    session?.user?.role === "super_admin" ||
+    (session?.user?.role === "school_admin" && session?.user?.isActive && session?.user?.schoolId)
+  )) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-[#f7f8fa] dark:bg-zinc-950">
