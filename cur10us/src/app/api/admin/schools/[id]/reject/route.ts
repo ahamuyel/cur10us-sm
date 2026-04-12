@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { requireRole } from "@/lib/api-auth"
 import { rejectSchoolSchema } from "@/lib/validations/school"
 import { sendSchoolRejected } from "@/lib/email"
+import { revalidateSchoolData } from "@/lib/revalidate"
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -21,6 +22,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       where: { id },
       data: { status: "rejeitada", rejectReason: parsed.data.reason },
     })
+
+    // Revalidate school data
+    revalidateSchoolData(id)
 
     try {
       await sendSchoolRejected(school.email, school.name, parsed.data.reason)
