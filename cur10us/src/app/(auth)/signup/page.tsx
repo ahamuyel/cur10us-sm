@@ -2,11 +2,22 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Eye, EyeOff, Loader2 } from "lucide-react"
+import { Eye, EyeOff, Loader2, Building2, GraduationCap, UserRound, Briefcase } from "lucide-react"
 import { useState } from "react"
 import { signIn as nextAuthSignIn } from "next-auth/react"
 import { signUpSchema } from "@/lib/validations/auth"
 import { csrfPost } from "@/lib/csrf-client"
+
+/* ─── Tipos de conta (apenas informativo) ─── */
+
+const ACCOUNT_TYPES = [
+  { icon: Building2, label: "Admin Escola", desc: "Registe a sua instituição" },
+  { icon: UserRound, label: "Professor", desc: "Vincule-se ou seja independente" },
+  { icon: GraduationCap, label: "Estudante", desc: "Solicite matrícula" },
+  { icon: Briefcase, label: "Independente", desc: "Freelancers e criadores" },
+]
+
+/* ─── Página ─── */
 
 export default function SignUpPage() {
   const router = useRouter()
@@ -14,50 +25,27 @@ export default function SignUpPage() {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string; general?: string }>({})
+  const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
 
-  function validateForm() {
-    const newErrors: { name?: string; email?: string; password?: string } = {}
+  function validate() {
+    const e: Record<string, string> = {}
     const parsed = signUpSchema.safeParse({ name, email, password })
-    
-    if (!parsed.success) {
-      parsed.error.issues.forEach((issue) => {
-        const field = issue.path[0]
-        if (field === "name") {
-          newErrors.name = issue.message
-        } else if (field === "email") {
-          newErrors.email = issue.message
-        } else if (field === "password") {
-          newErrors.password = issue.message
-        }
-      })
-    }
-    
-    setErrors(newErrors)
-    return parsed.success
+    if (!parsed.success) parsed.error.issues.forEach((i) => { e[i.path[0] as string] = i.message })
+    setErrors(e)
+    return Object.keys(e).length === 0
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setErrors({})
-
-    if (!validateForm()) {
-      return
-    }
-
+  async function handleSubmit(ev: React.FormEvent) {
+    ev.preventDefault()
+    if (!validate()) return
     setLoading(true)
     try {
       const res = await csrfPost("/api/auth/signup", { name, email, password })
       const data = await res.json()
-
-      if (!res.ok) {
-        setErrors({ general: data.error || "Erro ao criar conta" })
-        return
-      }
-
-      // Redirect to verify email page after successful signup
-      router.push("/verify-email?justRegistered=true")
+      if (!res.ok) { setErrors({ general: data.error || "Erro ao criar conta" }); return }
+      setSuccess(true)
     } catch {
       setErrors({ general: "Erro de conexão. Tente novamente." })
     } finally {
@@ -65,134 +53,82 @@ export default function SignUpPage() {
     }
   }
 
-  return (
-    <div className="flex flex-col gap-6">
-      {/* Card */}
-      <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm overflow-hidden">
-        <div className="p-8">
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold tracking-tight">Crie a sua conta</h1>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-              Preencha os dados abaixo para começar
-            </p>
+  if (success) {
+    return (
+      <div className="w-full max-w-sm mx-auto">
+        <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm p-6 sm:p-8 text-center">
+          <div className="w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center mx-auto mb-5">
+            <GraduationCap className="w-7 h-7 text-emerald-600 dark:text-emerald-400" />
           </div>
+          <h1 className="text-xl font-bold mb-2 sm:text-2xl">Conta criada com sucesso!</h1>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6 leading-relaxed">
+            Verifique o seu e-mail para activar a conta. Depois, na sua Área pessoal, poderá solicitar vinculação a uma escola.
+          </p>
+          <Link href="/signin" className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition">
+            Ir para o login
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {errors.general && (
-              <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 text-sm text-red-600 dark:text-red-400">
-                {errors.general}
+  return (
+    <div className="w-full max-w-sm mx-auto">
+      <div className="flex flex-col gap-6">
+        {/* Card */}
+        <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm overflow-hidden">
+          <div className="p-5 sm:p-6 lg:p-8">
+            <div className="mb-6 sm:mb-8 text-center">
+              <h1 className="text-xl font-bold tracking-tight sm:text-2xl">Crie a sua conta</h1>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2">
+                Após criar a conta, poderá solicitar vinculação a uma escola na sua Área pessoal.
+              </p>
+            </div>
+
+            {/* Account types — informativo */}
+            <div className="grid grid-cols-2 gap-2.5 mb-6">
+              {ACCOUNT_TYPES.map(({ icon: Icon, label, desc }) => (
+                <div key={label} className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 p-3 text-center">
+                  <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-950/50 flex items-center justify-center mx-auto mb-1.5">
+                    <Icon size={16} className="text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">{label}</p>
+                  <p className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-0.5">{desc}</p>
+                </div>
+              ))}
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {errors.general && (
+                <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 text-sm text-red-600 dark:text-red-400">{errors.general}</div>
+              )}
+              <div>
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Nome completo</label>
+                <input type="text" placeholder="Seu nome" value={name} onChange={(e) => setName(e.target.value)} className={`w-full h-10 px-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-transparent text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition disabled:opacity-50 ${errors.name ? "border-red-500" : ""}`} disabled={loading} autoFocus />
+                {errors.name && <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.name}</p>}
               </div>
-            )}
-
-            {/* Name */}
-            <div className="space-y-2">
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-              >
-                Nome completo
-              </label>
-              <input
-                id="name"
-                type="text"
-                placeholder="Seu nome"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                disabled={loading}
-                autoFocus
-                autoComplete="name"
-                className={`w-full h-10 px-3 rounded-xl border ${
-                  errors.name
-                    ? "border-red-500 focus:ring-red-500/40 focus:border-red-500"
-                    : "border-zinc-200 dark:border-zinc-700 focus:ring-indigo-500/40 focus:border-indigo-500"
-                } bg-transparent text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 transition disabled:opacity-50`}
-              />
-              {errors.name && (
-                <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.name}</p>
-              )}
-            </div>
-
-            {/* Email */}
-            <div className="space-y-2">
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-              >
-                E-mail
-              </label>
-              <input
-                id="email"
-                type="email"
-                placeholder="seu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={loading}
-                autoComplete="email"
-                className={`w-full h-10 px-3 rounded-xl border ${
-                  errors.email
-                    ? "border-red-500 focus:ring-red-500/40 focus:border-red-500"
-                    : "border-zinc-200 dark:border-zinc-700 focus:ring-indigo-500/40 focus:border-indigo-500"
-                } bg-transparent text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 transition disabled:opacity-50`}
-              />
-              {errors.email && (
-                <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.email}</p>
-              )}
-            </div>
-
-            {/* Password */}
-            <div className="space-y-2">
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-              >
-                Senha
-              </label>
-              <div className="relative">
-                <input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Mínimo 8 caracteres"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={loading}
-                  autoComplete="new-password"
-                  className={`w-full h-10 px-3 pr-10 rounded-xl border ${
-                    errors.password
-                      ? "border-red-500 focus:ring-red-500/40 focus:border-red-500"
-                      : "border-zinc-200 dark:border-zinc-700 focus:ring-indigo-500/40 focus:border-indigo-500"
-                  } bg-transparent text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 transition disabled:opacity-50`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
+              <div>
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">E-mail</label>
+                <input type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className={`w-full h-10 px-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-transparent text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition disabled:opacity-50 ${errors.email ? "border-red-500" : ""}`} disabled={loading} />
+                {errors.email && <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.email}</p>}
               </div>
-              {errors.password && (
-                <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.password}</p>
-              )}
-            </div>
-
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full h-10 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-medium text-sm hover:from-indigo-700 hover:to-violet-700 shadow-lg shadow-indigo-600/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-indigo-600/30"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Criando conta...
-                </>
-              ) : (
-                "Criar conta"
-              )}
-            </button>
+              <div>
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Palavra-passe</label>
+                <div className="relative">
+                  <input type={showPassword ? "text" : "password"} placeholder="Mínimo 8 caracteres" value={password} onChange={(e) => setPassword(e.target.value)} className={`w-full h-10 px-3 pr-10 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-transparent text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition disabled:opacity-50 ${errors.password ? "border-red-500" : ""}`} disabled={loading} />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition">
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+                {errors.password && <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.password}</p>}
+              </div>
+              <button type="submit" disabled={loading} className="w-full h-10 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-medium hover:from-indigo-700 hover:to-violet-700 shadow-lg shadow-indigo-600/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                {loading ? <><Loader2 size={16} className="animate-spin" /> Criando conta...</> : "Criar conta"}
+              </button>
+            </form>
 
             {/* Divider */}
-            <div className="relative">
+            <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-zinc-200 dark:border-zinc-800" />
               </div>
@@ -201,7 +137,7 @@ export default function SignUpPage() {
               </div>
             </div>
 
-            {/* Google signup */}
+            {/* Google */}
             <button
               type="button"
               onClick={() => nextAuthSignIn("google", { callbackUrl: "/minha-area" })}
@@ -216,34 +152,17 @@ export default function SignUpPage() {
               </svg>
               Continuar com Google
             </button>
-          </form>
-
-          {/* Info boxes */}
-          <div className="mt-6 space-y-3">
-            <div className="p-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/50 text-sm text-indigo-700 dark:text-indigo-400">
-              Após criar a sua conta, será direcionado para solicitar matrícula numa escola.
-            </div>
-
-            <div className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 text-sm text-zinc-600 dark:text-zinc-400">
-              Representa uma escola?{" "}
-              <Link href="/registar-escola" className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline">
-                Registe aqui
-              </Link>
-            </div>
           </div>
         </div>
-      </div>
 
-      {/* Footer link */}
-      <p className="text-center text-sm text-zinc-500 dark:text-zinc-400">
-        Já tem uma conta?{" "}
-        <Link
-          href="/signin"
-          className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline"
-        >
-          Entrar
-        </Link>
-      </p>
+        {/* Footer */}
+        <p className="text-center text-sm text-zinc-500 dark:text-zinc-400">
+          Já tem uma conta?{" "}
+          <Link href="/signin" className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline">
+            Entrar
+          </Link>
+        </p>
+      </div>
     </div>
   )
 }
