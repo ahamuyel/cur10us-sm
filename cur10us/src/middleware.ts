@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
-const authPages = ["/signin", "/signup", "/forgot-password", "/reset-password", "/registar-escola", "/verify-email"]
+const authPages = ["/signin", "/signup", "/forgot-password", "/registar-escola", "/verify-email"]
+// Pages that should be accessible by both authenticated and unauthenticated users
+const alwaysAccessible = ["/reset-password"]
 const publicPaths = ["/", "/aplicacao", "/aplicacao/status", "/maintenance"]
 
 export async function middleware(req: NextRequest) {
@@ -12,14 +14,17 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next()
   }
 
+  // Always accessible pages (e.g., reset-password)
+  if (alwaysAccessible.some((p) => pathname.startsWith(p))) {
+    return NextResponse.next()
+  }
+
   // Check for session cookie existence (not the full session, to avoid Edge + Prisma issue)
   // Auth.js v5 uses "authjs.session-token" by default
   // Fallback to legacy "next-auth.session-token" if needed
-  const hasSessionCookie = 
+  const hasSessionCookie =
     req.cookies.has("authjs.session-token") ||
-    req.cookies.has("next-auth.session-token") ||
-    // Fallback: check if ANY cookie contains "session" 
-    Array.from(req.cookies.getAll()).some(c => c.name.includes("session"))
+    req.cookies.has("next-auth.session-token")
 
   // Auth pages — redirect to minha-area if already logged in
   if (authPages.some((p) => pathname.startsWith(p))) {

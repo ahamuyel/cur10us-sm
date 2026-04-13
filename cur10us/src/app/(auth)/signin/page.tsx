@@ -29,7 +29,7 @@ export default function SignInPage() {
           const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'))
           return match ? decodeURIComponent(match[2]) : null
         }
-        
+
         const callbackUrl = getCookieValue('next-auth-callback-url')
         if (callbackUrl && callbackUrl.startsWith("/")) {
           // Clear the cookie
@@ -259,7 +259,7 @@ export default function SignInPage() {
                 // Store callbackUrl in cookie as backup in case NextAuth loses it
                 // Don't set domain explicitly - let it default to current host
                 const cookieValue = encodeURIComponent(validCallbackUrl)
-                document.cookie = `next-auth-callback-url=${cookieValue}; path=/; max-age=600; SameSite=Lax; Secure`
+                document.cookie = `next-auth-callback-url=${cookieValue}; path=/; max-age=600; SameSite=Lax${process.env.NODE_ENV === "production" ? "; Secure" : ""}`
                 nextAuthSignIn("google", { callbackUrl: validCallbackUrl })
               }}
               disabled={loading}
