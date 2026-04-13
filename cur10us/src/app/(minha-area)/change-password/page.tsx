@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useSession, signOut } from "next-auth/react"
 import { Lock, Eye, EyeOff } from "lucide-react"
+import { csrfPost } from "@/lib/csrf-client"
 
 const inputClass =
   "w-full px-3 py-2 pr-10 rounded-xl text-sm bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-indigo-500 transition"
@@ -49,11 +50,7 @@ export default function ChangePasswordPage() {
 
     setLoading(true)
     try {
-      const res = await fetch("/api/auth/change-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ currentPassword, newPassword }),
-      })
+      const res = await csrfPost("/api/auth/change-password", { currentPassword, newPassword })
       const data = await res.json()
 
       if (!res.ok) {

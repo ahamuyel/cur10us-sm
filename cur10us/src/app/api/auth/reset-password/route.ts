@@ -67,7 +67,8 @@ async function handleResetPassword(req: Request) {
       where: { id: resetToken.id },
     })
 
-    return NextResponse.json({ success: true, email: resetToken.user.email })
+    // Don't return email to prevent user enumeration
+    return NextResponse.json({ success: true })
   } catch {
     return NextResponse.json(
       { error: "Erro interno do servidor" },

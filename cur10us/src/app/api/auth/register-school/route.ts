@@ -3,6 +3,17 @@ import { hash } from "bcryptjs"
 import { prisma } from "@/lib/prisma"
 import { registerSchoolSchema } from "@/lib/validations/register-school"
 import { withCsrf } from "@/lib/csrf"
+import { rateLimit } from "@/lib/rate-limit"
+
+const registerSchoolLimiter = rateLimit({ maxRequests: 3, windowMs: 60 * 60 * 1000 }) // 3 per hour
+
+function getIp(req: Request): string {
+  return (
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    req.headers.get("x-real-ip") ||
+    "unknown"
+  )
+}
 
 export async function POST(req: Request) {
   return withCsrf(handleRegisterSchool)(req, {})
@@ -10,6 +21,17 @@ export async function POST(req: Request) {
 
 async function handleRegisterSchool(req: Request) {
   try {
+    const ip = getIp(req)
+    const limit = await registerSchoolLimiter(ip)
+
+    if (!limit.success) {
+      const resetSec = Math.ceil((limit.resetAt.getTime() - Date.now()) / 1000)
+      return NextResponse.json(
+        { error: `Muitas tentativas. Tente novamente em ${resetSec} segundos.` },
+        { status: 429, headers: { "Retry-After": String(resetSec) } }
+      )
+    }
+
     const body = await req.json()
     const parsed = registerSchoolSchema.safeParse(body)
 

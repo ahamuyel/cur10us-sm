@@ -2,18 +2,22 @@
 
 import { useEffect } from "react"
 import { signOut, useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { LogOut, Loader2 } from "lucide-react"
 import ThemeToggle from "@/components/ui/ThemeToggle"
 
 export default function MinhaAreaLayout({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const pathname = usePathname()
 
   // Super admin: redirect to /admin
   // School admin who is enrolled: redirect to dashboard
+  // Exception: allow change-password page to render
   useEffect(() => {
     if (status !== "authenticated" || !session?.user) return
+
+    if (pathname === "/change-password") return
 
     if (session.user.role === "super_admin") {
       router.replace("/admin")
@@ -24,7 +28,7 @@ export default function MinhaAreaLayout({ children }: { children: React.ReactNod
       router.replace(`/dashboard/${session.user.id}`)
       return
     }
-  }, [status, session, router])
+  }, [status, session, router, pathname])
 
   if (status === "loading") {
     return (
@@ -35,7 +39,8 @@ export default function MinhaAreaLayout({ children }: { children: React.ReactNod
   }
 
   // Hide content while redirecting to prevent flash
-  if (status === "authenticated" && (
+  // But allow change-password to render
+  if (status === "authenticated" && pathname !== "/change-password" && (
     session?.user?.role === "super_admin" ||
     (session?.user?.role === "school_admin" && session?.user?.isActive && session?.user?.schoolId)
   )) {
