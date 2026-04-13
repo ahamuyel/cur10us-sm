@@ -22,7 +22,10 @@ export const signUpSchema = z.object({
   password: z
     .string()
     .min(8, "Senha deve ter pelo menos 8 caracteres")
-    .max(100, "Senha muito longa"),
+    .max(100, "Senha muito longa")
+    .regex(/[A-Z]/, "Senha deve conter pelo menos uma letra maiúscula")
+    .regex(/[a-z]/, "Senha deve conter pelo menos uma letra minúscula")
+    .regex(/[0-9]/, "Senha deve conter pelo menos um número"),
 })
 
 export const forgotPasswordSchema = z.object({
@@ -37,7 +40,10 @@ export const resetPasswordSchema = z.object({
   password: z
     .string()
     .min(8, "Senha deve ter pelo menos 8 caracteres")
-    .max(100, "Senha muito longa"),
+    .max(100, "Senha muito longa")
+    .regex(/[A-Z]/, "Senha deve conter pelo menos uma letra maiúscula")
+    .regex(/[a-z]/, "Senha deve conter pelo menos uma letra minúscula")
+    .regex(/[0-9]/, "Senha deve conter pelo menos um número"),
 })
 
 export const changePasswordSchema = z.object({
@@ -45,7 +51,10 @@ export const changePasswordSchema = z.object({
   newPassword: z
     .string()
     .min(8, "Nova palavra-passe deve ter pelo menos 8 caracteres")
-    .max(100, "Palavra-passe muito longa"),
+    .max(100, "Palavra-passe muito longa")
+    .regex(/[A-Z]/, "Senha deve conter pelo menos uma letra maiúscula")
+    .regex(/[a-z]/, "Senha deve conter pelo menos uma letra minúscula")
+    .regex(/[0-9]/, "Senha deve conter pelo menos um número"),
 })
 
 export const updateProfileSchema = z.object({

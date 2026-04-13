@@ -21,7 +21,22 @@ function getIp(req: Request): string {
  * Verifies the email using a token from the query params
  */
 export async function POST(req: Request) {
+  return withCsrf(handleVerifyEmail)(req, {})
+}
+
+async function handleVerifyEmail(req: Request) {
   try {
+    const ip = getIp(req)
+    const limit = await verifyLimiter(ip)
+
+    if (!limit.success) {
+      const resetSec = Math.ceil((limit.resetAt.getTime() - Date.now()) / 1000)
+      return NextResponse.json(
+        { error: `Muitas tentativas. Tente novamente em ${resetSec} segundos.` },
+        { status: 429, headers: { "Retry-After": String(resetSec) } }
+      )
+    }
+
     const { searchParams } = new URL(req.url)
     const token = searchParams.get("token")
 
@@ -51,7 +66,8 @@ export async function POST(req: Request) {
       }),
     ])
 
-    return NextResponse.json({ success: true, email: verificationToken.user.email })
+    // Don't return email to prevent user enumeration
+    return NextResponse.json({ success: true })
   } catch {
     return NextResponse.json(
       { error: "Erro interno do servidor" },
