@@ -28,15 +28,14 @@ export default function VerifyEmailPage() {
     async function verify() {
       try {
         const res = await fetch(`/api/auth/verify-email?token=${token}`, { method: "POST" })
-        const data = await res.json()
 
         if (!res.ok) {
+          const data = await res.json()
           setError(data.error || "Falha na verificação")
           setStatus("error")
           return
         }
 
-        setEmail(data.email)
         setStatus("success")
       } catch {
         setError("Erro de conexão. Tente novamente.")
