@@ -16,8 +16,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
     const year = await prisma.academicYear.findFirst({ where: { id, schoolId } })
     if (!year) return NextResponse.json({ error: "Ano letivo não encontrado" }, { status: 404 })
-    if (year.status === "encerrado") {
-      return NextResponse.json({ error: "Não é possível activar um ano letivo encerrado" }, { status: 400 })
+    if (year.status === "encerrado" || year.status === "em_encerramento") {
+      return NextResponse.json({ error: "Não é possível activar um ano letivo encerrado ou em encerramento" }, { status: 400 })
     }
 
     await prisma.$transaction([
@@ -32,7 +32,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     ])
 
     return NextResponse.json({ success: true, message: `Ano letivo "${year.name}" definido como corrente` })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

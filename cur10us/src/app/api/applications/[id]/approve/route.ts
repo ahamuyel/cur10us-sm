@@ -17,6 +17,10 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       return NextResponse.json({ error: "Solicitação não encontrada" }, { status: 404 })
     }
 
+    if (!["pendente", "em_analise"].includes(existing.status)) {
+      return NextResponse.json({ error: "Solicitação não pode ser aprovada no estado atual" }, { status: 400 })
+    }
+
     // Find or create user by email
     let user = await prisma.user.findUnique({ where: { email: existing.email } })
 

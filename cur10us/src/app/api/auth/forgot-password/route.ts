@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { randomUUID } from "crypto"
 import { prisma } from "@/lib/prisma"
 import { forgotPasswordSchema } from "@/lib/validations/auth"
-import { Resend } from "resend"
+import { sendPasswordResetEmail } from "@/lib/email"
 import { rateLimit } from "@/lib/rate-limit"
 import { withCsrf } from "@/lib/csrf"
 
@@ -55,25 +55,12 @@ async function handleForgotPassword(req: Request) {
       })
 
       const resetUrl = `${process.env.AUTH_URL || "http://localhost:3000"}/reset-password?token=${token}`
-
-      const resend = new Resend(process.env.RESEND_API_KEY)
-      await resend.emails.send({
-        from: process.env.RESEND_FROM_EMAIL || "noreply@cur10usx.com",
-        to: email,
-        subject: "Redefinir palavra-passe — Cur10usX",
-        html: `
-          <h2>Redefinir palavra-passe</h2>
-          <p>Olá ${user.name},</p>
-          <p>Solicitou a redefinição da sua palavra-passe. Clique no link abaixo:</p>
-          <p><a href="${resetUrl}">Redefinir a minha palavra-passe</a></p>
-          <p>Este link expira em 1 hora.</p>
-          <p>Se não fez esta solicitação, ignore este e-mail.</p>
-        `,
-      })
+      await sendPasswordResetEmail(email, user.name || "", resetUrl)
     }
 
     return NextResponse.json({ success: true })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json(
       { error: "Erro interno do servidor" },
       { status: 500 }

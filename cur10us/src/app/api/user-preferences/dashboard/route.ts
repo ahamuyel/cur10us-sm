@@ -12,7 +12,8 @@ export async function GET() {
     })
 
     return NextResponse.json({ layout: pref?.layout || null })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno" }, { status: 500 })
   }
 }
@@ -34,7 +35,8 @@ export async function PUT(req: Request) {
     })
 
     return NextResponse.json(pref)
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno" }, { status: 500 })
   }
 }

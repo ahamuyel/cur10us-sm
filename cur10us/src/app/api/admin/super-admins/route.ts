@@ -15,7 +15,8 @@ export async function GET() {
     })
 
     return NextResponse.json({ data: admins })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -56,7 +57,8 @@ export async function POST(req: Request) {
     })
 
     return NextResponse.json({ ...user, tempPassword: password }, { status: 201 })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

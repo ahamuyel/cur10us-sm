@@ -12,7 +12,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ schoolI
     })
 
     return NextResponse.json(courses)
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

@@ -100,7 +100,8 @@ export async function GET() {
       recentSchools,
       recentApplications,
     })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

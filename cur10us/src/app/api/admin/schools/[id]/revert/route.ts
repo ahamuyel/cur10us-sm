@@ -38,7 +38,8 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     revalidateSchoolData(id)
 
     return NextResponse.json({ school: updated, previousStatus: school.status, newStatus: targetStatus })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

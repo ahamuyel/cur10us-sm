@@ -54,9 +54,9 @@ export async function GET(req: Request) {
         subjectAvgs[subId] = Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 100) / 100
       }
 
-      const allScores = studentResults.map((r) => r.score)
-      const average = allScores.length
-        ? Math.round((allScores.reduce((a, b) => a + b, 0) / allScores.length) * 100) / 100
+      const subjectAvgValues = Object.values(subjectAvgs)
+      const average = subjectAvgValues.length
+        ? Math.round((subjectAvgValues.reduce((a, b) => a + b, 0) / subjectAvgValues.length) * 100) / 100
         : null
 
       return { studentId: student.id, studentName: student.name, subjectAverages: subjectAvgs, average }
@@ -75,7 +75,8 @@ export async function GET(req: Request) {
       best: validAverages.length ? Math.max(...validAverages) : null,
       worst: validAverages.length ? Math.min(...validAverages) : null,
     })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

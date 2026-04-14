@@ -14,7 +14,8 @@ export async function GET() {
     }, {
       headers: { "Cache-Control": "no-store, max-age=0" },
     })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ maintenanceMode: false, allowRegistration: true })
   }
 }
