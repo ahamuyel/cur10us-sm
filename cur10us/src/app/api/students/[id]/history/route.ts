@@ -37,7 +37,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     })
 
     return NextResponse.json({ data: history })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

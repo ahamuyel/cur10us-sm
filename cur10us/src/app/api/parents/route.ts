@@ -50,7 +50,8 @@ export async function GET(req: Request) {
     }))
 
     return NextResponse.json({ data: mapped, total, page, totalPages: Math.ceil(total / limit) })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -69,6 +70,18 @@ export async function POST(req: Request) {
     }
 
     const { studentIds, createAccount, ...data } = parsed.data
+
+    // Validate studentIds belong to the same school
+    if (studentIds?.length) {
+      const students = await prisma.student.findMany({
+        where: { id: { in: studentIds } },
+        select: { id: true, schoolId: true },
+      })
+      const invalidStudents = students.filter((s) => s.schoolId !== schoolId)
+      if (invalidStudents.length > 0 || students.length !== studentIds.length) {
+        return NextResponse.json({ error: "Um ou mais alunos não pertencem a esta escola" }, { status: 400 })
+      }
+    }
 
     const existing = await prisma.parent.findUnique({ where: { email: data.email } })
     if (existing) {
@@ -113,11 +126,12 @@ export async function POST(req: Request) {
 
     if (createAccount && tempPassword) {
       const school = await prisma.school.findUnique({ where: { id: schoolId }, select: { name: true } })
-      sendTempCredentials(data.email, data.name, school?.name || "", tempPassword).catch(() => {})
+      sendTempCredentials(data.email, data.name, school?.name || "", tempPassword).catch((e) => console.error("[Email Error]", e))
     }
 
     return NextResponse.json({ ...parent, tempPassword }, { status: 201 })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

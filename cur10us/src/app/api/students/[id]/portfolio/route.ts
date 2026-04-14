@@ -103,7 +103,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       attendance: { total, presente, ausente, atrasado, percent: attendancePercent },
       averages,
     })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

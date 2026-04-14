@@ -25,7 +25,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     })
 
     return NextResponse.json({ data })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -78,7 +79,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     )
 
     return NextResponse.json({ count: results.length }, { status: 201 })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

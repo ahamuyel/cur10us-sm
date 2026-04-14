@@ -92,7 +92,8 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       } else if (existingAdmin) {
         await sendSchoolActivatedExistingAdmin(admin.email, school.name)
       }
-    } catch {
+    } catch (error) {
+    console.error(`[API Error] ${error}`)
       // Email delivery failure shouldn't block activation
     }
 
@@ -106,7 +107,8 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       adminEmail: admin.email,
       ...(tempPassword && { tempPassword }),
     })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
