@@ -69,7 +69,8 @@ async function handleResetPassword(req: Request) {
 
     // Don't return email to prevent user enumeration
     return NextResponse.json({ success: true })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json(
       { error: "Erro interno do servidor" },
       { status: 500 }

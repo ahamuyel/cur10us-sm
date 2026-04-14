@@ -43,7 +43,8 @@ export async function GET(req: Request) {
       totalUsersWithRole: users.length,
       orphanedUsers: orphaned,
     })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -84,7 +85,8 @@ export async function DELETE(req: Request) {
     })
 
     return NextResponse.json({ deletedCount: count })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

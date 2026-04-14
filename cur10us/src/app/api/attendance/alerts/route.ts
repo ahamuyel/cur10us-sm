@@ -37,7 +37,8 @@ export async function GET(req: Request) {
     }).filter((s) => s.total > 0 && s.percentage < threshold)
 
     return NextResponse.json({ classId, threshold, alerts })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

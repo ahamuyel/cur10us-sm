@@ -55,7 +55,8 @@ export async function GET(req: Request) {
       page,
       totalPages: Math.ceil(total / limit),
     })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -77,6 +78,26 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "studentId, classId e academicYearId são obrigatórios" }, { status: 400 })
     }
 
+    // Validate all referenced entities belong to the same school
+    const [student, classRecord, academicYear] = await Promise.all([
+      prisma.student.findUnique({ where: { id: studentId }, select: { schoolId: true } }),
+      prisma.class.findUnique({ where: { id: classId }, select: { schoolId: true } }),
+      prisma.academicYear.findUnique({ where: { id: academicYearId }, select: { schoolId: true, status: true } }),
+    ])
+
+    if (!student || student.schoolId !== schoolId) {
+      return NextResponse.json({ error: "Aluno não encontrado nesta escola" }, { status: 400 })
+    }
+    if (!classRecord || classRecord.schoolId !== schoolId) {
+      return NextResponse.json({ error: "Turma não encontrada nesta escola" }, { status: 400 })
+    }
+    if (!academicYear || academicYear.schoolId !== schoolId) {
+      return NextResponse.json({ error: "Ano letivo não encontrado nesta escola" }, { status: 400 })
+    }
+    if (academicYear.status === "encerrado") {
+      return NextResponse.json({ error: "Não é possível matricular num ano letivo encerrado" }, { status: 400 })
+    }
+
     const existing = await prisma.enrollment.findFirst({
       where: { studentId, academicYearId },
     })
@@ -94,7 +115,8 @@ export async function POST(req: Request) {
     })
 
     return NextResponse.json(enrollment, { status: 201 })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

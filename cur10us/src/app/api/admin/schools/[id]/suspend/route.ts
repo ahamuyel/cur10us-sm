@@ -40,7 +40,8 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       school: updated,
       usersDeactivated: deactivated.count,
     })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

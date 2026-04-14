@@ -25,7 +25,6 @@ export function revalidateSchoolData(schoolId: string) {
   // Revalidate public school listings
   revalidatePath("/aplicacao")
 
-  console.log(`[Revalidation] School data revalidated for: ${schoolId}`)
 }
 
 /**
@@ -38,7 +37,6 @@ export function revalidatePlatformData() {
   revalidatePath("/api/admin/dashboard")
   revalidatePath("/api/admin/settings")
 
-  console.log("[Revalidation] Platform data revalidated")
 }
 
 /**
@@ -48,5 +46,4 @@ export function revalidateUserData(userId: string) {
   revalidatePath("/api/user/schools")
   revalidatePath("/minha-area")
 
-  console.log(`[Revalidation] User data revalidated for: ${userId}`)
 }

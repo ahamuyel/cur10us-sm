@@ -29,7 +29,8 @@ export async function GET(req: Request) {
     }
 
     return NextResponse.json(application)
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

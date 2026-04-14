@@ -22,7 +22,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       return NextResponse.json({ error: "Aluno não encontrado" }, { status: 404 })
     }
     return NextResponse.json(student)
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -51,7 +52,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     const updateData = { ...rest, ...(dobStr !== undefined ? { dateOfBirth: new Date(dobStr) } : {}) }
     const student = await prisma.student.update({ where: { id }, data: updateData })
     return NextResponse.json(student)
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -71,7 +73,8 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
 
     await prisma.student.delete({ where: { id } })
     return NextResponse.json({ success: true })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

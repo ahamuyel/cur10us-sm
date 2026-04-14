@@ -29,7 +29,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       classes: teacher.teacherClasses.map((tc) => tc.class.name),
       classIds: teacher.teacherClasses.map((tc) => tc.classId),
     })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -79,7 +80,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       },
     })
     return NextResponse.json(teacher)
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -99,7 +101,8 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
 
     await prisma.teacher.delete({ where: { id } })
     return NextResponse.json({ success: true })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

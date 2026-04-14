@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { randomUUID } from "crypto"
 import { prisma } from "@/lib/prisma"
-import { Resend } from "resend"
+import { sendVerificationEmail } from "@/lib/email"
 import { rateLimit } from "@/lib/rate-limit"
 import { withCsrf } from "@/lib/csrf"
 
@@ -68,7 +68,8 @@ async function handleVerifyEmail(req: Request) {
 
     // Don't return email to prevent user enumeration
     return NextResponse.json({ success: true })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json(
       { error: "Erro interno do servidor" },
       { status: 500 }
@@ -124,24 +125,11 @@ async function handleResendVerification(req: Request) {
     })
 
     const verifyUrl = `${process.env.AUTH_URL || "http://localhost:3000"}/verify-email?token=${token}`
-
-    const resend = new Resend(process.env.RESEND_API_KEY)
-    await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || "noreply@cur10usx.com",
-      to: email,
-      subject: "Verifique o seu e-mail — Cur10usX",
-      html: `
-        <h2>Verifique o seu e-mail</h2>
-        <p>Olá ${user.name},</p>
-        <p>Para completar o seu registo, clique no link abaixo:</p>
-        <p><a href="${verifyUrl}">Verificar o meu e-mail</a></p>
-        <p>Este link expira em 24 horas.</p>
-        <p>Se não fez esta solicitação, ignore este e-mail.</p>
-      `,
-    })
+    await sendVerificationEmail(email, user.name || "", verifyUrl)
 
     return NextResponse.json({ success: true })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json(
       { error: "Erro interno do servidor" },
       { status: 500 }

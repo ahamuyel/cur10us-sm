@@ -17,7 +17,8 @@ export async function GET() {
       notifyPlatform: true,
       notifyEmail: false,
     })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno" }, { status: 500 })
   }
 }
@@ -48,7 +49,8 @@ export async function PUT(req: Request) {
     })
 
     return NextResponse.json(pref)
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno" }, { status: 500 })
   }
 }
