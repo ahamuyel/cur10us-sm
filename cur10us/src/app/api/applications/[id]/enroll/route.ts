@@ -16,7 +16,8 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     try {
       const body = await _req.json()
       classId = body.classId || undefined
-    } catch {
+    } catch (error) {
+    console.error(`[API Error] ${error}`)
       // No body or invalid JSON — classId remains undefined
     }
 
@@ -149,7 +150,8 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     }
 
     return NextResponse.json({ success: true })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

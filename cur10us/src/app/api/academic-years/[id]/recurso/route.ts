@@ -25,7 +25,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     })
 
     return NextResponse.json({ data: enrollments })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -113,7 +114,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       success: true,
       message: `Recurso resolvido: aluno ${decision === "aprovada" ? "aprovado" : "reprovado"}.`,
     })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

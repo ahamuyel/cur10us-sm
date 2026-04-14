@@ -26,9 +26,9 @@ export async function POST(req: Request) {
     // Verify academic year is in closing state
     const year = await prisma.academicYear.findFirst({ where: { id: academicYearId, schoolId } })
     if (!year) return NextResponse.json({ error: "Ano letivo não encontrado" }, { status: 404 })
-    if (year.status !== "em_encerramento" && year.status !== "encerrado") {
+    if (year.status !== "em_encerramento") {
       return NextResponse.json({
-        error: "O ano letivo deve estar em encerramento ou encerrado para finalizar avaliações",
+        error: "O ano letivo deve estar em encerramento para finalizar avaliações",
       }, { status: 400 })
     }
 
@@ -108,7 +108,8 @@ export async function POST(req: Request) {
       message: `Avaliações finalizadas para ${evaluations.length} aluno(s).`,
       summary,
     })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

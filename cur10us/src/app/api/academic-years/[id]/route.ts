@@ -24,7 +24,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     if (!year) return NextResponse.json({ error: "Ano letivo não encontrado" }, { status: 404 })
 
     return NextResponse.json(year)
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -62,7 +63,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     })
 
     return NextResponse.json(year)
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -89,7 +91,8 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
 
     await prisma.academicYear.delete({ where: { id } })
     return NextResponse.json({ success: true })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

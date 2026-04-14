@@ -15,6 +15,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       return NextResponse.json({ error: "Solicitação não encontrada" }, { status: 404 })
     }
 
+    if (!["pendente", "em_analise"].includes(existing.status)) {
+      return NextResponse.json({ error: "Solicitação não pode ser rejeitada no estado atual" }, { status: 400 })
+    }
+
     const body = await req.json()
     const parsed = rejectApplicationSchema.safeParse(body)
     if (!parsed.success) {
@@ -33,7 +37,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     }
 
     return NextResponse.json(application)
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

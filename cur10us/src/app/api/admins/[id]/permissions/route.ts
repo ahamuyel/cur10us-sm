@@ -86,7 +86,8 @@ export async function PUT(
     })
 
     return NextResponse.json(updatedPermission)
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

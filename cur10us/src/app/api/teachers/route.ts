@@ -59,7 +59,8 @@ export async function GET(req: Request) {
     }))
 
     return NextResponse.json({ data: mapped, total, page, totalPages: Math.ceil(total / limit) })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -124,13 +125,14 @@ export async function POST(req: Request) {
 
     if (createAccount && tempPassword) {
       const school = await prisma.school.findUnique({ where: { id: schoolId }, select: { name: true } })
-      sendTempCredentials(teacherData.email, teacherData.name, school?.name || "", tempPassword).catch(() => {})
+      sendTempCredentials(teacherData.email, teacherData.name, school?.name || "", tempPassword).catch((e) => console.error("[Email Error]", e))
     }
 
     logAudit({ ...auditUser(session!), action: "CREATE", entity: "Teacher", entityId: teacher.id, schoolId, description: `Professor ${teacherData.name} criado` })
 
     return NextResponse.json({ ...teacher, tempPassword }, { status: 201 })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

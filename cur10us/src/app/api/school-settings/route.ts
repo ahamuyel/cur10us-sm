@@ -29,7 +29,8 @@ export async function GET() {
     })
 
     return NextResponse.json(school)
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno" }, { status: 500 })
   }
 }
@@ -70,7 +71,8 @@ export async function PUT(req: Request) {
     revalidateSchoolData(schoolId)
 
     return NextResponse.json(school)
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno" }, { status: 500 })
   }
 }

@@ -41,7 +41,8 @@ export async function GET(
     }
 
     return NextResponse.json(admin)
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -137,7 +138,8 @@ export async function PUT(
     })
 
     return NextResponse.json(admin)
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -185,7 +187,8 @@ export async function DELETE(
     ])
 
     return NextResponse.json({ success: true })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

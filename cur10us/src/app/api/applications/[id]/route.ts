@@ -15,7 +15,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     }
 
     return NextResponse.json(application)
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -37,6 +38,19 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       return NextResponse.json({ error: "Estado inválido" }, { status: 400 })
     }
 
+    // Enforce valid state transitions
+    const allowedTransitions: Record<string, string[]> = {
+      pendente: ["em_analise", "rejeitada"],
+      em_analise: ["aprovada", "rejeitada", "pendente"],
+      aprovada: ["matriculada", "rejeitada"],
+      rejeitada: ["pendente", "em_analise"],
+      matriculada: [],
+    }
+    const allowed = allowedTransitions[existing.status] || []
+    if (!allowed.includes(body.status)) {
+      return NextResponse.json({ error: `Não é possível mudar de "${existing.status}" para "${body.status}"` }, { status: 400 })
+    }
+
     const application = await prisma.application.update({
       where: { id },
       data: {
@@ -46,7 +60,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     })
 
     return NextResponse.json(application)
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

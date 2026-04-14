@@ -14,6 +14,14 @@ export async function requireRole(allowedRoles: string[], options?: RequireRoleO
     return { error: NextResponse.json({ error: "Não autenticado" }, { status: 401 }), session: null }
   }
 
+  if (!session.user.isActive) {
+    return { error: NextResponse.json({ error: "Conta desativada" }, { status: 403 }), session: null }
+  }
+
+  if (!session.user.emailVerified) {
+    return { error: NextResponse.json({ error: "E-mail não verificado" }, { status: 403 }), session: null }
+  }
+
   const role = session.user.role
   if (!role || !allowedRoles.includes(role)) {
     return { error: NextResponse.json({ error: "Sem permissão" }, { status: 403 }), session: null }
