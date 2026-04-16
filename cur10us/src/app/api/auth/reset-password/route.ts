@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { hash } from "bcryptjs"
+import { hashPassword } from "@/lib/password"
 import { prisma } from "@/lib/prisma"
 import { resetPasswordSchema } from "@/lib/validations/auth"
 import { rateLimit } from "@/lib/rate-limit"
@@ -56,7 +56,7 @@ async function handleResetPassword(req: Request) {
       )
     }
 
-    const hashedPassword = await hash(password, 12)
+    const hashedPassword = await hashPassword(password)
 
     await prisma.user.update({
       where: { id: resetToken.userId },

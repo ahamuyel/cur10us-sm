@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requirePermission, getSchoolId } from "@/lib/api-auth"
-import bcrypt from "bcryptjs"
+import { hashPassword } from "@/lib/password"
 
 // GET — list secondary admins for the school
 export async function GET(req: Request) {
@@ -89,7 +89,7 @@ export async function POST(req: Request) {
       )
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10)
+    const hashedPassword = await hashPassword(password)
 
     const admin = await prisma.user.create({
       data: {
