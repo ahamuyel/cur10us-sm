@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { compare, hash } from "bcryptjs"
+import { hashPassword, comparePassword } from "@/lib/password"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { changePasswordSchema } from "@/lib/validations/auth"
@@ -61,7 +61,7 @@ async function handleChangePassword(req: Request) {
       )
     }
 
-    const isValid = await compare(currentPassword, user.hashedPassword)
+    const isValid = await comparePassword(currentPassword, user.hashedPassword)
     if (!isValid) {
       return NextResponse.json(
         { error: "Palavra-passe actual incorrecta" },
@@ -69,7 +69,7 @@ async function handleChangePassword(req: Request) {
       )
     }
 
-    const hashedPassword = await hash(newPassword, 12)
+    const hashedPassword = await hashPassword(newPassword)
 
     await prisma.user.update({
       where: { id: user.id },
