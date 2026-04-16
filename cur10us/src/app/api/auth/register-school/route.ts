@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { hash } from "bcryptjs"
+import { hashPassword } from "@/lib/password"
 import { prisma } from "@/lib/prisma"
 import { registerSchoolSchema } from "@/lib/validations/register-school"
 import { withCsrf } from "@/lib/csrf"
@@ -73,7 +73,7 @@ async function handleRegisterSchool(req: Request) {
       )
     }
 
-    const hashedPassword = await hash(adminPassword, 12)
+    const hashedPassword = await hashPassword(adminPassword)
 
     // Create school + admin user in a single transaction
     await prisma.$transaction(async (tx) => {

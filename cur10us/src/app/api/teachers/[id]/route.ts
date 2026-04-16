@@ -5,7 +5,7 @@ import { updateTeacherSchema } from "@/lib/validations/entities"
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { error: authError, session } = await requirePermission(["school_admin", "teacher", "student", "parent"], undefined, { requireSchool: true })
+    const { error: authError, session } = await requirePermission(["school_admin", "teacher"], undefined, { requireSchool: true })
     if (authError) return authError
 
     const schoolId = getSchoolId(session!)
@@ -20,6 +20,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
     if (!teacher || teacher.schoolId !== schoolId) {
       return NextResponse.json({ error: "Professor não encontrado" }, { status: 404 })
+    }
+
+    // Teachers can only view their own profile
+    if (session!.user.role === "teacher" && teacher.userId !== session!.user.id) {
+      return NextResponse.json({ error: "Sem permissão" }, { status: 403 })
     }
 
     return NextResponse.json({

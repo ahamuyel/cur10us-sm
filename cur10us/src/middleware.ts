@@ -10,7 +10,24 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
   // Public paths — always accessible
-  if (publicPaths.includes(pathname) || pathname.startsWith("/api/")) {
+  if (publicPaths.includes(pathname)) {
+    return NextResponse.next()
+  }
+
+  // API routes — auth is enforced per-route via requireRole/requirePermission
+  // Only allow explicitly public API endpoints without session check
+  const publicApiPrefixes = ["/api/auth/", "/api/applications/status", "/api/platform/status", "/api/schools/public"]
+  if (pathname.startsWith("/api/")) {
+    if (publicApiPrefixes.some((p) => pathname.startsWith(p))) {
+      return NextResponse.next()
+    }
+    // For protected API routes, check session cookie existence as a first gate
+    const hasSession =
+      req.cookies.has("authjs.session-token") ||
+      req.cookies.has("next-auth.session-token")
+    if (!hasSession) {
+      return NextResponse.json({ error: "Não autenticado" }, { status: 401 })
+    }
     return NextResponse.next()
   }
 

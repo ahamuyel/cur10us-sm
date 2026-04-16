@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { randomBytes } from "crypto"
-import { hash } from "bcryptjs"
+import { hashPassword } from "@/lib/password"
 import { prisma } from "@/lib/prisma"
 import { requirePermission, getSchoolId } from "@/lib/api-auth"
 import { createParentSchema } from "@/lib/validations/entities"
@@ -97,7 +97,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Este e-mail já tem uma conta de utilizador" }, { status: 409 })
       }
       tempPassword = randomBytes(6).toString("base64url")
-      const hashedPassword = await hash(tempPassword, 12)
+      const hashedPassword = await hashPassword(tempPassword)
       const user = await prisma.user.create({
         data: {
           name: data.name,

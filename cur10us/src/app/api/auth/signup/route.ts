@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { hash, genSalt } from "bcryptjs"
+import { hashPassword } from "@/lib/password"
 import { randomUUID } from "crypto"
 import { prisma } from "@/lib/prisma"
 import { signUpSchema } from "@/lib/validations/auth"
@@ -54,7 +54,7 @@ async function handleSignup(req: Request) {
       )
     }
 
-    const hashedPassword = await hash(password, await genSalt(12))
+    const hashedPassword = await hashPassword(password)
 
     // Create user with emailVerified = false
     const user = await prisma.user.create({
