@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { requirePermission, getSchoolId } from "@/lib/api-auth"
 import { parseFile, normalizeHeaders, validateRows, generateTempPassword, parseDateValue } from "@/lib/import-utils"
 import { prisma } from "@/lib/prisma"
-import { hash } from "bcryptjs"
+import { hashPassword } from "@/lib/password"
 import { Prisma } from "@prisma/client"
 import type { Role } from "@prisma/client"
 
@@ -139,7 +139,7 @@ export async function POST(req: Request) {
 
       try {
         const tempPass = generateTempPassword()
-        const hashedPassword = await hash(tempPass, 10)
+        const hashedPassword = await hashPassword(tempPass)
         const phone = row.data.telefone || undefined
         const address = row.data.endereco || undefined
 

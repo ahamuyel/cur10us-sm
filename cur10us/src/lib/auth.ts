@@ -1,7 +1,7 @@
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import Google from "next-auth/providers/google"
-import { compare } from "bcryptjs"
+import { comparePassword } from "@/lib/password"
 import { prisma } from "@/lib/prisma"
 
 const PERMISSION_KEYS = [
@@ -82,7 +82,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           // Google-only user trying to login with password
           if (!user.hashedPassword) return null
 
-          const isValid = await compare(password, user.hashedPassword)
+          const isValid = await comparePassword(password, user.hashedPassword)
           if (!isValid) return null
 
           return {
@@ -125,8 +125,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return true
         }
 
-        // New Google user — create inactive user with incomplete profile
+        // New Google user — create active user with incomplete profile
         // Google users are considered email verified since Google verifies their emails
+        // isActive: true because Google already verified the email
         await prisma.user.create({
           data: {
             name: user.name ?? email.split("@")[0],
@@ -134,7 +135,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             provider: "google",
             providerId: account.providerAccountId,
             image: user.image,
-            isActive: false,
+            isActive: true,
             profileComplete: false,
             emailVerified: true,
             role: "student", // default, will be updated during profile completion

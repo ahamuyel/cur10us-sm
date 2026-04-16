@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { randomBytes } from "crypto"
-import { hash } from "bcryptjs"
+import { hashPassword } from "@/lib/password"
 import { prisma } from "@/lib/prisma"
 import { requirePermission, getSchoolId } from "@/lib/api-auth"
 import { createStudentSchema } from "@/lib/validations/entities"
@@ -10,10 +10,11 @@ import { logAudit, auditUser } from "@/lib/audit"
 
 export async function GET(req: Request) {
   try {
-    const { error: authError, session } = await requirePermission(["school_admin", "teacher", "student", "parent"], "canManageStudents", { requireSchool: true })
+    const { error: authError, session } = await requirePermission(["school_admin", "teacher"], "canManageStudents", { requireSchool: true })
     if (authError) return authError
 
     const schoolId = getSchoolId(session!)
+    const role = session!.user.role
     const { searchParams } = new URL(req.url)
     const page = parseInt(searchParams.get("page") || "1")
     const limit = parseInt(searchParams.get("limit") || "10")
@@ -34,6 +35,13 @@ export async function GET(req: Request) {
             ],
           }
         : {}),
+    }
+
+    // Teachers can only see students from their own classes
+    if (role === "teacher") {
+      const teacher = await prisma.teacher.findFirst({ where: { userId: session!.user.id, schoolId }, select: { id: true, teacherClasses: { select: { classId: true } } } })
+      const teacherClassIds = teacher?.teacherClasses.map((tc) => tc.classId) || []
+      where.classId = { in: teacherClassIds }
     }
 
     const orderBy = buildOrderBy(searchParams, ["name", "createdAt", "email"], { name: "asc" })
@@ -97,7 +105,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Este e-mail já tem uma conta de utilizador" }, { status: 409 })
       }
       tempPassword = randomBytes(6).toString("base64url")
-      const hashedPassword = await hash(tempPassword, 12)
+      const hashedPassword = await hashPassword(tempPassword)
       const user = await prisma.user.create({
         data: {
           name: studentData.name,
@@ -128,7 +136,7 @@ export async function POST(req: Request) {
 
     logAudit({ ...auditUser(session!), action: "CREATE", entity: "Student", entityId: student.id, schoolId, description: `Aluno ${studentData.name} criado` })
 
-    return NextResponse.json({ ...student, tempPassword }, { status: 201 })
+    return NextResponse.json(student, { status: 201 })
   } catch (error) {
     console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })

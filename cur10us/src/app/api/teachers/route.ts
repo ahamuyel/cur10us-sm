@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { randomBytes } from "crypto"
-import { hash } from "bcryptjs"
+import { hashPassword } from "@/lib/password"
 import { prisma } from "@/lib/prisma"
 import { requirePermission, getSchoolId } from "@/lib/api-auth"
 import { createTeacherSchema } from "@/lib/validations/entities"
@@ -10,7 +10,7 @@ import { logAudit, auditUser } from "@/lib/audit"
 
 export async function GET(req: Request) {
   try {
-    const { error: authError, session } = await requirePermission(["school_admin", "teacher", "student", "parent"], "canManageTeachers", { requireSchool: true })
+    const { error: authError, session } = await requirePermission(["school_admin"], "canManageTeachers", { requireSchool: true })
     if (authError) return authError
 
     const schoolId = getSchoolId(session!)
@@ -94,7 +94,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Este e-mail já tem uma conta de utilizador" }, { status: 409 })
       }
       tempPassword = randomBytes(6).toString("base64url")
-      const hashedPassword = await hash(tempPassword, 12)
+      const hashedPassword = await hashPassword(tempPassword)
       const user = await prisma.user.create({
         data: {
           name: teacherData.name,
@@ -130,7 +130,7 @@ export async function POST(req: Request) {
 
     logAudit({ ...auditUser(session!), action: "CREATE", entity: "Teacher", entityId: teacher.id, schoolId, description: `Professor ${teacherData.name} criado` })
 
-    return NextResponse.json({ ...teacher, tempPassword }, { status: 201 })
+    return NextResponse.json(teacher, { status: 201 })
   } catch (error) {
     console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
