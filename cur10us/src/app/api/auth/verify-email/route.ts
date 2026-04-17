@@ -20,8 +20,9 @@ function getIp(req: Request): string {
  * POST /api/auth/verify-email
  * Verifies the email using a token from the query params
  */
+// No CSRF required for verify — user clicks a link from their email
 export async function POST(req: Request) {
-  return withCsrf(handleVerifyEmail)(req, {})
+  return handleVerifyEmail(req)
 }
 
 async function handleVerifyEmail(req: Request) {
