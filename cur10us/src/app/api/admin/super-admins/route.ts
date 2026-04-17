@@ -51,6 +51,7 @@ export async function POST(req: Request) {
         hashedPassword,
         role: "super_admin",
         isActive: true,
+        emailVerified: true,
         mustChangePassword: true,
       },
       select: { id: true, name: true, email: true, createdAt: true },

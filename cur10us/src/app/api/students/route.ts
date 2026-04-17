@@ -113,6 +113,7 @@ export async function POST(req: Request) {
           hashedPassword,
           role: "student",
           isActive: true,
+          emailVerified: true,
           mustChangePassword: true,
           schoolId,
         },
