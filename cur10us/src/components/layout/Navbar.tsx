@@ -11,7 +11,6 @@ import {
   BookOpen,
   GraduationCap,
 } from "lucide-react"
-import Image from "next/image"
 import Link from "next/link"
 import ThemeToggle from "@/components/ui/ThemeToggle"
 import NotificationDropdown from "@/components/ui/NotificationDropdown"
@@ -45,6 +44,7 @@ const NavBar = () => {
 
   const userName = session?.user?.name || "Usuário"
   const userRole = session?.user?.role || ""
+  const userImage = session?.user?.image || "/avatar.png"
 
   const doSearch = useCallback((q: string) => {
     if (q.length < 2) {
@@ -231,12 +231,13 @@ const NavBar = () => {
             </span>
           </div>
 
-          <Image
-            src="/avatar.png"
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={userImage}
             alt="User Avatar"
             width={34}
             height={34}
-            className="rounded-full object-cover border-2 border-zinc-200 dark:border-zinc-700 shrink-0 group-hover:border-indigo-400 dark:group-hover:border-indigo-500 transition-colors"
+            className="rounded-full object-cover border-2 border-zinc-200 dark:border-zinc-700 shrink-0 group-hover:border-indigo-400 dark:group-hover:border-indigo-500 transition-colors w-[34px] h-[34px]"
           />
         </Link>
       </div>
