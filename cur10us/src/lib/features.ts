@@ -9,6 +9,8 @@ export const DEFAULT_ENABLED_FEATURES = [
   "attendance",
   "announcements",
   "basicGrades",
+  "yearTransition",
+  "calendar",
 ] as const
 
 // All available features
@@ -78,6 +80,10 @@ export function isFeatureEnabled(
 ): boolean {
   // If no features config, use defaults
   if (!schoolFeatures) {
+    return (DEFAULT_ENABLED_FEATURES as readonly string[]).includes(feature)
+  }
+  // If feature key is missing from stored config, fall back to default
+  if (schoolFeatures[feature] === undefined) {
     return (DEFAULT_ENABLED_FEATURES as readonly string[]).includes(feature)
   }
   return schoolFeatures[feature] === true
