@@ -146,7 +146,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return true
     },
     async jwt({ token, user, trigger }) {
-      // Never store picture/image in JWT — it can be a huge base64 string
+      // Never store the default `picture` field — it can be a huge base64 string
+      // We use our own `userImage` field with just the URL
       delete token.picture
 
       if (user) {
@@ -166,7 +167,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           const dbUser = await prisma.user.findUnique({
             where: { email: token.email },
             select: {
-              id: true, role: true, schoolId: true, isActive: true,
+              id: true, role: true, schoolId: true, isActive: true, image: true,
               mustChangePassword: true, profileComplete: true, emailVerified: true,
               school: { select: { slug: true, features: true } },
               adminPermission: { select: { level: true, ...Object.fromEntries(PERMISSION_KEYS.map(k => [k, true])) } },
@@ -184,15 +185,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             token.adminLevel = dbUser.adminPermission?.level ?? null
             token.permissions = extractPermissions(dbUser.adminPermission as unknown as Record<string, unknown>)
             token.schoolFeatures = (dbUser.school?.features as Record<string, boolean>) ?? null
+            // Store image URL only if it's a short URL (not base64)
+            const img = dbUser.image
+            token.userImage = (img && !img.startsWith("data:")) ? img : null
           }
         }
-      }
-
-      // Debug: log token size to find the bloat source
-      const tokenStr = JSON.stringify(token)
-      if (tokenStr.length > 2000) {
-        const sizes = Object.entries(token).map(([k, v]) => [k, JSON.stringify(v).length]).sort((a, b) => (b[1] as number) - (a[1] as number))
-        console.warn(`[AUTH DEBUG] JWT token is ${tokenStr.length} chars. Top fields by size:`, sizes.slice(0, 10))
       }
 
       return token
@@ -210,6 +207,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.adminLevel = (token.adminLevel as string) ?? null
         session.user.permissions = (token.permissions as string[]) ?? []
         session.user.schoolFeatures = (token.schoolFeatures as Record<string, boolean>) ?? null
+        session.user.image = (token.userImage as string) ?? null
       }
       return session
     },
