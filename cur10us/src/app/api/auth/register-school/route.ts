@@ -91,7 +91,7 @@ async function handleRegisterSchool(req: Request) {
         },
       })
 
-      await tx.user.create({
+      const user = await tx.user.create({
         data: {
           name: adminName,
           email: adminEmail,
@@ -99,10 +99,27 @@ async function handleRegisterSchool(req: Request) {
           provider: "credentials",
           role: "school_admin",
           isActive: false,
+          emailVerified: false,
           profileComplete: true,
           schoolId: school.id,
         },
       })
+
+      // Create email verification token
+      const { randomUUID } = await import("crypto")
+      const token = randomUUID()
+      await tx.emailVerificationToken.create({
+        data: {
+          token,
+          userId: user.id,
+          expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        },
+      })
+
+      // Send verification email (non-blocking)
+      const { sendVerificationEmail } = await import("@/lib/email")
+      const verifyUrl = `${process.env.AUTH_URL || "http://localhost:3000"}/verify-email?token=${token}`
+      sendVerificationEmail(adminEmail, adminName, verifyUrl).catch((e) => console.error("[Email Error]", e))
     })
 
     return NextResponse.json({ success: true }, { status: 201 })
