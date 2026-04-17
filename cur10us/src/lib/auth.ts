@@ -163,6 +163,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.mustChangePassword = (user as { mustChangePassword?: boolean }).mustChangePassword ?? false
         token.profileComplete = (user as { profileComplete: boolean }).profileComplete ?? true
         token.emailVerified = (user as { emailVerified?: boolean }).emailVerified ? new Date() : null
+        // Set image on first login (URL only, skip base64)
+        const img = (user as { image?: string | null }).image
+        token.userImage = (img && !img.startsWith("data:")) ? img : null
       }
 
       // Refresh from DB only on session update (every updateAge seconds), not every request
