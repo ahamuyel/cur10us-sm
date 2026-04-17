@@ -8,7 +8,6 @@ import FormModal from "@/components/ui/FormModal"
 import DeleteConfirmModal from "@/components/ui/DeleteConfirmModal"
 import ParentForm from "@/components/forms/ParentForm"
 import { useEntityList } from "@/hooks/useEntityList"
-import Image from "next/image"
 import { Pencil, Trash2, SlidersHorizontal, ArrowUpDown, UserPlus, UserX, Loader2 } from "lucide-react"
 
 type Parent = {
@@ -66,7 +65,8 @@ const ParentListPage = () => {
         <div className="flex items-center gap-2">
           <div className="relative w-7 h-7 sm:w-8 sm:h-8 shrink-0">
             {item.foto ? (
-              <Image src={item.foto} alt={item.name} fill className="rounded-full object-cover" />
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={item.foto} alt={item.name} className="w-full h-full rounded-full object-cover" />
             ) : (
               <div className="w-full h-full rounded-full bg-amber-100 dark:bg-amber-950/40 flex items-center justify-center text-amber-600 dark:text-amber-400 text-xs font-bold">
                 {item.name.charAt(0)}

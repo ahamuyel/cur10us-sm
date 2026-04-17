@@ -8,7 +8,6 @@ import FormModal from "@/components/ui/FormModal"
 import DeleteConfirmModal from "@/components/ui/DeleteConfirmModal"
 import StudentForm from "@/components/forms/StudentForm"
 import { useEntityList } from "@/hooks/useEntityList"
-import Image from "next/image"
 import Link from "next/link"
 import FilterPanel from "@/components/ui/FilterPanel"
 import SortButton from "@/components/ui/SortButton"
@@ -114,7 +113,8 @@ const StudentListPage = () => {
         <div className="flex items-center gap-2">
           <div className="relative w-7 h-7 sm:w-8 sm:h-8 shrink-0">
             {item.foto ? (
-              <Image src={item.foto} alt={item.name} fill className="rounded-full object-cover" />
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={item.foto} alt={item.name} className="w-full h-full rounded-full object-cover" />
             ) : (
               <div className="w-full h-full rounded-full bg-emerald-100 dark:bg-emerald-950/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-xs font-bold">
                 {item.name.charAt(0)}
