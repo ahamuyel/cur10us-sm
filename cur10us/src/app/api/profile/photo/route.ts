@@ -37,7 +37,7 @@ export async function POST(req: Request) {
     // Upload to Vercel Blob
     const ext = file.name.split(".").pop() || "jpg"
     const filename = `profiles/${session.user.id}-${Date.now()}.${ext}`
-    const blob = await put(filename, file, { access: "public" })
+    const blob = await put(filename, file, { access: "public", addRandomSuffix: true })
     const photoUrl = blob.url
 
     // Delete old blob if it was a Vercel Blob URL
