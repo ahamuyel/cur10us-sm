@@ -115,11 +115,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         })
 
         if (existing) {
-          // Link Google provider if not already linked
+          // Link Google as provider (or update) for any existing user
+          // This allows credentials users to also login via Google
           await prisma.user.update({
             where: { id: existing.id },
             data: {
-              ...(!existing.provider ? { provider: "google", providerId: account.providerAccountId, image: user.image ?? existing.image } : {}),
+              provider: existing.provider === "google" ? "google" : existing.hashedPassword ? "both" : "google",
+              providerId: account.providerAccountId,
+              image: user.image ?? existing.image,
+              emailVerified: true,
             },
           })
           return true

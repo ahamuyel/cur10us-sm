@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from "react"
 import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import {
   Clock, AlertTriangle, CheckCircle,
@@ -77,6 +78,7 @@ type UserSchool = {
 
 export default function MinhaAreaPage() {
   const { data: session, status: sessionStatus } = useSession()
+  const router = useRouter()
   const [applications, setApplications] = useState<Application[]>([])
   const [schools, setSchools] = useState<PublicSchool[]>([])
   const [userSchools, setUserSchools] = useState<UserSchool[]>([])
@@ -121,6 +123,13 @@ export default function MinhaAreaPage() {
   }, [sessionStatus])
 
   useEffect(() => { loadData() }, [loadData])
+
+  // Auto-redirect: if user is active with a school, go straight to dashboard
+  useEffect(() => {
+    if (!loading && session?.user?.isActive && session?.user?.schoolId) {
+      router.replace(`/dashboard/${session.user.id}`)
+    }
+  }, [loading, session, router])
 
   if (sessionStatus === "loading" || loading) {
     return <SkeletonLoader />

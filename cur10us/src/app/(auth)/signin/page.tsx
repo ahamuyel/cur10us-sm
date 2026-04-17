@@ -102,22 +102,19 @@ export default function SignInPage() {
 
       const dashboard = getDashboardPath(session?.user?.id)
       const isSuperAdmin = session?.user?.role === "super_admin"
-      const isSchoolAdmin = session?.user?.role === "school_admin"
 
-      // Respect callbackUrl if provided, otherwise go to dashboard or minha-area
+      // Respect callbackUrl if provided, otherwise route by role/state
       const callbackUrl = searchParams.get("callbackUrl")
       if (callbackUrl && callbackUrl.startsWith("/")) {
         router.push(callbackUrl)
       } else if (isSuperAdmin) {
-        // Super admin goes straight to admin panel
         router.push("/admin")
-      } else if (isSchoolAdmin && session?.user?.isActive && session?.user?.schoolId) {
-        // Enrolled school admin goes to dashboard
+      } else if (session?.user?.isActive && session?.user?.schoolId) {
+        // Any active user with a school goes to dashboard
         router.push(dashboard)
-      } else if (!session?.user?.isActive || !session?.user?.schoolId) {
-        router.push("/minha-area")
       } else {
-        router.push(dashboard)
+        // Not yet linked to a school — go to minha-area to apply
+        router.push("/minha-area")
       }
       router.refresh()
     } catch {
