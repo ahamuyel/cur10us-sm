@@ -171,6 +171,7 @@ export async function POST(req: Request) {
                 hashedPassword,
                 role: userType as Role,
                 isActive: true,
+                emailVerified: true,
                 mustChangePassword: true,
                 profileComplete: true,
                 provider: "credentials",

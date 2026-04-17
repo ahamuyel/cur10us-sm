@@ -102,6 +102,7 @@ export async function POST(req: Request) {
           hashedPassword,
           role: "teacher",
           isActive: true,
+          emailVerified: true,
           mustChangePassword: true,
           schoolId,
         },

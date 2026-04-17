@@ -75,8 +75,8 @@ export default function SchoolDetailPage() {
       }
       const data = await res.json()
       if (action === "activate") {
-        if (data.adminCreated && data.tempPassword) {
-          setActivatedCreds({ email: data.adminEmail, password: data.tempPassword })
+        if (data.adminCreated) {
+          setActivatedCreds({ email: data.adminEmail, password: "(enviada por e-mail)" })
         } else if (data.existingAdmin) {
           alert(`Escola activada! O administrador existente (${data.adminEmail}) foi activado.`)
         }

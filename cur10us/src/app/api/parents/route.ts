@@ -105,6 +105,7 @@ export async function POST(req: Request) {
           hashedPassword,
           role: "parent",
           isActive: true,
+          emailVerified: true,
           mustChangePassword: true,
           schoolId,
         },
@@ -129,7 +130,7 @@ export async function POST(req: Request) {
       sendTempCredentials(data.email, data.name, school?.name || "", tempPassword).catch((e) => console.error("[Email Error]", e))
     }
 
-    return NextResponse.json({ ...parent, tempPassword }, { status: 201 })
+    return NextResponse.json(parent, { status: 201 })
   } catch (error) {
     console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
