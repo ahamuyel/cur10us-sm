@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
-import Image from "next/image"
 import Link from "next/link"
 import { Loader2, GraduationCap, BarChart3, Clock, FileText } from "lucide-react"
 
@@ -53,7 +52,8 @@ export default function StudentPortfolioPage() {
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
           <div className="relative w-20 h-20 shrink-0">
             {student.foto ? (
-              <Image src={student.foto} alt={student.name} fill className="rounded-full object-cover border-4 border-zinc-200 dark:border-zinc-700" />
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={student.foto} alt={student.name} className="w-full h-full rounded-full object-cover border-4 border-zinc-200 dark:border-zinc-700" />
             ) : (
               <div className="w-full h-full rounded-full bg-indigo-100 dark:bg-indigo-950/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 text-2xl font-bold border-4 border-zinc-200 dark:border-zinc-700">
                 {student.name.charAt(0)}
