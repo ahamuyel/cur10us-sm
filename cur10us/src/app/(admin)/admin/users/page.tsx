@@ -93,7 +93,7 @@ export default function UsersPage() {
         setResetError(data.error || "Erro ao restaurar palavra-passe")
         return
       }
-      setResetCreds({ email: data.email, password: data.tempPassword })
+      setResetCreds({ email: data.email, password: "(enviada por e-mail)" })
       setResetTarget(null)
       fetchUsers()
     } catch {

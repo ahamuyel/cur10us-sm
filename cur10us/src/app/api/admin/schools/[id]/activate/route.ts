@@ -52,6 +52,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
           provider: "credentials",
           role: "school_admin",
           isActive: true,
+          emailVerified: true,
           mustChangePassword: true,
           profileComplete: true,
           schoolId: id,

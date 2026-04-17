@@ -98,6 +98,7 @@ export async function POST(req: Request) {
         hashedPassword,
         role: "school_admin",
         isActive: true,
+        emailVerified: true,
         provider: "credentials",
         schoolId,
         adminPermission: {
