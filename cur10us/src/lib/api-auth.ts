@@ -18,7 +18,8 @@ export async function requireRole(allowedRoles: string[], options?: RequireRoleO
     return { error: NextResponse.json({ error: "Conta desativada" }, { status: 403 }), session: null }
   }
 
-  if (!session.user.emailVerified) {
+  // Super admins bypass email verification check (created via seed/admin panel)
+  if (!session.user.emailVerified && session.user.role !== "super_admin") {
     return { error: NextResponse.json({ error: "E-mail não verificado" }, { status: 403 }), session: null }
   }
 

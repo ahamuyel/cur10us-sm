@@ -145,7 +145,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
       return true
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
+      // Never store picture/image in JWT — it can be a huge base64 string
+      delete token.picture
+
       if (user) {
         token.role = (user as { role: string }).role
         token.id = user.id!
@@ -157,25 +160,39 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.emailVerified = (user as { emailVerified?: boolean }).emailVerified ? new Date() : null
       }
 
-      // Refresh from DB on every JWT rotation to pick up changes
-      if (token.email) {
-        const dbUser = await prisma.user.findUnique({
-          where: { email: token.email },
-          include: { school: { select: { slug: true, features: true } }, adminPermission: true },
-        })
-        if (dbUser) {
-          token.id = dbUser.id
-          token.role = dbUser.role
-          token.schoolId = dbUser.schoolId ?? null
-          token.schoolSlug = dbUser.school?.slug ?? null
-          token.isActive = dbUser.isActive
-          token.mustChangePassword = dbUser.mustChangePassword
-          token.profileComplete = dbUser.profileComplete
-          token.emailVerified = dbUser.emailVerified ? new Date() : null
-          token.adminLevel = dbUser.adminPermission?.level ?? null
-          token.permissions = extractPermissions(dbUser.adminPermission as unknown as Record<string, unknown>)
-          token.schoolFeatures = (dbUser.school?.features as Record<string, boolean>) ?? null
+      // Refresh from DB only on session update (every updateAge seconds), not every request
+      if (trigger === "update" || !token.id) {
+        if (token.email) {
+          const dbUser = await prisma.user.findUnique({
+            where: { email: token.email },
+            select: {
+              id: true, role: true, schoolId: true, isActive: true,
+              mustChangePassword: true, profileComplete: true, emailVerified: true,
+              school: { select: { slug: true, features: true } },
+              adminPermission: { select: { level: true, ...Object.fromEntries(PERMISSION_KEYS.map(k => [k, true])) } },
+            },
+          })
+          if (dbUser) {
+            token.id = dbUser.id
+            token.role = dbUser.role
+            token.schoolId = dbUser.schoolId ?? null
+            token.schoolSlug = dbUser.school?.slug ?? null
+            token.isActive = dbUser.isActive
+            token.mustChangePassword = dbUser.mustChangePassword
+            token.profileComplete = dbUser.profileComplete
+            token.emailVerified = dbUser.emailVerified ? new Date() : null
+            token.adminLevel = dbUser.adminPermission?.level ?? null
+            token.permissions = extractPermissions(dbUser.adminPermission as unknown as Record<string, unknown>)
+            token.schoolFeatures = (dbUser.school?.features as Record<string, boolean>) ?? null
+          }
         }
+      }
+
+      // Debug: log token size to find the bloat source
+      const tokenStr = JSON.stringify(token)
+      if (tokenStr.length > 2000) {
+        const sizes = Object.entries(token).map(([k, v]) => [k, JSON.stringify(v).length]).sort((a, b) => (b[1] as number) - (a[1] as number))
+        console.warn(`[AUTH DEBUG] JWT token is ${tokenStr.length} chars. Top fields by size:`, sizes.slice(0, 10))
       }
 
       return token

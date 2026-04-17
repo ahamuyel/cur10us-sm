@@ -55,7 +55,7 @@ export default function SuperAdminsPage() {
         setFormError(data.error || "Erro ao criar")
         return
       }
-      setCreatedCreds({ email: data.email, password: data.tempPassword })
+      setCreatedCreds({ email: data.email, password: form.password })
       setShowForm(false)
       setForm({ name: "", email: "", password: "" })
       fetchAdmins()
