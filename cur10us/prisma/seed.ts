@@ -185,6 +185,15 @@ async function main() {
   })
   console.log("✓ Configuração Global de Avaliação (default)")
 
+  // ─── Fix: Ensure all existing users have emailVerified = true ────
+  const updated = await prisma.user.updateMany({
+    where: { emailVerified: false },
+    data: { emailVerified: true },
+  })
+  if (updated.count > 0) {
+    console.log(`✓ ${updated.count} utilizadores corrigidos (emailVerified → true)`)
+  }
+
   console.log("\n=== Seed concluído com sucesso! ===")
 }
 
