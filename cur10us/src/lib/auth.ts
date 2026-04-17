@@ -20,7 +20,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
   debug: process.env.NODE_ENV === "development",
   secret: process.env.AUTH_SECRET,
-  session: { strategy: "jwt", updateAge: 60 },
+  session: { strategy: "jwt", updateAge: 60, maxAge: 24 * 60 * 60 },
   pages: {
     signIn: "/signin",
     error: "/signin",
