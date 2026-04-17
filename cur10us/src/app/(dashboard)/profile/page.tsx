@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState, useRef } from "react"
-import Image from "next/image"
 import { useSession } from "next-auth/react"
 import { Mail, Phone, MapPin, BookOpen, Users, GraduationCap, Loader2, Pencil, Check, X, Camera } from "lucide-react"
 
@@ -133,7 +132,8 @@ const ProfilePage = () => {
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
           <div className="relative group">
-            <Image
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src={user.image || "/avatar.png"}
               alt="Avatar"
               width={96}
