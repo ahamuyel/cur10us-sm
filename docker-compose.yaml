@@ -1,0 +1,25 @@
+services:
+  app:
+    build:
+      context: ./cur10us
+      dockerfile: Dockerfile
+      args:
+        DATABASE_URL: ${DATABASE_URL}
+    image: cur10us-app
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      AUTH_URL: ${AUTH_URL}
+      AUTH_SECRET: ${AUTH_SECRET}
+      DATABASE_URL: ${DATABASE_URL}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/platform/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
