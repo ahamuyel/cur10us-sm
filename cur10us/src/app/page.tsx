@@ -1,3 +1,4 @@
+
 import { prisma } from "@/lib/prisma"
 import LandingNavbar from "@/components/landing/LandingNavbar"
 import HeroSection from "@/components/landing/HeroSection"
