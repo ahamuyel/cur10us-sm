@@ -70,7 +70,7 @@ export default function StatusPage() {
   useEffect(() => {
     const t = searchParams.get("token")
     if (t) { setToken(t); fetchStatus(t) }
-  }, [searchParams]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [searchParams])  
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
