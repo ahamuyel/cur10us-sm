@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 
 import { prisma } from "@/lib/prisma"
 import LandingNavbar from "@/components/landing/LandingNavbar"
@@ -11,7 +13,6 @@ import FAQSection from "@/components/landing/FAQSection"
 import CTASection from "@/components/landing/CTASection"
 import Footer from "@/components/landing/Footer"
 
-export const dynamic = 'force-dynamic'
 
 export type PlatformBranding = {
   name: string
