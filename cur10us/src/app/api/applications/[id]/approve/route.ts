@@ -22,7 +22,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     }
 
     // Find or create user by email
-    let user = await prisma.user.findUnique({ where: { email: existing.email } })
+    const user = await prisma.user.findUnique({ where: { email: existing.email } })
 
     await prisma.$transaction(async (tx) => {
       // Update application status
