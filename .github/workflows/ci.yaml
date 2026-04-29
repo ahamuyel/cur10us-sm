@@ -62,11 +62,9 @@ jobs:
         with:
           context: ./cur10us
           push: true
-          # Tag com SHA para rollback + latest para conveniência
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/cur10usx-web:latest
             ${{ secrets.DOCKER_USERNAME }}/cur10usx-web:${{ github.sha }}
-          # Cache entre builds — reduz tempo de build drasticamente
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
