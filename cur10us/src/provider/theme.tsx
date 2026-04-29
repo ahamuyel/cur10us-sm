@@ -13,51 +13,61 @@ const ThemeContext = createContext<ThemeContextProps>({
   toggleTheme: () => {},
 })
 
-
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  const [theme, setTheme] = useState<Theme | null>(null) // null = não renderizado ainda
+  // ✅ lazy init (sem null, sem render extra)
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window !== "undefined") {
+      return (localStorage.getItem("theme") as Theme) || "light"
+    }
+    return "light"
+  })
 
+  // ✅ fonte única de verdade → DOM sync
   useEffect(() => {
-    const stored = (localStorage.getItem("theme") as Theme) || "light"
-    setTheme(stored)
-
     const root = document.documentElement
     root.classList.remove("light", "dark")
-    root.classList.add(stored)
+    root.classList.add(theme)
 
-    // Sync from DB preferences
-    fetch("/api/user-preferences")
-      .then((r) => r.ok ? r.json() : null)
-      .then((pref) => {
-        if (pref?.theme && pref.theme !== stored) {
+    localStorage.setItem("theme", theme)
+  }, [theme])
+
+  // ✅ sync com backend
+  useEffect(() => {
+    const fetchPreferences = async () => {
+      try {
+        const res = await fetch("/api/user-preferences")
+        if (!res.ok) return
+
+        const pref = await res.json()
+
+        if (pref?.theme && pref.theme !== theme) {
           setTheme(pref.theme)
-          document.documentElement.classList.remove("light", "dark")
-          document.documentElement.classList.add(pref.theme)
-          localStorage.setItem("theme", pref.theme)
         }
-      })
-      .catch(() => {})
-  }, [])
+      } catch {}
+    }
 
+    fetchPreferences()
+  }, []) // roda uma vez
+
+  // ✅ toggle só muda state
   const toggleTheme = () => {
-    if (!theme) return
-    const newTheme = theme === "light" ? "dark" : "light"
-    setTheme(newTheme)
-    document.documentElement.classList.remove("light", "dark")
-    document.documentElement.classList.add(newTheme)
-    localStorage.setItem("theme", newTheme)
+    setTheme((prev) => (prev === "light" ? "dark" : "light"))
 
-    // Save to DB
+    // salvar no backend (sem bloquear UI)
     fetch("/api/user-preferences", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ theme: newTheme }),
+      body: JSON.stringify({
+        theme: theme === "light" ? "dark" : "light",
+      }),
     }).catch(() => {})
   }
 
-  if (!theme) return null // não renderiza nada até que o tema esteja definido
-
-  return <ThemeContext.Provider value={{ theme, toggleTheme }}>{children}</ThemeContext.Provider>
+  return (
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  )
 }
 
 export const useTheme = () => useContext(ThemeContext)

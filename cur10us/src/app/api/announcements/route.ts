@@ -20,7 +20,7 @@ export async function GET(req: Request) {
     const classId = searchParams.get("classId") || ""
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let where: any = { schoolId }
+    const where: any = { schoolId }
 
     // Admins and teachers see all announcements (including scheduled/unpublished)
     // Students and parents only see published or past-scheduled announcements
