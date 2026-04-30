@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Loader2, Star } from "lucide-react"
+import { useState, useEffect } from "react";
+import { Loader2, Star } from "lucide-react";
 import {
   ALL_FEATURES,
   DEFAULT_ENABLED_FEATURES,
@@ -10,65 +10,81 @@ import {
   featureMenuItems,
   getDefaultFeatures,
   type FeatureKey,
-} from "@/lib/features"
+} from "@/lib/features";
 
 type Props = {
-  schoolId: string
-  initialFeatures: Record<string, boolean> | null
-  onUpdate: () => void
-}
+  schoolId: string;
+  initialFeatures: Record<string, boolean> | null;
+  onUpdate: () => void;
+};
 
-export default function SchoolFeaturesManager({ schoolId, initialFeatures, onUpdate }: Props) {
+export default function SchoolFeaturesManager({
+  schoolId,
+  initialFeatures,
+  onUpdate,
+}: Props) {
   const [features, setFeatures] = useState<Record<string, boolean>>(() => {
     if (initialFeatures && Object.keys(initialFeatures).length > 0) {
       // Use saved features, but ensure new features have defaults
-      const merged = { ...getDefaultFeatures(), ...initialFeatures }
-      return merged
+      const merged = { ...getDefaultFeatures(), ...initialFeatures };
+      return merged;
     }
-    return getDefaultFeatures()
-  })
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
-  const [saveError, setSaveError] = useState("")
+    return getDefaultFeatures();
+  });
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
+  // Sincroniza estado local quando o pai actualiza initialFeatures
+  useEffect(() => {
+    if (initialFeatures && Object.keys(initialFeatures).length > 0) {
+      setFeatures({ ...getDefaultFeatures(), ...initialFeatures });
+    } else {
+      setFeatures(getDefaultFeatures());
+    }
+  }, [initialFeatures]);
   const isDefault = (feature: string) =>
-    (DEFAULT_ENABLED_FEATURES as readonly string[]).includes(feature)
+    (DEFAULT_ENABLED_FEATURES as readonly string[]).includes(feature);
 
   async function handleSave() {
-    setSaving(true)
-    setSaved(false)
-    setSaveError("")
+    setSaving(true);
+    setSaved(false);
+    setSaveError("");
     try {
       const res = await fetch(`/api/admin/schools/${schoolId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ features }),
-      })
+      });
       if (res.ok) {
-        setSaved(true)
-        onUpdate()
-        setTimeout(() => setSaved(false), 2000)
+        setSaved(true);
+        onUpdate();
+        setTimeout(() => setSaved(false), 2000);
       } else {
-        const data = await res.json()
-        setSaveError(data.error || "Erro ao guardar")
+        const data = await res.json();
+        setSaveError(data.error || "Erro ao guardar");
       }
     } catch {
-      setSaveError("Erro de conexão")
+      setSaveError("Erro de conexão");
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
   }
 
   function toggleFeature(key: string) {
-    setFeatures((prev) => ({ ...prev, [key]: !prev[key] }))
+    setFeatures((prev) => ({ ...prev, [key]: !prev[key] }));
   }
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Funcionalidades</h3>
-          <p className="text-xs text-zinc-500">Ative ou desative módulos para esta escola</p>
+          <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+            Funcionalidades
+          </h3>
+          <p className="text-xs text-zinc-500">
+            Ative ou desative módulos para esta escola
+          </p>
         </div>
         <button
           onClick={handleSave}
@@ -81,14 +97,16 @@ export default function SchoolFeaturesManager({ schoolId, initialFeatures, onUpd
       </div>
 
       {saveError && (
-        <div className="p-2 rounded-lg bg-rose-50 dark:bg-rose-950/30 text-rose-600 text-xs">{saveError}</div>
+        <div className="p-2 rounded-lg bg-rose-50 dark:bg-rose-950/30 text-rose-600 text-xs">
+          {saveError}
+        </div>
       )}
 
       <div className="grid gap-2">
         {ALL_FEATURES.map((feature) => {
-          const enabled = features[feature]
-          const recommended = isDefault(feature)
-          const menuItems = featureMenuItems[feature as FeatureKey]
+          const enabled = features[feature];
+          const recommended = isDefault(feature);
+          const menuItems = featureMenuItems[feature as FeatureKey];
 
           return (
             <div
@@ -96,7 +114,12 @@ export default function SchoolFeaturesManager({ schoolId, initialFeatures, onUpd
               role="button"
               tabIndex={0}
               onClick={() => toggleFeature(feature)}
-              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleFeature(feature) } }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  toggleFeature(feature);
+                }
+              }}
               className={`flex items-center justify-between p-3 rounded-xl border transition select-none cursor-pointer ${
                 enabled
                   ? "bg-white dark:bg-zinc-900 border-indigo-200 dark:border-indigo-800 hover:border-indigo-400 dark:hover:border-indigo-600"
@@ -139,9 +162,9 @@ export default function SchoolFeaturesManager({ schoolId, initialFeatures, onUpd
                 />
               </div>
             </div>
-          )
+          );
         })}
       </div>
     </div>
-  )
+  );
 }
