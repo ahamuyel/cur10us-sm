@@ -19,7 +19,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     if (!school) {
       return NextResponse.json({ error: "Escola não encontrada" }, { status: 404 })
     }
-    return NextResponse.json(school)
+    return NextResponse.json(school, {
+      headers: {
+        "Chache-Control": "no-store, no-cache, must-revalidate",
+      },
+    })
   } catch (error) {
     console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
@@ -40,6 +44,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     }
 
     const { features, ...rest } = parsed.data
+     console.log("[PUT school features] id:", id, "features recebidas:", features)
     const school = await prisma.school.update({
       where: { id },
       data: {
@@ -50,8 +55,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
     // Revalidate all cached data for this school
     revalidateSchoolData(id)
+    
+    console.log("[PUT school features] features guardadas na DB:", school.features)
 
-    return NextResponse.json(school)
+    return NextResponse.json(school) 
   } catch (error) {
     console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
