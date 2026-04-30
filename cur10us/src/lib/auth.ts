@@ -1,19 +1,30 @@
-import NextAuth from "next-auth"
-import Credentials from "next-auth/providers/credentials"
-import Google from "next-auth/providers/google"
-import { comparePassword } from "@/lib/password"
-import { prisma } from "@/lib/prisma"
+import NextAuth from "next-auth";
+import Credentials from "next-auth/providers/credentials";
+import Google from "next-auth/providers/google";
+import { comparePassword } from "@/lib/password";
+import { prisma } from "@/lib/prisma";
 
 const PERMISSION_KEYS = [
-  "canManageApplications", "canManageTeachers", "canManageStudents", "canManageParents",
-  "canManageClasses", "canManageCourses", "canManageSubjects", "canManageLessons",
-  "canManageExams", "canManageAssignments", "canManageResults", "canManageAttendance", "canManageMessages",
-  "canManageAnnouncements", "canManageAdmins",
-] as const
+  "canManageApplications",
+  "canManageTeachers",
+  "canManageStudents",
+  "canManageParents",
+  "canManageClasses",
+  "canManageCourses",
+  "canManageSubjects",
+  "canManageLessons",
+  "canManageExams",
+  "canManageAssignments",
+  "canManageResults",
+  "canManageAttendance",
+  "canManageMessages",
+  "canManageAnnouncements",
+  "canManageAdmins",
+] as const;
 
 function extractPermissions(perm: Record<string, unknown> | null): string[] {
-  if (!perm) return []
-  return PERMISSION_KEYS.filter((key) => perm[key] === true)
+  if (!perm) return [];
+  return PERMISSION_KEYS.filter((key) => perm[key] === true);
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -27,39 +38,41 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   cookies: {
     sessionToken: {
-      name: 'authjs.session-token',
+      name: "authjs.session-token",
       options: {
         httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
       },
     },
     callbackUrl: {
-      name: 'next-auth-callback-url',
+      name: "next-auth-callback-url",
       options: {
         httpOnly: false, // Needs to be accessible client-side
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
       },
     },
     csrfToken: {
-      name: 'next-auth.csrf-token',
+      name: "next-auth.csrf-token",
       options: {
         httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
       },
     },
   },
   providers: [
     ...(process.env.GOOGLE_AUTH_ENABLED === "true"
-      ? [Google({
-          clientId: process.env.GOOGLE_CLIENT_ID!,
-          clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-        })]
+      ? [
+          Google({
+            clientId: process.env.GOOGLE_CLIENT_ID!,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+          }),
+        ]
       : []),
     Credentials({
       credentials: {
@@ -68,22 +81,22 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
       async authorize(credentials) {
         try {
-          const email = credentials.email as string
-          const password = credentials.password as string
+          const email = credentials.email as string;
+          const password = credentials.password as string;
 
-          if (!email || !password) return null
+          if (!email || !password) return null;
 
           const user = await prisma.user.findUnique({
             where: { email },
             include: { school: { select: { slug: true } } },
-          })
-          if (!user) return null
+          });
+          if (!user) return null;
 
           // Google-only user trying to login with password
-          if (!user.hashedPassword) return null
+          if (!user.hashedPassword) return null;
 
-          const isValid = await comparePassword(password, user.hashedPassword)
-          if (!isValid) return null
+          const isValid = await comparePassword(password, user.hashedPassword);
+          if (!isValid) return null;
 
           return {
             id: user.id,
@@ -97,10 +110,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             mustChangePassword: user.mustChangePassword,
             profileComplete: user.profileComplete,
             emailVerified: user.emailVerified ? new Date() : null,
-          }
+          };
         } catch (error) {
-          console.error("Authorize error:", error)
-          return null
+          console.error("Authorize error:", error);
+          return null;
         }
       },
     }),
@@ -108,11 +121,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async signIn({ user, account, profile }) {
       if (account?.provider === "google") {
-        const email = user.email!
+        const email = user.email!;
         const existing = await prisma.user.findUnique({
           where: { email },
           include: { school: { select: { slug: true } } },
-        })
+        });
 
         if (existing) {
           // Link Google as provider (or update) for any existing user
@@ -120,13 +133,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           await prisma.user.update({
             where: { id: existing.id },
             data: {
-              provider: existing.provider === "google" ? "google" : existing.hashedPassword ? "both" : "google",
+              provider:
+                existing.provider === "google"
+                  ? "google"
+                  : existing.hashedPassword
+                    ? "both"
+                    : "google",
               providerId: account.providerAccountId,
               image: user.image ?? existing.image,
               emailVerified: true,
             },
-          })
-          return true
+          });
+          return true;
         }
 
         // New Google user — create active user with incomplete profile
@@ -144,79 +162,132 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             emailVerified: true,
             role: "student", // default, will be updated during profile completion
           },
-        })
-        return true
+        });
+        return true;
       }
-      return true
+      return true;
     },
     async jwt({ token, user, trigger }) {
       // Never store the default `picture` field — it can be a huge base64 string
       // We use our own `userImage` field with just the URL
-      delete token.picture
+      delete token.picture;
 
       if (user) {
-        token.role = (user as { role: string }).role
-        token.id = user.id!
-        token.schoolId = (user as { schoolId?: string | null }).schoolId ?? null
-        token.schoolSlug = (user as { schoolSlug?: string | null }).schoolSlug ?? null
-        token.isActive = (user as { isActive: boolean }).isActive
-        token.mustChangePassword = (user as { mustChangePassword?: boolean }).mustChangePassword ?? false
-        token.profileComplete = (user as { profileComplete: boolean }).profileComplete ?? true
-        token.emailVerified = (user as { emailVerified?: boolean }).emailVerified ? new Date() : null
+        token.role = (user as { role: string }).role;
+        token.id = user.id!;
+        token.schoolId =
+          (user as { schoolId?: string | null }).schoolId ?? null;
+        token.schoolSlug =
+          (user as { schoolSlug?: string | null }).schoolSlug ?? null;
+        token.isActive = (user as { isActive: boolean }).isActive;
+        token.mustChangePassword =
+          (user as { mustChangePassword?: boolean }).mustChangePassword ??
+          false;
+        token.profileComplete =
+          (user as { profileComplete: boolean }).profileComplete ?? true;
+        token.emailVerified = (user as { emailVerified?: boolean })
+          .emailVerified
+          ? new Date()
+          : null;
         // Set image on first login (URL only, skip base64)
-        const img = (user as { image?: string | null }).image
-        token.userImage = (img && !img.startsWith("data:")) ? img : null
+        const img = (user as { image?: string | null }).image;
+        token.userImage = img && !img.startsWith("data:") ? img : null;
       }
 
       // Refresh from DB only on session update (every updateAge seconds), not every request
-      if (trigger === "update" || !token.id) {
-        if (token.email) {
-          const dbUser = await prisma.user.findUnique({
-            where: { email: token.email },
-            select: {
-              id: true, role: true, schoolId: true, isActive: true, image: true,
-              mustChangePassword: true, profileComplete: true, emailVerified: true,
-              school: { select: { slug: true, features: true } },
-              adminPermission: { select: { level: true, ...Object.fromEntries(PERMISSION_KEYS.map(k => [k, true])) } },
+      // if (trigger === "update" || !token.id) {
+      //   if (token.email) {
+      //     const dbUser = await prisma.user.findUnique({
+      //       where: { email: token.email },
+      //       select: {
+      //         id: true, role: true, schoolId: true, isActive: true, image: true,
+      //         mustChangePassword: true, profileComplete: true, emailVerified: true,
+      //         school: { select: { slug: true, features: true } },
+      //         adminPermission: { select: { level: true, ...Object.fromEntries(PERMISSION_KEYS.map(k => [k, true])) } },
+      //       },
+      //     })
+      //     if (dbUser) {
+      //       token.id = dbUser.id
+      //       token.role = dbUser.role
+      //       token.schoolId = dbUser.schoolId ?? null
+      //       token.schoolSlug = dbUser.school?.slug ?? null
+      //       token.isActive = dbUser.isActive
+      //       token.mustChangePassword = dbUser.mustChangePassword
+      //       token.profileComplete = dbUser.profileComplete
+      //       token.emailVerified = dbUser.emailVerified ? new Date() : null
+      //       token.adminLevel = dbUser.adminPermission?.level ?? null
+      //       token.permissions = extractPermissions(dbUser.adminPermission as unknown as Record<string, unknown>)
+      //       token.schoolFeatures = (dbUser.school?.features as Record<string, boolean>) ?? null
+      //       // Store image URL only if it's a short URL (not base64)
+      //       const img = dbUser.image
+      //       token.userImage = (img && !img.startsWith("data:")) ? img : null
+      //     }
+      //   }
+      // }
+
+      if (token.id) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: {
+            id: true,
+            role: true,
+            schoolId: true,
+            isActive: true,
+            image: true,
+            mustChangePassword: true,
+            profileComplete: true,
+            emailVerified: true,
+            school: { select: { slug: true, features: true } }, // ← busca features sempre
+            adminPermission: {
+              select: {
+                level: true,
+                ...Object.fromEntries(PERMISSION_KEYS.map((k) => [k, true])),
+              },
             },
-          })
-          if (dbUser) {
-            token.id = dbUser.id
-            token.role = dbUser.role
-            token.schoolId = dbUser.schoolId ?? null
-            token.schoolSlug = dbUser.school?.slug ?? null
-            token.isActive = dbUser.isActive
-            token.mustChangePassword = dbUser.mustChangePassword
-            token.profileComplete = dbUser.profileComplete
-            token.emailVerified = dbUser.emailVerified ? new Date() : null
-            token.adminLevel = dbUser.adminPermission?.level ?? null
-            token.permissions = extractPermissions(dbUser.adminPermission as unknown as Record<string, unknown>)
-            token.schoolFeatures = (dbUser.school?.features as Record<string, boolean>) ?? null
-            // Store image URL only if it's a short URL (not base64)
-            const img = dbUser.image
-            token.userImage = (img && !img.startsWith("data:")) ? img : null
-          }
+          },
+        });
+
+        if (dbUser) {
+          token.id = dbUser.id;
+          token.role = dbUser.role;
+          token.schoolId = dbUser.schoolId ?? null;
+          token.schoolSlug = dbUser.school?.slug ?? null;
+          token.isActive = dbUser.isActive;
+          token.mustChangePassword = dbUser.mustChangePassword;
+          token.profileComplete = dbUser.profileComplete;
+          token.emailVerified = dbUser.emailVerified ? new Date() : null;
+          token.adminLevel = dbUser.adminPermission?.level ?? null;
+          token.permissions = extractPermissions(
+            dbUser.adminPermission as unknown as Record<string, unknown>,
+          );
+          token.schoolFeatures =
+            (dbUser.school?.features as Record<string, boolean>) ?? null;
+          const img = dbUser.image;
+          token.userImage = img && !img.startsWith("data:") ? img : null;
         }
       }
 
-      return token
+      return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.role = token.role as string
-        session.user.id = token.id as string
-        session.user.schoolId = (token.schoolId as string) ?? null
-        session.user.schoolSlug = (token.schoolSlug as string) ?? null
-        session.user.isActive = token.isActive as boolean
-        session.user.mustChangePassword = (token.mustChangePassword as boolean) ?? false
-        session.user.profileComplete = token.profileComplete as boolean
-        session.user.emailVerified = (token.emailVerified as Date | null) ?? null
-        session.user.adminLevel = (token.adminLevel as string) ?? null
-        session.user.permissions = (token.permissions as string[]) ?? []
-        session.user.schoolFeatures = (token.schoolFeatures as Record<string, boolean>) ?? null
-        session.user.image = (token.userImage as string) ?? null
+        session.user.role = token.role as string;
+        session.user.id = token.id as string;
+        session.user.schoolId = (token.schoolId as string) ?? null;
+        session.user.schoolSlug = (token.schoolSlug as string) ?? null;
+        session.user.isActive = token.isActive as boolean;
+        session.user.mustChangePassword =
+          (token.mustChangePassword as boolean) ?? false;
+        session.user.profileComplete = token.profileComplete as boolean;
+        session.user.emailVerified =
+          (token.emailVerified as Date | null) ?? null;
+        session.user.adminLevel = (token.adminLevel as string) ?? null;
+        session.user.permissions = (token.permissions as string[]) ?? [];
+        session.user.schoolFeatures =
+          (token.schoolFeatures as Record<string, boolean>) ?? null;
+        session.user.image = (token.userImage as string) ?? null;
       }
-      return session
+      return session;
     },
   },
-})
+});

@@ -1,5 +1,12 @@
 "use client"
-import { useState, useEffect, ReactNode, createContext, useContext } from "react"
+
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react"
 
 type Theme = "light" | "dark"
 
@@ -13,54 +20,39 @@ const ThemeContext = createContext<ThemeContextProps>({
   toggleTheme: () => {},
 })
 
-export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  // ✅ lazy init (sem null, sem render extra)
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window !== "undefined") {
-      return (localStorage.getItem("theme") as Theme) || "light"
-    }
-    return "light"
-  })
+// 🔥 lê cookie no client
+function getInitialTheme(): Theme {
+  if (typeof window === "undefined") return "light"
 
-  // ✅ fonte única de verdade → DOM sync
+  const cookie = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith("theme="))
+    ?.split("=")[1]
+
+  return (cookie as Theme) || "light"
+}
+
+export const ThemeProvider = ({ children }: { children: ReactNode }) => {
+  const [theme, setTheme] = useState<Theme>("light")
+  const [mounted, setMounted] = useState(false)
+
   useEffect(() => {
-    const root = document.documentElement
-    root.classList.remove("light", "dark")
-    root.classList.add(theme)
+    setTheme(getInitialTheme())
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
+
+    document.documentElement.classList.remove("light", "dark")
+    document.documentElement.classList.add(theme)
 
     localStorage.setItem("theme", theme)
-  }, [theme])
+    document.cookie = `theme=${theme}; path=/; max-age=31536000`
+  }, [theme, mounted])
 
-  // ✅ sync com backend
-  useEffect(() => {
-    const fetchPreferences = async () => {
-      try {
-        const res = await fetch("/api/user-preferences")
-        if (!res.ok) return
-
-        const pref = await res.json()
-
-        if (pref?.theme && pref.theme !== theme) {
-          setTheme(pref.theme)
-        }
-      } catch {}
-    }
-
-    fetchPreferences()
-  }, []) // roda uma vez
-
-  // ✅ toggle só muda state
   const toggleTheme = () => {
     setTheme((prev) => (prev === "light" ? "dark" : "light"))
-
-    // salvar no backend (sem bloquear UI)
-    fetch("/api/user-preferences", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        theme: theme === "light" ? "dark" : "light",
-      }),
-    }).catch(() => {})
   }
 
   return (
