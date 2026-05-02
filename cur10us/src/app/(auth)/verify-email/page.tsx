@@ -1,67 +1,72 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
-import { CheckCircle, XCircle, Loader2, Mail } from "lucide-react"
-import Link from "next/link"
-import { csrfPost } from "@/lib/csrf-client"
+import { Suspense } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { CheckCircle, XCircle, Loader2, Mail } from "lucide-react";
+import Link from "next/link";
+import { csrfPost } from "@/lib/csrf-client";
 
-export default function VerifyEmailPage() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const token = searchParams.get("token")
-  const justRegistered = searchParams.get("justRegistered")
-  const [status, setStatus] = useState<"verifying" | "success" | "error" | "resend">("resend")
-  const [error, setError] = useState("")
-  const [email, setEmail] = useState("")
-  const [resending, setResending] = useState(false)
-  const [resent, setResent] = useState(false)
+function VerifyEmailContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
+  const justRegistered = searchParams.get("justRegistered");
+  const [status, setStatus] = useState<
+    "verifying" | "success" | "error" | "resend"
+  >("resend");
+  const [error, setError] = useState("");
+  const [email, setEmail] = useState("");
+  const [resending, setResending] = useState(false);
+  const [resent, setResent] = useState(false);
 
   useEffect(() => {
     if (!token) {
-      setStatus("resend")
-      return
+      setStatus("resend");
+      return;
     }
 
-    setStatus("verifying")
+    setStatus("verifying");
 
     async function verify() {
       try {
-        const res = await fetch(`/api/auth/verify-email?token=${token}`, { method: "POST" })
+        const res = await fetch(`/api/auth/verify-email?token=${token}`, {
+          method: "POST",
+        });
 
         if (!res.ok) {
-          const data = await res.json()
-          setError(data.error || "Falha na verificação")
-          setStatus("error")
-          return
+          const data = await res.json();
+          setError(data.error || "Falha na verificação");
+          setStatus("error");
+          return;
         }
 
-        setStatus("success")
+        setStatus("success");
       } catch {
-        setError("Erro de conexão. Tente novamente.")
-        setStatus("error")
+        setError("Erro de conexão. Tente novamente.");
+        setStatus("error");
       }
     }
 
-    verify()
-  }, [token])
+    verify();
+  }, [token]);
 
   async function handleResend() {
-    setResending(true)
+    setResending(true);
     try {
-      const res = await csrfPost("/api/auth/verify-email", { email })
+      const res = await csrfPost("/api/auth/verify-email", { email });
 
       if (!res.ok) {
-        const data = await res.json()
-        setError(data.error || "Falha ao reenviar e-mail")
-        return
+        const data = await res.json();
+        setError(data.error || "Falha ao reenviar e-mail");
+        return;
       }
 
-      setResent(true)
+      setResent(true);
     } catch {
-      setError("Erro de conexão. Tente novamente.")
+      setError("Erro de conexão. Tente novamente.");
     } finally {
-      setResending(false)
+      setResending(false);
     }
   }
 
@@ -74,7 +79,7 @@ export default function VerifyEmailPage() {
           Aguarde um momento
         </p>
       </div>
-    )
+    );
   }
 
   if (status === "success") {
@@ -92,7 +97,7 @@ export default function VerifyEmailPage() {
           Entrar agora
         </Link>
       </div>
-    )
+    );
   }
 
   if (status === "error") {
@@ -111,7 +116,7 @@ export default function VerifyEmailPage() {
           Voltar ao login
         </Link>
       </div>
-    )
+    );
   }
 
   // Resend state — no token provided
@@ -120,7 +125,9 @@ export default function VerifyEmailPage() {
       <Mail className="w-12 h-12 text-indigo-600 dark:text-indigo-400" />
       <div>
         <h1 className="text-xl font-semibold">
-          {justRegistered ? "Conta criada com sucesso!" : "Verifique o seu e-mail"}
+          {justRegistered
+            ? "Conta criada com sucesso!"
+            : "Verifique o seu e-mail"}
         </h1>
         <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2">
           {justRegistered
@@ -143,8 +150,8 @@ export default function VerifyEmailPage() {
 
       <form
         onSubmit={(e) => {
-          e.preventDefault()
-          handleResend()
+          e.preventDefault();
+          handleResend();
         }}
         className="flex flex-col gap-3 w-full max-w-sm"
       >
@@ -179,5 +186,20 @@ export default function VerifyEmailPage() {
         Voltar ao login
       </Link>
     </div>
-  )
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="w-full max-w-sm mx-auto flex flex-col items-center gap-4 text-center">
+          <Loader2 className="w-12 h-12 text-indigo-600 dark:text-indigo-400 animate-spin" />
+          <h1 className="text-xl font-semibold">A carregar...</h1>
+        </div>
+      }
+    >
+      <VerifyEmailContent />
+    </Suspense>
+  );
 }
