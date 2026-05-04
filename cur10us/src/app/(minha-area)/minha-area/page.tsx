@@ -72,6 +72,8 @@ type UserSchool = {
 
 const hasRefreshed = React.useRef(false)
 
+export const dynamic = "force-dynamic"
+
 export default function MinhaAreaPage() {
   const { data: session, status: sessionStatus, update } = useSession() // ← update adicionado
   const router = useRouter()
