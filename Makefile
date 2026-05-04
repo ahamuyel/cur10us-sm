@@ -5,82 +5,82 @@
 #                                                     +:+ +:+         +:+      #
 #    By: ahamuyel <ahamuyel@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2026/05/04 10:15:00 by ahamuyel          #+#    #+#              #
-#    Updated: 2026/05/04 10:15:00 by ahamuyel         ###   ########.fr        #
+#    Created: 2026/05/04 10:40:00 by ahamuyel          #+#    #+#              #
+#    Updated: 2026/05/04 10:40:00 by ahamuyel         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-# Variáveis
 NAME            = cur10usx
 DOCKER_USER     = albertoih
-IMAGE_NAME      = $(DOCKER_USER)/$(NAME)
-TAG             = latest
+IMAGE           = $(DOCKER_USER)/$(NAME):latest
 
-# Cores para o terminal
-GREEN           = \033[0;32m
-RED             = \033[0;31m
-RESET           = \033[0m
+# Comandos
+K               = kubectl
+M               = minikube
 
-.PHONY: all build push k8s-apply k8s-delete status logs tunnel clean
+# Cores
+G               = \033[0;32m
+R               = \033[0;31m
+Y               = \033[0;33m
+_               = \033[0m
 
-all: build push k8s-apply
+.PHONY: all build apply restart status clean fclean re tunnel
 
-# --- DOCKER ---
+all: build apply
+
+# --- COMPILAÇÃO (DOCKER) ---
 
 build:
-	@echo "$(GREEN)Building Docker image...$(RESET)"
-	docker build -t $(IMAGE_NAME):$(TAG) ./cur10us
+	@echo "$(G)--- Building Docker Image ---$(_)"
+	docker build -t $(IMAGE) ./cur10us
 
 push:
-	@echo "$(GREEN)Pushing image to Docker Hub...$(RESET)"
-	docker push $(IMAGE_NAME):$(TAG)
+	@echo "$(G)--- Pushing to Docker Hub ---$(_)"
+	docker push $(IMAGE)
 
-# --- KUBERNETES ---
+# --- DEPLOY (KUBERNETES) ---
 
-# Aplica os YAMLs na ordem correta (Secret -> Deployment -> Service)
 apply:
-	@echo "$(GREEN)Applying Kubernetes manifests...$(RESET)"
+	@echo "$(G)--- Applying K8s Manifests ---$(_)"
 	@if [ -f secret/cur10usx-secrets ]; then \
-		kubectl apply -f secret/cur10usx-secrets; \
+		$(K) apply -f secret/cur10usx-secrets; \
 	else \
-		echo "$(RED)Warning: Secret file not found!$(RESET)"; \
+		echo "$(Y)Warning: secret/cur10usx-secrets not found$(_)"; \
 	fi
-	kubectl apply -f deployment-app.yaml
-	kubectl apply -f service-app.yaml
+	$(K) apply -f deployment-app.yaml
+	$(K) apply -f service-app.yaml
 
-delete:
-	@echo "$(RED)Deleting Kubernetes resources...$(RESET)"
-	kubectl delete -f deployment-app.yaml
-	kubectl delete -f service-app.yaml
-
-# Reinicia os pods para pegar a imagem nova do Docker Hub
 restart:
-	@echo "$(GREEN)Restarting pods to update image...$(RESET)"
-	kubectl rollout restart deployment/$(NAME)
+	@echo "$(Y)--- Restarting Deployment ---$(_)"
+	$(K) rollout restart deployment/$(NAME)
 
 # --- MONITORAMENTO ---
 
 status:
-	@echo "$(GREEN)Current Status:$(RESET)"
-	@kubectl get pods
-	@echo ""
-	@kubectl get svc
-	@echo ""
-	@kubectl get ep $(NAME)-app-service
+	@echo "$(G)--- Cluster Status ---$(_)"
+	@$(K) get pods,svc,endpoints
 
 logs:
-	@kubectl logs -l app=$(NAME) -f
-
-# --- MINIKUBE UTILS ---
+	@$(K) logs -l app=$(NAME) -f --tail=100
 
 tunnel:
-	@echo "$(GREEN)Starting Minikube Tunnel (need sudo)...$(RESET)"
-	minikube tunnel
+	@echo "$(Y)--- Starting Minikube Tunnel (sudo required) ---$(_)"
+	sudo $(M) tunnel
 
-url:
-	minikube service $(NAME)-app-service --url
+# --- LIMPEZA (ESTILO 42) ---
 
-# Limpeza profunda do Minikube (cuidado!)
-clean: delete
-	@echo "$(RED)Cleaning up Docker system...$(RESET)"
-	minikube ssh -- docker system prune -a --volumes -f
+# O clean remove o que está rodando no cluster
+clean:
+	@echo "$(R)--- Removing K8s Resources ---$(_)"
+	-$(K) delete -f deployment-app.yaml 2>/dev/null
+	-$(K) delete -f service-app.yaml 2>/dev/null
+	@echo "$(Y)Resources removed.$(_)"
+
+# O fclean limpa o cluster e remove imagens/cache para liberar espaço
+fclean: clean
+	@echo "$(R)--- Deep Cleaning Docker & Minikube Cache ---$(_)"
+	-docker rmi $(IMAGE) 2>/dev/null
+	@$(M) status >/dev/null 2>&1 && $(M) ssh -- "docker system prune -a --volumes -f" || echo "$(Y)Minikube offline, skipping prune.$(_)"
+	@echo "$(G)System clean and disk space freed!$(_)"
+
+re: fclean all
