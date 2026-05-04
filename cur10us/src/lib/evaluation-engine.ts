@@ -324,8 +324,9 @@ export function calculateFinalAverage(
 
   // If all 3 trimesters have data, use weights
   if (validAverages.length === 3 && weights.length === 3) {
+    const totalWeight = weights.reduce((a, b) => a + b, 0)
     const weighted = trimesterAverages.reduce<number>((sum, avg, i) => sum + (avg || 0) * weights[i], 0)
-    return applyRounding(weighted, roundingMode, roundingScale)
+    return applyRounding(totalWeight > 0 ? weighted / totalWeight : 0, roundingMode, roundingScale)
   }
 
   // Otherwise, simple average of available trimesters

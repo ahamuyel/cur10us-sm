@@ -34,19 +34,26 @@ export async function GET(req: Request) {
       ...(classId ? { student: { classId } } : {}),
     }
 
-    // Student: own results only
+    // Student: own results only (ignore studentId from searchParams)
     if (role === "student") {
       const student = await prisma.student.findFirst({ where: { userId, schoolId }, select: { id: true } })
-      if (student) where.studentId = student.id
+      where.studentId = student?.id ?? "none"
     }
 
-    // Parent: children's results
+    // Parent: children's results only
     if (role === "parent") {
       const parent = await prisma.parent.findFirst({
         where: { userId, schoolId },
         select: { students: { select: { id: true } } },
       })
-      if (parent) where.studentId = { in: parent.students.map((s) => s.id) }
+      where.studentId = parent ? { in: parent.students.map((s) => s.id) } : "none"
+    }
+
+    // Teacher: only results of students in their classes
+    if (role === "teacher") {
+      const teacher = await prisma.teacher.findFirst({ where: { userId, schoolId }, select: { teacherClasses: { select: { classId: true } } } })
+      const teacherClassIds = teacher?.teacherClasses.map((tc) => tc.classId) || []
+      where.student = { ...where.student, classId: { in: teacherClassIds } }
     }
 
     const orderBy = buildOrderBy(searchParams, ["score", "date", "type"], { date: "desc" })
@@ -68,7 +75,8 @@ export async function GET(req: Request) {
     ])
 
     return NextResponse.json({ data, total, page, totalPages: Math.ceil(total / limit) })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -131,7 +139,8 @@ export async function POST(req: Request) {
     logAudit({ ...auditUser(session!), action: "CREATE", entity: "Result", entityId: result.id, schoolId, description: `Nota ${rest.score} registada para aluno ${rest.studentId}` })
 
     return NextResponse.json(result, { status: 201 })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

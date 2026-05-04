@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { hash } from "bcryptjs"
+import { hashPassword } from "@/lib/password"
 import { prisma } from "@/lib/prisma"
 import { requireRole } from "@/lib/api-auth"
 
@@ -15,7 +15,8 @@ export async function GET() {
     })
 
     return NextResponse.json({ data: admins })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -41,7 +42,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Este e-mail já está registado" }, { status: 409 })
     }
 
-    const hashedPassword = await hash(password, 12)
+    const hashedPassword = await hashPassword(password)
 
     const user = await prisma.user.create({
       data: {
@@ -50,13 +51,17 @@ export async function POST(req: Request) {
         hashedPassword,
         role: "super_admin",
         isActive: true,
+        emailVerified: true,
         mustChangePassword: true,
       },
       select: { id: true, name: true, email: true, createdAt: true },
     })
 
-    return NextResponse.json({ ...user, tempPassword: password }, { status: 201 })
-  } catch {
+    // Note: tempPassword should be sent to the user via a secure channel (e.g., email)
+    // Never expose plaintext passwords in API responses
+    return NextResponse.json(user, { status: 201 })
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

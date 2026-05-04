@@ -16,7 +16,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     if (!config) return NextResponse.json({ error: "Configuração não encontrada" }, { status: 404 })
 
     return NextResponse.json(config)
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -42,7 +43,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
     const config = await prisma.globalGradingConfig.update({ where: { id }, data })
     return NextResponse.json(config)
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -62,7 +64,8 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
 
     await prisma.globalGradingConfig.delete({ where: { id } })
     return NextResponse.json({ success: true })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

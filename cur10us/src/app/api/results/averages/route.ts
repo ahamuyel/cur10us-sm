@@ -52,9 +52,8 @@ export async function GET(req: Request) {
       count: s.scores.length,
     }))
 
-    const allScores = results.map((r) => r.score)
-    const generalAverage = allScores.length
-      ? Math.round((allScores.reduce((a, b) => a + b, 0) / allScores.length) * 100) / 100
+    const generalAverage = subjectAverages.length
+      ? Math.round((subjectAverages.reduce((a, b) => a + b.average, 0) / subjectAverages.length) * 100) / 100
       : 0
 
     return NextResponse.json({
@@ -63,7 +62,8 @@ export async function GET(req: Request) {
       generalAverage,
       totalResults: results.length,
     })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

@@ -11,13 +11,14 @@ async function main() {
 
   await prisma.user.upsert({
     where: { email: "super@cur10usx.com" },
-    update: { hashedPassword, role: "super_admin", isActive: true, provider: "credentials" },
+    update: { hashedPassword, role: "super_admin", isActive: true, emailVerified: true, provider: "credentials" },
     create: {
       name: "Super Admin",
       email: "super@cur10usx.com",
       hashedPassword,
       role: "super_admin",
       isActive: true,
+      emailVerified: true,
       provider: "credentials",
     },
   })
@@ -183,6 +184,15 @@ async function main() {
     })
   })
   console.log("✓ Configuração Global de Avaliação (default)")
+
+  // ─── Fix: Ensure all existing users have emailVerified = true ────
+  const updated = await prisma.user.updateMany({
+    where: { emailVerified: false },
+    data: { emailVerified: true },
+  })
+  if (updated.count > 0) {
+    console.log(`✓ ${updated.count} utilizadores corrigidos (emailVerified → true)`)
+  }
 
   console.log("\n=== Seed concluído com sucesso! ===")
 }

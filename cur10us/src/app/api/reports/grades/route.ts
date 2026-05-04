@@ -177,7 +177,8 @@ export async function GET(req: Request) {
         "Content-Disposition": `attachment; filename="${filename}"`,
       },
     })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

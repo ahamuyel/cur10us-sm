@@ -1,4 +1,5 @@
 "use client"
+import { Suspense } from "react"
 
 import { useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
@@ -38,7 +39,7 @@ const statusOrder: Record<string, number> = {
   rejeitada: -1,
 }
 
-export default function StatusPage() {
+function StatusPageContent() {
   const searchParams = useSearchParams()
   const [token, setToken] = useState(searchParams.get("token") || "")
   const [data, setData] = useState<ApplicationStatus | null>(null)
@@ -70,7 +71,7 @@ export default function StatusPage() {
   useEffect(() => {
     const t = searchParams.get("token")
     if (t) { setToken(t); fetchStatus(t) }
-  }, [searchParams]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [searchParams])  
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -190,5 +191,13 @@ export default function StatusPage() {
         </Link>
       </p>
     </div>
+  )
+}
+
+export default function StatusPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div>}>
+      <StatusPageContent />
+    </Suspense>
   )
 }

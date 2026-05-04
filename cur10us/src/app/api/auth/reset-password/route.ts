@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { hash } from "bcryptjs"
+import { hashPassword } from "@/lib/password"
 import { prisma } from "@/lib/prisma"
 import { resetPasswordSchema } from "@/lib/validations/auth"
 import { rateLimit } from "@/lib/rate-limit"
@@ -56,7 +56,7 @@ async function handleResetPassword(req: Request) {
       )
     }
 
-    const hashedPassword = await hash(password, 12)
+    const hashedPassword = await hashPassword(password)
 
     await prisma.user.update({
       where: { id: resetToken.userId },
@@ -67,8 +67,10 @@ async function handleResetPassword(req: Request) {
       where: { id: resetToken.id },
     })
 
-    return NextResponse.json({ success: true, email: resetToken.user.email })
-  } catch {
+    // Don't return email to prevent user enumeration
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json(
       { error: "Erro interno do servidor" },
       { status: 500 }

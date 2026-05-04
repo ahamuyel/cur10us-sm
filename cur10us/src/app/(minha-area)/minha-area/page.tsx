@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from "react"
 import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import {
   Clock, AlertTriangle, CheckCircle,
@@ -13,8 +14,6 @@ import {
 } from "lucide-react"
 import StatusBadge from "@/components/ui/StatusBadge"
 import ConfirmActionModal from "@/components/ui/ConfirmActionModal"
-
-/* ─── Labels e ícones ─── */
 
 const roleLabels: Record<string, string> = {
   school_admin: "Administrador",
@@ -45,8 +44,6 @@ const ROLES_DISPONIVEIS = [
 
 const CLASSES = Array.from({ length: 12 }, (_, i) => ({ value: i + 1, label: `${i + 1}ª classe` }))
 
-/* ─── Tipos ─── */
-
 type Application = {
   id: string
   status: string
@@ -73,17 +70,19 @@ type UserSchool = {
   status: string
 }
 
-/* ─── Página Principal ─── */
+export const dynamic = "force-dynamic"
 
 export default function MinhaAreaPage() {
-  const { data: session, status: sessionStatus } = useSession()
+  const hasRefreshed = React.useRef(false)
+  
+  const { data: session, status: sessionStatus, update } = useSession() // ← update adicionado
+  const router = useRouter()
   const [applications, setApplications] = useState<Application[]>([])
   const [schools, setSchools] = useState<PublicSchool[]>([])
   const [userSchools, setUserSchools] = useState<UserSchool[]>([])
   const [loading, setLoading] = useState(true)
   const [cancelTarget, setCancelTarget] = useState<string | null>(null)
 
-  // Modal de solicitação
   const [showModal, setShowModal] = useState(false)
   const [modalStep, setModalStep] = useState<"school" | "role" | "form" | "success">("school")
   const [selSchool, setSelSchool] = useState("")
@@ -91,7 +90,6 @@ export default function MinhaAreaPage() {
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState("")
 
-  // Form fields
   const [phone, setPhone] = useState("")
   const [gender, setGender] = useState("")
   const [docType, setDocType] = useState("")
@@ -101,26 +99,41 @@ export default function MinhaAreaPage() {
   const [teachingArea, setTeachingArea] = useState("")
   const [relationship, setRelationship] = useState("")
 
-  // Carregar dados
-  const loadData = useCallback(async () => {
-    if (sessionStatus !== "authenticated") return
-    try {
-      const [apps, schs, userSchs] = await Promise.all([
-        fetch("/api/applications/mine").then((r) => r.json()),
-        fetch("/api/schools/public").then((r) => r.json()),
-        fetch("/api/user/schools").then((r) => r.json()),
-      ])
-      setApplications(Array.isArray(apps) ? apps : [])
-      setSchools(Array.isArray(schs) ? schs : [])
-      setUserSchools(Array.isArray(userSchs) ? userSchs : [])
-    } catch {
-      // Silently fail
-    } finally {
-      setLoading(false)
-    }
-  }, [sessionStatus])
+const loadData = useCallback(async () => {
+  if (sessionStatus !== "authenticated") return
+  try {
+    const [apps, schs, userSchs] = await Promise.all([
+      fetch("/api/applications/mine").then((r) => r.json()),
+      fetch("/api/schools/public").then((r) => r.json()),
+      fetch("/api/user/schools").then((r) => r.json()),
+    ])
+    setApplications(Array.isArray(apps) ? apps : [])
+    setSchools(Array.isArray(schs) ? schs : [])
+    setUserSchools(Array.isArray(userSchs) ? userSchs : [])
 
+    // Só faz refresh uma vez, evita loop infinito
+    const hasApproval = Array.isArray(apps) && apps.some(
+      (a: Application) => a.status === "matriculada"
+    )
+    if (hasApproval && !hasRefreshed.current) {
+      hasRefreshed.current = true
+      await update()
+      router.refresh()
+    }
+  } catch {
+    // Silently fail
+  } finally {
+    setLoading(false)
+  }
+}, [sessionStatus, update, router]) // ← removido session?.user?.schoolId
   useEffect(() => { loadData() }, [loadData])
+
+  // ← Auto-redirect mais robusto
+  useEffect(() => {
+    if (!loading && session?.user?.isActive && session?.user?.schoolId) {
+      router.replace(`/dashboard/${session.user.id}`)
+    }
+  }, [loading, session?.user?.isActive, session?.user?.schoolId, session?.user?.id, router])
 
   if (sessionStatus === "loading" || loading) {
     return <SkeletonLoader />
@@ -200,7 +213,7 @@ export default function MinhaAreaPage() {
     }
   }
 
-  const closeModal = () => { setShowModal(false); setModalStep("school"); }
+  const closeModal = () => { setShowModal(false); setModalStep("school") }
 
   const handleCancel = async () => {
     if (!cancelTarget) return
@@ -254,7 +267,8 @@ export default function MinhaAreaPage() {
               }
             </div>
             {hasActiveSchools && (
-              <Link href="/dashboard" className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-xl bg-white/20 hover:bg-white/30 text-white text-sm font-medium transition backdrop-blur-sm">
+              // ← Link corrigido com userId
+              <Link href={`/dashboard/${user?.id}`} className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-xl bg-white/20 hover:bg-white/30 text-white text-sm font-medium transition backdrop-blur-sm">
                 Ir para o painel <ExternalLink size={14} />
               </Link>
             )}
@@ -274,12 +288,15 @@ export default function MinhaAreaPage() {
             <School size={18} className="text-indigo-500" /> As minhas escolas
           </h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {userSchools.map((school) => <SchoolCard key={school.id} school={school} />)}
+            {/* ← userId passado ao SchoolCard */}
+            {userSchools.map((school) => (
+              <SchoolCard key={school.id} school={school} userId={user?.id || ""} />
+            ))}
           </div>
         </section>
       )}
 
-      {/* 3. SOLICITAR — botão principal */}
+      {/* 3. SOLICITAR */}
       {!hasActiveSchools && (
         <section>
           <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2 mb-4">
@@ -343,12 +360,32 @@ export default function MinhaAreaPage() {
                         Motivo: {app.rejectReason}
                       </p>
                     )}
+                    {/* ← Mensagem de aprovação pendente de refresh */}
+                    {app.status === "matriculada" && !session?.user?.schoolId && (
+                      <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-2 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg px-2.5 py-1.5 inline-block">
+                        ✅ Aprovado! A actualizar o seu acesso...
+                      </p>
+                    )}
                   </div>
-                  {(app.status === "pendente" || app.status === "em_analise") && (
-                    <button onClick={() => setCancelTarget(app.id)} className="text-xs text-red-600 dark:text-red-400 hover:underline shrink-0 font-medium">
-                      Cancelar
-                    </button>
-                  )}
+                  <div className="flex flex-col gap-1 shrink-0">
+                    {(app.status === "pendente" || app.status === "em_analise") && (
+                      <button onClick={() => setCancelTarget(app.id)} className="text-xs text-red-600 dark:text-red-400 hover:underline font-medium">
+                        Cancelar
+                      </button>
+                    )}
+                    {/* ← Botão manual de refresh */}
+                    {app.status === "matriculada" && !session?.user?.schoolId && (
+                      <button
+                        onClick={async () => {
+                          await update()
+                          router.refresh()
+                        }}
+                        className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
+                      >
+                        Actualizar acesso
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -439,7 +476,6 @@ export default function MinhaAreaPage() {
         </div>
       </section>
 
-      {/* Cancel modal */}
       <ConfirmActionModal
         open={!!cancelTarget}
         onClose={() => setCancelTarget(null)}
@@ -450,13 +486,9 @@ export default function MinhaAreaPage() {
         confirmColor="red"
       />
 
-      {/* ═══════════════════════════════════════════
-          MODAL DE SOLICITAÇÃO
-         ═══════════════════════════════════════════ */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-0 sm:p-4" onClick={(e) => e.target === e.currentTarget && !submitting && closeModal()}>
           <div className="w-full sm:max-w-lg bg-white dark:bg-zinc-900 rounded-t-2xl sm:rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-800 max-h-[90vh] overflow-y-auto">
-            {/* Header */}
             <div className="flex items-center justify-between p-5 border-b border-zinc-200 dark:border-zinc-800">
               <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
                 {modalStep === "school" && "Escolha a escola"}
@@ -470,7 +502,6 @@ export default function MinhaAreaPage() {
             </div>
 
             <div className="p-5">
-              {/* Step 1: Escola */}
               {modalStep === "school" && (
                 <div className="space-y-4">
                   <p className="text-sm text-zinc-500 dark:text-zinc-400">Seleccione a escola onde deseja solicitar vinculação</p>
@@ -497,7 +528,6 @@ export default function MinhaAreaPage() {
                 </div>
               )}
 
-              {/* Step 2: Role */}
               {modalStep === "role" && (
                 <div className="space-y-4">
                   <p className="text-sm text-zinc-500 dark:text-zinc-400">Seleccione o role que pretende nesta escola</p>
@@ -537,7 +567,6 @@ export default function MinhaAreaPage() {
                 </div>
               )}
 
-              {/* Step 3: Form por role */}
               {modalStep === "form" && (
                 <div className="space-y-4">
                   {submitError && (
@@ -545,8 +574,6 @@ export default function MinhaAreaPage() {
                       {submitError}
                     </div>
                   )}
-
-                  {/* Campos comuns */}
                   <div>
                     <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Telefone *</label>
                     <input
@@ -558,7 +585,6 @@ export default function MinhaAreaPage() {
                     />
                   </div>
 
-                  {/* Campos específicos — Aluno */}
                   {selRole === "student" && (
                     <>
                       <div>
@@ -597,35 +623,29 @@ export default function MinhaAreaPage() {
                     </>
                   )}
 
-                  {/* Campos específicos — Professor */}
                   {selRole === "teacher" && (
-                    <>
-                      <div>
-                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Área de ensino *</label>
-                        <input
-                          type="text"
-                          placeholder="Ex: Matemática, Física, Português"
-                          value={teachingArea}
-                          onChange={(e) => setTeachingArea(e.target.value)}
-                          className="w-full h-10 px-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition"
-                        />
-                      </div>
-                    </>
+                    <div>
+                      <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Área de ensino *</label>
+                      <input
+                        type="text"
+                        placeholder="Ex: Matemática, Física, Português"
+                        value={teachingArea}
+                        onChange={(e) => setTeachingArea(e.target.value)}
+                        className="w-full h-10 px-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition"
+                      />
+                    </div>
                   )}
 
-                  {/* Campos específicos — Encarregado */}
                   {selRole === "parent" && (
-                    <>
-                      <div>
-                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Parentesco *</label>
-                        <select value={relationship} onChange={(e) => setRelationship(e.target.value)} className="w-full h-10 px-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition appearance-none">
-                          <option value="">Seleccione...</option>
-                          <option value="pai">Pai</option>
-                          <option value="mae">Mãe</option>
-                          <option value="tutor">Tutor / Outro</option>
-                        </select>
-                      </div>
-                    </>
+                    <div>
+                      <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Parentesco *</label>
+                      <select value={relationship} onChange={(e) => setRelationship(e.target.value)} className="w-full h-10 px-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition appearance-none">
+                        <option value="">Seleccione...</option>
+                        <option value="pai">Pai</option>
+                        <option value="mae">Mãe</option>
+                        <option value="tutor">Tutor / Outro</option>
+                      </select>
+                    </div>
                   )}
 
                   <div className="flex gap-2 pt-2">
@@ -643,7 +663,6 @@ export default function MinhaAreaPage() {
                 </div>
               )}
 
-              {/* Step 4: Success */}
               {modalStep === "success" && (
                 <div className="text-center py-4">
                   <CheckCircle className="w-12 h-12 text-emerald-600 dark:text-emerald-400 mx-auto mb-4" />
@@ -663,10 +682,6 @@ export default function MinhaAreaPage() {
     </div>
   )
 }
-
-/* ═══════════════════════════════════════════════════════════
-   Sub-componentes
-   ═══════════════════════════════════════════════════════════ */
 
 function SkeletonLoader() {
   return (
@@ -694,7 +709,8 @@ function StatCard({ label, value }: { label: string; value: number }) {
   )
 }
 
-function SchoolCard({ school }: { school: UserSchool }) {
+// ← userId adicionado como prop
+function SchoolCard({ school, userId }: { school: UserSchool; userId: string }) {
   return (
     <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden hover:shadow-md transition-shadow">
       <div className="p-4 border-b border-zinc-100 dark:border-zinc-800">
@@ -724,7 +740,8 @@ function SchoolCard({ school }: { school: UserSchool }) {
             )
           })}
         </div>
-        <Link href="/dashboard" className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition shadow-lg shadow-indigo-600/20">
+        {/* ← Link corrigido com userId */}
+        <Link href={`/dashboard/${userId}`} className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition shadow-lg shadow-indigo-600/20">
           Aceder ao painel <ExternalLink size={14} />
         </Link>
       </div>

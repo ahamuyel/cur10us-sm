@@ -21,8 +21,35 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     if (!student || student.schoolId !== schoolId) {
       return NextResponse.json({ error: "Aluno não encontrado" }, { status: 404 })
     }
+
+    const role = session!.user.role
+    const userId = session!.user.id
+
+    // Role-based access: students can only view their own profile
+    if (role === "student" && student.userId !== userId) {
+      return NextResponse.json({ error: "Sem permissão" }, { status: 403 })
+    }
+
+    // Parents can only view their own children
+    if (role === "parent") {
+      const parent = await prisma.parent.findFirst({ where: { userId, schoolId }, select: { id: true } })
+      if (!parent || !student.parents.some((p) => p.id === parent.id)) {
+        return NextResponse.json({ error: "Sem permissão" }, { status: 403 })
+      }
+    }
+
+    // Teachers can only view students from their classes
+    if (role === "teacher") {
+      const teacher = await prisma.teacher.findFirst({ where: { userId, schoolId }, select: { teacherClasses: { select: { classId: true } } } })
+      const teacherClassIds = teacher?.teacherClasses.map((tc) => tc.classId) || []
+      if (!student.classId || !teacherClassIds.includes(student.classId)) {
+        return NextResponse.json({ error: "Sem permissão" }, { status: 403 })
+      }
+    }
+
     return NextResponse.json(student)
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -51,7 +78,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     const updateData = { ...rest, ...(dobStr !== undefined ? { dateOfBirth: new Date(dobStr) } : {}) }
     const student = await prisma.student.update({ where: { id }, data: updateData })
     return NextResponse.json(student)
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -71,7 +99,8 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
 
     await prisma.student.delete({ where: { id } })
     return NextResponse.json({ success: true })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

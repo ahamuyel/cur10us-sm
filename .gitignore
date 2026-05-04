@@ -1,4 +1,9 @@
 .vercel
-.env
+node_modules/
 .qwen.env.local
-secret/cur10usx-secrets
+.next/
+.env
+.env.local
+.env*.local
+secret/
+

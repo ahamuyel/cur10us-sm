@@ -60,9 +60,12 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetch("/api/admin/dashboard")
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error("Falha ao carregar dashboard")
+        return r.json()
+      })
       .then(setData)
-      .catch(console.error)
+      .catch(() => setData(null))
       .finally(() => setLoading(false))
   }, [])
 

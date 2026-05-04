@@ -52,9 +52,9 @@ export default function ApplicationsPage() {
 
       const res = await fetch(`/api/applications?${params}`)
       const data = await res.json()
-      setApplications(data.data)
-      setTotal(data.total)
-      setTotalPages(data.totalPages)
+      setApplications(data.data || [])
+      setTotal(data.total || 0)
+      setTotalPages(data.totalPages || 1)
     } catch {
       console.error("Erro ao carregar solicitações")
     } finally {

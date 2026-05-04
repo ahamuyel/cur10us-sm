@@ -19,7 +19,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       return NextResponse.json({ error: "Encarregado não encontrado" }, { status: 404 })
     }
     return NextResponse.json(parent)
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -46,6 +47,18 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
     const { studentIds, ...data } = parsed.data
 
+    // Validate studentIds belong to the same school
+    if (studentIds?.length) {
+      const students = await prisma.student.findMany({
+        where: { id: { in: studentIds } },
+        select: { id: true, schoolId: true },
+      })
+      const invalidStudents = students.filter((s) => s.schoolId !== schoolId)
+      if (invalidStudents.length > 0 || students.length !== studentIds.length) {
+        return NextResponse.json({ error: "Um ou mais alunos não pertencem a esta escola" }, { status: 400 })
+      }
+    }
+
     const parent = await prisma.parent.update({
       where: { id },
       data: {
@@ -58,7 +71,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     })
 
     return NextResponse.json(parent)
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -78,7 +92,8 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
 
     await prisma.parent.delete({ where: { id } })
     return NextResponse.json({ success: true })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

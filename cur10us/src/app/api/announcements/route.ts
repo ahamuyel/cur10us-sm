@@ -20,7 +20,7 @@ export async function GET(req: Request) {
     const classId = searchParams.get("classId") || ""
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let where: any = { schoolId }
+    const where: any = { schoolId }
 
     // Admins and teachers see all announcements (including scheduled/unpublished)
     // Students and parents only see published or past-scheduled announcements
@@ -78,7 +78,8 @@ export async function GET(req: Request) {
     }))
 
     return NextResponse.json({ data: enriched, total, page, totalPages: Math.ceil(total / limit) })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -131,7 +132,8 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json(created, { status: 201 })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
