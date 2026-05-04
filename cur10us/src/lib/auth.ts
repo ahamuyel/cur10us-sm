@@ -49,7 +49,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     callbackUrl: {
       name: "next-auth-callback-url",
       options: {
-        httpOnly: false, // Needs to be accessible client-side
+        httpOnly: false,
         sameSite: "lax",
         path: "/",
         secure: process.env.NODE_ENV === "production",
@@ -92,7 +92,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           });
           if (!user) return null;
 
-          // Google-only user trying to login with password
           if (!user.hashedPassword) return null;
 
           const isValid = await comparePassword(password, user.hashedPassword);
@@ -119,17 +118,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account }) {
       if (account?.provider === "google") {
         const email = user.email!;
+
         const existing = await prisma.user.findUnique({
           where: { email },
           include: { school: { select: { slug: true } } },
         });
 
         if (existing) {
-          // Link Google as provider (or update) for any existing user
-          // This allows credentials users to also login via Google
           await prisma.user.update({
             where: { id: existing.id },
             data: {
@@ -144,13 +142,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               emailVerified: true,
             },
           });
+          // ✅ Passa o ID real da DB para o token
+          user.id = existing.id;
           return true;
         }
 
-        // New Google user — create active user with incomplete profile
-        // Google users are considered email verified since Google verifies their emails
-        // isActive: true because Google already verified the email
-        await prisma.user.create({
+        // Novo utilizador Google
+        const created = await prisma.user.create({
           data: {
             name: user.name ?? email.split("@")[0],
             email,
@@ -160,21 +158,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             isActive: true,
             profileComplete: false,
             emailVerified: true,
-            role: "student", // default, will be updated during profile completion
+            role: "student",
           },
         });
+        // ✅ Passa o ID real da DB para o token
+        user.id = created.id;
         return true;
       }
       return true;
     },
+
     async jwt({ token, user, trigger }) {
-      // Never store the default `picture` field — it can be a huge base64 string
-      // We use our own `userImage` field with just the URL
       delete token.picture;
 
+      // Primeiro login — dados vêm do objecto user
       if (user) {
-        token.role = (user as { role: string }).role;
         token.id = user.id!;
+        token.role = (user as { role: string }).role;
         token.schoolId =
           (user as { schoolId?: string | null }).schoolId ?? null;
         token.schoolSlug =
@@ -189,43 +189,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           .emailVerified
           ? new Date()
           : null;
-        // Set image on first login (URL only, skip base64)
         const img = (user as { image?: string | null }).image;
         token.userImage = img && !img.startsWith("data:") ? img : null;
+        // Busca dados completos só no primeiro login
+        token.needsDbRefresh = true;
       }
 
-      // Refresh from DB only on session update (every updateAge seconds), not every request
-      // if (trigger === "update" || !token.id) {
-      //   if (token.email) {
-      //     const dbUser = await prisma.user.findUnique({
-      //       where: { email: token.email },
-      //       select: {
-      //         id: true, role: true, schoolId: true, isActive: true, image: true,
-      //         mustChangePassword: true, profileComplete: true, emailVerified: true,
-      //         school: { select: { slug: true, features: true } },
-      //         adminPermission: { select: { level: true, ...Object.fromEntries(PERMISSION_KEYS.map(k => [k, true])) } },
-      //       },
-      //     })
-      //     if (dbUser) {
-      //       token.id = dbUser.id
-      //       token.role = dbUser.role
-      //       token.schoolId = dbUser.schoolId ?? null
-      //       token.schoolSlug = dbUser.school?.slug ?? null
-      //       token.isActive = dbUser.isActive
-      //       token.mustChangePassword = dbUser.mustChangePassword
-      //       token.profileComplete = dbUser.profileComplete
-      //       token.emailVerified = dbUser.emailVerified ? new Date() : null
-      //       token.adminLevel = dbUser.adminPermission?.level ?? null
-      //       token.permissions = extractPermissions(dbUser.adminPermission as unknown as Record<string, unknown>)
-      //       token.schoolFeatures = (dbUser.school?.features as Record<string, boolean>) ?? null
-      //       // Store image URL only if it's a short URL (not base64)
-      //       const img = dbUser.image
-      //       token.userImage = (img && !img.startsWith("data:")) ? img : null
-      //     }
-      //   }
-      // }
-
-      if (token.id) {
+      // Refresca da DB apenas no primeiro login ou quando update() é chamado
+      if (token.id && (token.needsDbRefresh || trigger === "update")) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },
           select: {
@@ -237,7 +208,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             mustChangePassword: true,
             profileComplete: true,
             emailVerified: true,
-            school: { select: { slug: true, features: true } }, // ← busca features sempre
+            school: { select: { slug: true, features: true } },
             adminPermission: {
               select: {
                 level: true,
@@ -265,14 +236,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           const img = dbUser.image;
           token.userImage = img && !img.startsWith("data:") ? img : null;
         }
+
+        token.needsDbRefresh = false;
       }
 
       return token;
     },
+
     async session({ session, token }) {
       if (session.user) {
-        session.user.role = token.role as string;
         session.user.id = token.id as string;
+        session.user.role = token.role as string;
         session.user.schoolId = (token.schoolId as string) ?? null;
         session.user.schoolSlug = (token.schoolSlug as string) ?? null;
         session.user.isActive = token.isActive as boolean;
