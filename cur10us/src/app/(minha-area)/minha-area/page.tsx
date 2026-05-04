@@ -70,6 +70,8 @@ type UserSchool = {
   status: string
 }
 
+const hasRefreshed = React.useRef(false)
+
 export default function MinhaAreaPage() {
   const { data: session, status: sessionStatus, update } = useSession() // ← update adicionado
   const router = useRouter()
@@ -95,34 +97,33 @@ export default function MinhaAreaPage() {
   const [teachingArea, setTeachingArea] = useState("")
   const [relationship, setRelationship] = useState("")
 
-  // ← loadData com detecção de aprovação e refresh de sessão
-  const loadData = useCallback(async () => {
-    if (sessionStatus !== "authenticated") return
-    try {
-      const [apps, schs, userSchs] = await Promise.all([
-        fetch("/api/applications/mine").then((r) => r.json()),
-        fetch("/api/schools/public").then((r) => r.json()),
-        fetch("/api/user/schools").then((r) => r.json()),
-      ])
-      setApplications(Array.isArray(apps) ? apps : [])
-      setSchools(Array.isArray(schs) ? schs : [])
-      setUserSchools(Array.isArray(userSchs) ? userSchs : [])
+const loadData = useCallback(async () => {
+  if (sessionStatus !== "authenticated") return
+  try {
+    const [apps, schs, userSchs] = await Promise.all([
+      fetch("/api/applications/mine").then((r) => r.json()),
+      fetch("/api/schools/public").then((r) => r.json()),
+      fetch("/api/user/schools").then((r) => r.json()),
+    ])
+    setApplications(Array.isArray(apps) ? apps : [])
+    setSchools(Array.isArray(schs) ? schs : [])
+    setUserSchools(Array.isArray(userSchs) ? userSchs : [])
 
-      // Se há solicitação aprovada mas sessão ainda sem schoolId, força refresh do JWT
-      const hasApproval = Array.isArray(apps) && apps.some(
-        (a: Application) => a.status === "matriculada"
-      )
-      if (hasApproval && !session?.user?.schoolId) {
-        await update()
-        router.refresh()
-      }
-    } catch {
-      // Silently fail
-    } finally {
-      setLoading(false)
+    // Só faz refresh uma vez, evita loop infinito
+    const hasApproval = Array.isArray(apps) && apps.some(
+      (a: Application) => a.status === "matriculada"
+    )
+    if (hasApproval && !hasRefreshed.current) {
+      hasRefreshed.current = true
+      await update()
+      router.refresh()
     }
-  }, [sessionStatus, session?.user?.schoolId, update, router])
-
+  } catch {
+    // Silently fail
+  } finally {
+    setLoading(false)
+  }
+}, [sessionStatus, update, router]) // ← removido session?.user?.schoolId
   useEffect(() => { loadData() }, [loadData])
 
   // ← Auto-redirect mais robusto
