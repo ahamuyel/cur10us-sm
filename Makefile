@@ -5,82 +5,85 @@
 #                                                     +:+ +:+         +:+      #
 #    By: ahamuyel <ahamuyel@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2026/05/04 10:40:00 by ahamuyel          #+#    #+#              #
-#    Updated: 2026/05/04 10:40:00 by ahamuyel         ###   ########.fr        #
+#    Created: 2026/04/27 18:26:56 by ahamuyel          #+#    #+#              #
+#    Updated: 2026/04/28 10:58:29 by ahamuyel         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-NAME            = cur10usx
-DOCKER_USER     = albertoih
-IMAGE           = $(DOCKER_USER)/$(NAME):latest
-
-# Comandos
-K               = kubectl
-M               = minikube
+# Nome do projeto
+NAME = cur10usx
 
 # Cores
-G               = \033[0;32m
-R               = \033[0;31m
-Y               = \033[0;33m
-_               = \033[0m
+GREEN = \033[0;32m
+CYAN  = \033[0;36m
+RED   = \033[0;31m
+RESET = \033[0m
 
-.PHONY: all build apply restart status clean fclean re tunnel
+# Comandos
+DOCKER_COMPOSE = docker compose
+KUBECTL = kubectl
 
-all: build apply
-
-# --- COMPILAÇÃO (DOCKER) ---
+# --- DOCKER COMPOSE (Development) ---
+ 
+all: build up
 
 build:
-	@echo "$(G)--- Building Docker Image ---$(_)"
-	docker build -t $(IMAGE) ./cur10us
+	@echo "$(GREEN)Construindo as imagens do $(NAME)...$(RESET)"
+	UID=$$(id -u) GID=$$(id -g) $(DOCKER_COMPOSE) build
 
-push:
-	@echo "$(G)--- Pushing to Docker Hub ---$(_)"
-	docker push $(IMAGE)
+up:
+	@echo "$(GREEN)Subindo os containers...$(RESET)"
+	UID=$$(id -u) GID=$$(id -g) $(DOCKER_COMPOSE) up
 
-# --- DEPLOY (KUBERNETES) ---
+down:
+	@echo "$(RED)Removendo containers...$(RESET)"
+	$(DOCKER_COMPOSE) down
 
-apply:
-	@echo "$(G)--- Applying K8s Manifests ---$(_)"
-	@if [ -f secret/cur10usx-secrets ]; then \
-		$(K) apply -f secret/cur10usx-secrets; \
-	else \
-		echo "$(Y)Warning: secret/cur10usx-secrets not found$(_)"; \
-	fi
-	$(K) apply -f deployment-app.yaml
-	$(K) apply -f service-app.yaml
-
-restart:
-	@echo "$(Y)--- Restarting Deployment ---$(_)"
-	$(K) rollout restart deployment/$(NAME)
-
-# --- MONITORAMENTO ---
-
-status:
-	@echo "$(G)--- Cluster Status ---$(_)"
-	@$(K) get pods,svc,endpoints
-
-logs:
-	@$(K) logs -l app=$(NAME) -f --tail=100
-
-tunnel:
-	@echo "$(Y)--- Starting Minikube Tunnel (sudo required) ---$(_)"
-	sudo $(M) tunnel
-
-# --- LIMPEZA (ESTILO 42) ---
-
-# O clean remove o que está rodando no cluster
 clean:
-	@echo "$(R)--- Removing K8s Resources ---$(_)"
-	-$(K) delete -f deployment-app.yaml 2>/dev/null
-	-$(K) delete -f service-app.yaml 2>/dev/null
-	@echo "$(Y)Resources removed.$(_)"
+	@echo "$(RED)Limpando containers e volumes...$(RESET)"
+	$(DOCKER_COMPOSE) down -v
+	sudo rm -rf cur10us/.next cur10us/node_modules
 
-# O fclean limpa o cluster e remove imagens/cache para liberar espaço
+# --- KUBERNETES (Orchestration) ---
+
+# Inicia o minikube com as configurações que funcionaram
+k8s-start:
+	@echo "$(CYAN)Iniciando Minikube...$(RESET)"
+	minikube start --driver=docker --memory=4096 --cpus=2
+
+# Aplica todos os manifestos .yaml (Deployment e Services)
+k8s-apply:
+	@echo "$(GREEN)Aplicando manifestos Kubernetes...$(RESET)"
+	$(KUBECTL) apply -f k8s/
+
+# Remove tudo do cluster
+k8s-delete:
+	@echo "$(RED)Removendo recursos do Kubernetes...$(RESET)"
+	$(KUBECTL) delete -f k8s/
+
+# Atalho para ver os pods em tempo real
+k8s-status:
+	$(KUBECTL) get all
+	$(KUBECTL) get pods -w
+
+# Expõe o serviço web automaticamente
+k8s-web:
+	@echo "$(CYAN)Abrindo serviço web no browser...$(RESET)"
+	minikube service cur10usx-web-service
+
+# Cria o túnel necessário para LoadBalancer no Linux
+k8s-tunnel:
+	@echo "$(CYAN)Iniciando Minikube Tunnel (mantenha este terminal aberto)...$(RESET)"
+	minikube tunnel
+
+# --- GLOBAL ---
+
 fclean: clean
-	@echo "$(R)--- Deep Cleaning Docker & Minikube Cache ---$(_)"
-	-docker rmi $(IMAGE) 2>/dev/null
-	@$(M) status >/dev/null 2>&1 && $(M) ssh -- "docker system prune -a --volumes -f" || echo "$(Y)Minikube offline, skipping prune.$(_)"
-	@echo "$(G)System clean and disk space freed!$(_)"
+	@echo "$(RED)Removendo tudo (Docker & K8s)...$(RESET)"
+	docker system prune -a -f
+	docker builder prune -a -f
+	# Opcional: minikube delete --all --purge (cuidado, demora a reconstruir)
 
 re: fclean all
+
+.PHONY: all build up down clean fclean re logs shell k8s-start k8s-apply k8s-delete k8s-status k8s-web k8s-tunnel
