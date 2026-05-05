@@ -1,5 +1,5 @@
 import Link from "next/link"
-import type { PlatformBranding } from "@/app/page"
+import { PlatformBranding } from "@/types/landing";
 
 export default function Footer({ branding }: { branding: PlatformBranding }) {
   return (
