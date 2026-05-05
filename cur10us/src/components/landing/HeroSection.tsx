@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { ArrowRight, Sparkles, GraduationCap, Users, Calendar, BarChart3 } from "lucide-react"
-import type { PlatformBranding } from "@/app/page"
+import type { PlatformBranding } from "@/types/landing"
 
 type Props = {
   branding: PlatformBranding

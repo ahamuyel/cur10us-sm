@@ -5,7 +5,7 @@ import Image from "next/image"
 import { useState, useEffect } from "react"
 import { Menu, X, Sun, Moon } from "lucide-react"
 import { useTheme } from "@/provider/theme"
-import type { PlatformBranding } from "@/app/page"
+import type { PlatformBranding } from "@/types/landing"
 
 const navLinks = [
   { label: "Como funciona", href: "#como-funciona" },
