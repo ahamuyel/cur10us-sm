@@ -1,4 +1,3 @@
-
 services:
   app:
     build:
@@ -7,12 +6,38 @@ services:
     image: cur10us-app
     ports:
       - "3000:3000"
+    env_file:
+      - .env
     environment:
       NODE_ENV: production
-      DATABASE_URL: ${DATABASE_URL}
-      AUTH_URL: ${AUTH_URL}
-      AUTH_SECRET: ${AUTH_SECRET}
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
-      RESEND_API_KEY: ${RESEND_API_KEY}
+    secrets:
+      - auth_secret
+      - google_client_id
+      - google_client_secret
+      - resend_api_key
+    volumes:
+      - app_uploads:/app/public/uploads
+      - app_logs:/app/logs
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+secrets:
+  auth_secret:
+    file: ./secrets/auth_secret.txt
+  google_client_id:
+    file: ./secrets/google_client_id.txt
+  google_client_secret:
+    file: ./secrets/google_client_secret.txt
+  resend_api_key:
+    file: ./secrets/resend_api_key.txt
+
+volumes:
+  app_uploads:
+    driver: local
+  app_logs:
+    driver: local
