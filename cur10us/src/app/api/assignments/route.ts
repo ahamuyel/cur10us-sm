@@ -2,11 +2,12 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requirePermission, getSchoolId } from "@/lib/api-auth"
 import { createAssignmentSchema } from "@/lib/validations/academic"
+import { getOrDefaultAcademicYearId } from "@/lib/academic-year"
 import { buildOrderBy } from "@/lib/query-helpers"
 
 export async function GET(req: Request) {
   try {
-    const { error: authError, session } = await requirePermission(["school_admin", "teacher", "student", "parent"], undefined, { requireSchool: true })
+    const { error: authError, session } = await requirePermission(["school_admin", "teacher", "student", "parent"], "canManageAssignments", { requireSchool: true })
     if (authError) return authError
 
     const schoolId = getSchoolId(session!)
@@ -79,7 +80,8 @@ export async function GET(req: Request) {
     })
 
     return NextResponse.json({ data: enriched, total, page, totalPages: Math.ceil(total / limit) })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -98,6 +100,7 @@ export async function POST(req: Request) {
     }
 
     const { title, dueDate, description, maxScore, subjectId, classId, teacherId } = parsed.data
+    const academicYearId = await getOrDefaultAcademicYearId(schoolId, body.academicYearId)
 
     const assignment = await prisma.assignment.create({
       data: {
@@ -108,11 +111,13 @@ export async function POST(req: Request) {
         subjectId,
         classId,
         teacherId,
+        academicYearId: academicYearId || null,
         schoolId,
       },
     })
     return NextResponse.json(assignment, { status: 201 })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

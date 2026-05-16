@@ -31,6 +31,7 @@ import {
   ShieldCheck,
   X,
   HelpCircle,
+  Upload,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { useState, useEffect } from "react"
@@ -71,11 +72,15 @@ const allMenuItems: { title: string; items: NavItem[] }[] = [
       { icon: CalendarCheck, label: "Assiduidade", href: "/list/attendance", visible: ["school_admin", "teacher", "student", "parent"], permission: "canManageAttendance" },
       { icon: MessageSquare, label: "Mensagens", href: "/list/messages", visible: ["school_admin", "teacher", "student", "parent"], permission: "canManageMessages" },
       { icon: Megaphone, label: "Avisos", href: "/list/announcements", visible: ["school_admin", "teacher", "student", "parent"], permission: "canManageAnnouncements" },
+      { icon: Upload, label: "Importar", href: "/dashboard/import", visible: ["school_admin"], permission: "canManageStudents" },
     ],
   },
   {
     title: "OUTROS",
     items: [
+      { icon: Home, label: "Minha Área", href: "/minha-area", visible: ["school_admin", "teacher", "student", "parent"] },
+      { icon: Users, label: "Amigos", href: "/list/friends", visible: ["school_admin", "teacher", "student", "parent"] },
+      { icon: MessageSquare, label: "Chat", href: "/list/chat", visible: ["school_admin", "teacher", "student", "parent"] },
       { icon: CircleUser, label: "Perfil", href: "/profile", visible: ["school_admin", "teacher", "student", "parent"] },
       { icon: Settings, label: "Configurações", href: "/settings", visible: ["school_admin", "teacher", "student", "parent"] },
       { icon: HelpCircle, label: "Ajuda", href: "/help", visible: ["school_admin", "teacher", "student", "parent"] },

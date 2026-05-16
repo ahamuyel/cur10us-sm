@@ -5,7 +5,7 @@ import { createMessageSchema } from "@/lib/validations/academic"
 
 export async function GET(req: Request) {
   try {
-    const { error: authError, session } = await requirePermission(["school_admin", "teacher", "student", "parent"], undefined, { requireSchool: true })
+    const { error: authError, session } = await requirePermission(["school_admin", "teacher", "student", "parent"], "canManageMessages", { requireSchool: true })
     if (authError) return authError
 
     const schoolId = getSchoolId(session!)
@@ -37,7 +37,8 @@ export async function GET(req: Request) {
     ])
 
     return NextResponse.json({ data, total, page, totalPages: Math.ceil(total / limit) })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -67,7 +68,8 @@ export async function POST(req: Request) {
     })
 
     return NextResponse.json(created, { status: 201 })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

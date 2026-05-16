@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { requireRole } from "@/lib/api-auth"
 import { rejectSchoolSchema } from "@/lib/validations/school"
 import { sendSchoolRejected } from "@/lib/email"
+import { revalidateSchoolData } from "@/lib/revalidate"
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -22,6 +23,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       data: { status: "rejeitada", rejectReason: parsed.data.reason },
     })
 
+    // Revalidate school data
+    revalidateSchoolData(id)
+
     try {
       await sendSchoolRejected(school.email, school.name, parsed.data.reason)
     } catch (e) {
@@ -29,7 +33,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     }
 
     return NextResponse.json(school)
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

@@ -9,6 +9,8 @@ export const DEFAULT_ENABLED_FEATURES = [
   "attendance",
   "announcements",
   "basicGrades",
+  "yearTransition",
+  "calendar",
 ] as const
 
 // All available features
@@ -30,6 +32,10 @@ export const ALL_FEATURES = [
   "inventory",
   "calendar",
   "internalMessages",
+  "evaluationEngine",
+  "yearTransition",
+  "globalCatalog",
+  "academicHistory",
 ] as const
 
 export type FeatureKey = (typeof ALL_FEATURES)[number]
@@ -52,6 +58,10 @@ export const featureLabels: Record<FeatureKey, string> = {
   inventory: "Inventário",
   calendar: "Calendário e Aulas",
   internalMessages: "Mensagens Internas",
+  evaluationEngine: "Motor de Avaliação",
+  yearTransition: "Transição de Ano",
+  globalCatalog: "Catálogo Global",
+  academicHistory: "Histórico Académico",
 }
 
 // Default features for new schools
@@ -70,6 +80,10 @@ export function isFeatureEnabled(
 ): boolean {
   // If no features config, use defaults
   if (!schoolFeatures) {
+    return (DEFAULT_ENABLED_FEATURES as readonly string[]).includes(feature)
+  }
+  // If feature key is missing from stored config, fall back to default
+  if (schoolFeatures[feature] === undefined) {
     return (DEFAULT_ENABLED_FEATURES as readonly string[]).includes(feature)
   }
   return schoolFeatures[feature] === true
@@ -94,6 +108,10 @@ export const featureDescriptions: Record<FeatureKey, string> = {
   inventory: "Gestão de inventário e recursos",
   calendar: "Calendário escolar e horários de aulas",
   internalMessages: "Sistema de mensagens internas",
+  evaluationEngine: "Motor de avaliação configurável",
+  yearTransition: "Transição de ano letivo",
+  globalCatalog: "Catálogo global de disciplinas/cursos",
+  academicHistory: "Histórico académico e portabilidade",
 }
 
 // Reverse map: feature → affected menu items
@@ -115,6 +133,10 @@ export const featureMenuItems: Record<FeatureKey, string[]> = {
   inventory: [],
   calendar: ["Aulas"],
   internalMessages: ["Mensagens"],
+  evaluationEngine: [],
+  yearTransition: [],
+  globalCatalog: [],
+  academicHistory: [],
 }
 
 // Map menu paths to features
@@ -132,4 +154,8 @@ export const menuFeatureMap: Record<string, FeatureKey | undefined> = {
   "/list/assignments": "submissions",
   "/list/messages": "internalMessages",
   "/list/lessons": "calendar",
+  "/list/academic-years": "yearTransition",
+  "/list/evaluation": "evaluationEngine",
+  "/list/recurso": "evaluationEngine",
+  "/settings/grading": "evaluationEngine",
 }

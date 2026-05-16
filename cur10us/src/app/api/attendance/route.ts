@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma"
 import { requirePermission, getSchoolId } from "@/lib/api-auth"
 import { createAttendanceSchema } from "@/lib/validations/academic"
 import { buildOrderBy } from "@/lib/query-helpers"
+import { getOrDefaultAcademicYearId } from "@/lib/academic-year"
+import { logAudit, auditUser } from "@/lib/audit"
 
 export async function GET(req: Request) {
   try {
@@ -73,7 +75,8 @@ export async function GET(req: Request) {
     ])
 
     return NextResponse.json({ data, total, page, totalPages: Math.ceil(total / limit) })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -92,6 +95,7 @@ export async function POST(req: Request) {
     }
 
     const { date, classId, lessonId, records } = parsed.data
+    const academicYearId = await getOrDefaultAcademicYearId(schoolId, body.academicYearId)
 
     const created = await prisma.attendance.createMany({
       data: records.map((r) => ({
@@ -100,13 +104,17 @@ export async function POST(req: Request) {
         lessonId: lessonId || null,
         studentId: r.studentId,
         status: r.status,
+        academicYearId: academicYearId || null,
         schoolId,
       })),
       skipDuplicates: true,
     })
 
+    logAudit({ ...auditUser(session!), action: "CREATE", entity: "Attendance", schoolId, description: `Presença registada para ${records.length} aluno(s) na turma ${classId}` })
+
     return NextResponse.json(created, { status: 201 })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireRole } from "@/lib/api-auth"
 import { sendSchoolApproved } from "@/lib/email"
+import { revalidateSchoolData } from "@/lib/revalidate"
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -14,6 +15,9 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       data: { status: "aprovada", rejectReason: null },
     })
 
+    // Revalidate school data
+    revalidateSchoolData(id)
+
     try {
       await sendSchoolApproved(school.email, school.name)
     } catch (e) {
@@ -21,7 +25,8 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     }
 
     return NextResponse.json(school)
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

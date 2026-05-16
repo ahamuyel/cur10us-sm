@@ -10,12 +10,18 @@ declare module "next-auth" {
       image?: string | null
       schoolId?: string | null
       schoolSlug?: string | null
+      schoolStatus?: string | null
       isActive: boolean
       mustChangePassword?: boolean
       profileComplete: boolean
+      emailVerified: Date | boolean | null
       adminLevel?: string | null
       permissions?: string[]
       schoolFeatures?: Record<string, boolean> | null
+      hasPassword?: boolean
+      sessionVersion?: number
+      twoFactorEnabled?: boolean
+      twoFactorVerifiedAt?: string | null
     }
   }
 
@@ -23,12 +29,17 @@ declare module "next-auth" {
     role: string
     schoolId?: string | null
     schoolSlug?: string | null
+    schoolStatus?: string | null
     isActive: boolean
     mustChangePassword?: boolean
     profileComplete: boolean
+    emailVerified: Date | boolean | null
     adminLevel?: string | null
     permissions?: string[]
     schoolFeatures?: Record<string, boolean> | null
+    hasPassword?: boolean
+    twoFactorEnabled?: boolean
+    twoFactorVerifiedAt?: string | null
   }
 }
 
@@ -38,11 +49,18 @@ declare module "next-auth/jwt" {
     id: string
     schoolId?: string | null
     schoolSlug?: string | null
+    schoolStatus?: string | null
     isActive: boolean
     mustChangePassword?: boolean
     profileComplete: boolean
+    emailVerified: Date | boolean | null
     adminLevel?: string | null
     permissions?: string[]
     schoolFeatures?: Record<string, boolean> | null
+    userImage?: string | null
+    sessionVersion?: number
+    hasPassword?: boolean
+    twoFactorEnabled?: boolean
+    twoFactorVerifiedAt?: string | null
   }
 }

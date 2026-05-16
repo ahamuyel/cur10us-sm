@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireRole } from "@/lib/api-auth"
-import { hash } from "bcryptjs"
+import { hashPassword } from "@/lib/password"
 import crypto from "crypto"
 import { sendSchoolActivated, sendSchoolActivatedExistingAdmin } from "@/lib/email"
 import { getDefaultFeatures } from "@/lib/features"
+import { revalidateSchoolData } from "@/lib/revalidate"
+import { broadcastToUser } from "@/lib/ws-broadcast"
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -41,7 +43,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     } else if (!admin) {
       // No school_admin exists — create one using the school's email (fallback for schools created by super admin)
       tempPassword = crypto.randomBytes(6).toString("base64url") // e.g. "aB3dEf1g"
-      const hashedPassword = await hash(tempPassword, 12)
+      const hashedPassword = await hashPassword(tempPassword)
 
       admin = await prisma.user.create({
         data: {
@@ -51,6 +53,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
           provider: "credentials",
           role: "school_admin",
           isActive: true,
+          emailVerified: true,
           mustChangePassword: true,
           profileComplete: true,
           schoolId: id,
@@ -91,9 +94,22 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       } else if (existingAdmin) {
         await sendSchoolActivatedExistingAdmin(admin.email, school.name)
       }
-    } catch {
+    } catch (error) {
+    console.error(`[API Error] ${error}`)
       // Email delivery failure shouldn't block activation
     }
+
+    // Notify the admin's session to refresh immediately (for existing self-registered admins)
+    if (admin && existingAdmin) {
+      try {
+        broadcastToUser(admin.id, "session-update", {})
+      } catch {
+        // WebSocket server may not be available
+      }
+    }
+
+    // Revalidate school data
+    revalidateSchoolData(id)
 
     return NextResponse.json({
       ...school,
@@ -102,7 +118,8 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       adminEmail: admin.email,
       ...(tempPassword && { tempPassword }),
     })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

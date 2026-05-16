@@ -2,10 +2,11 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requirePermission, getSchoolId } from "@/lib/api-auth"
 import { updateTeacherSchema } from "@/lib/validations/entities"
+import { logAudit, auditUser } from "@/lib/audit"
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { error: authError, session } = await requirePermission(["school_admin", "teacher", "student", "parent"], undefined, { requireSchool: true })
+    const { error: authError, session } = await requirePermission(["school_admin", "teacher"], undefined, { requireSchool: true })
     if (authError) return authError
 
     const schoolId = getSchoolId(session!)
@@ -22,6 +23,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       return NextResponse.json({ error: "Professor não encontrado" }, { status: 404 })
     }
 
+    // Teachers can only view their own profile
+    if (session!.user.role === "teacher" && teacher.userId !== session!.user.id) {
+      return NextResponse.json({ error: "Sem permissão" }, { status: 403 })
+    }
+
     return NextResponse.json({
       ...teacher,
       subjects: teacher.teacherSubjects.map((ts) => ts.subject.name),
@@ -29,7 +35,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       classes: teacher.teacherClasses.map((tc) => tc.class.name),
       classIds: teacher.teacherClasses.map((tc) => tc.classId),
     })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -56,10 +63,21 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
     const { subjectIds, classIds, ...teacherData } = parsed.data
 
+    if (teacherData.email && teacherData.email !== existing.email) {
+      const emailExists = await prisma.teacher.findUnique({ where: { email: teacherData.email } })
+      if (emailExists) {
+        return NextResponse.json({ error: "Este e-mail já está cadastrado" }, { status: 409 })
+      }
+    }
+
     const teacher = await prisma.teacher.update({
       where: { id },
       data: {
-        ...teacherData,
+        ...(teacherData.name !== undefined ? { name: teacherData.name } : {}),
+        ...(teacherData.email !== undefined ? { email: teacherData.email } : {}),
+        ...(teacherData.phone !== undefined ? { phone: teacherData.phone || null } : {}),
+        ...(teacherData.address !== undefined ? { address: teacherData.address || null } : {}),
+        ...(teacherData.foto !== undefined ? { foto: teacherData.foto || null } : {}),
         ...(subjectIds !== undefined
           ? {
               teacherSubjects: {
@@ -78,8 +96,12 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
           : {}),
       },
     })
+
+    logAudit({ ...auditUser(session!), action: "UPDATE", entity: "Teacher", entityId: id, schoolId, description: `Professor ${existing.name} actualizado` })
+
     return NextResponse.json(teacher)
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -98,8 +120,12 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     }
 
     await prisma.teacher.delete({ where: { id } })
+
+    logAudit({ ...auditUser(session!), action: "DELETE", entity: "Teacher", entityId: id, schoolId, description: `Professor ${existing.name} eliminado` })
+
     return NextResponse.json({ success: true })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

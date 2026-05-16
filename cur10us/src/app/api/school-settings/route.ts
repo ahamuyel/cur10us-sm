@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireRole, getSchoolId } from "@/lib/api-auth"
+import { revalidateSchoolData } from "@/lib/revalidate"
 
 const SETTINGS_SELECT = {
   name: true,
@@ -28,7 +29,8 @@ export async function GET() {
     })
 
     return NextResponse.json(school)
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno" }, { status: 500 })
   }
 }
@@ -65,8 +67,12 @@ export async function PUT(req: Request) {
       select: SETTINGS_SELECT,
     })
 
+    // Revalidate school data after update
+    revalidateSchoolData(schoolId)
+
     return NextResponse.json(school)
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno" }, { status: 500 })
   }
 }

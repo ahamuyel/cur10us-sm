@@ -2,10 +2,12 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requirePermission, getSchoolId } from "@/lib/api-auth"
 import { createClassSchema } from "@/lib/validations/academic"
+import { getOrDefaultAcademicYearId } from "@/lib/academic-year"
+import { logAudit, auditUser } from "@/lib/audit"
 
 export async function GET(req: Request) {
   try {
-    const { error: authError, session } = await requirePermission(["school_admin", "teacher", "student", "parent"], undefined, { requireSchool: true })
+    const { error: authError, session } = await requirePermission(["school_admin", "teacher", "student", "parent"], "canManageClasses", { requireSchool: true })
     if (authError) return authError
 
     const schoolId = getSchoolId(session!)
@@ -42,7 +44,8 @@ export async function GET(req: Request) {
     ])
 
     return NextResponse.json({ data, total, page, totalPages: Math.ceil(total / limit) })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -60,18 +63,29 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
     }
 
-    const existing = await prisma.class.findFirst({
-      where: { name: parsed.data.name, schoolId },
-    })
-    if (existing) {
-      return NextResponse.json({ error: "Esta turma já existe nesta escola" }, { status: 409 })
+    // Garantir academicYearId (do body ou do ano corrente)
+    const academicYearId = parsed.data.academicYearId || await getOrDefaultAcademicYearId(schoolId)
+    if (!academicYearId) {
+      return NextResponse.json({ error: "Nenhum ano letivo activo. Crie ou active um ano letivo primeiro." }, { status: 400 })
     }
 
-    const created = await prisma.class.create({
-      data: { ...parsed.data, schoolId },
+    const existing = await prisma.class.findFirst({
+      where: { name: parsed.data.name, schoolId, academicYearId },
     })
+    if (existing) {
+      return NextResponse.json({ error: "Esta turma já existe nesta escola para este ano letivo" }, { status: 409 })
+    }
+
+    const { academicYearId: _, ...classData } = parsed.data
+    const created = await prisma.class.create({
+      data: { ...classData, academicYearId, schoolId },
+    })
+
+    logAudit({ ...auditUser(session!), action: "CREATE", entity: "Class", entityId: created.id, schoolId, description: `Turma ${classData.name} criada` })
+
     return NextResponse.json(created, { status: 201 })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireRole } from "@/lib/api-auth"
 import { updateSchoolSchema } from "@/lib/validations/school"
+import { revalidateSchoolData } from "@/lib/revalidate"
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -18,8 +19,13 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     if (!school) {
       return NextResponse.json({ error: "Escola não encontrada" }, { status: 404 })
     }
-    return NextResponse.json(school)
-  } catch {
+    return NextResponse.json(school, {
+      headers: {
+        "Chache-Control": "no-store, no-cache, must-revalidate",
+      },
+    })
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -38,6 +44,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     }
 
     const { features, ...rest } = parsed.data
+     console.log("[PUT school features] id:", id, "features recebidas:", features)
     const school = await prisma.school.update({
       where: { id },
       data: {
@@ -45,8 +52,15 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         ...(features !== undefined && { features: features as unknown as Record<string, boolean> }),
       },
     })
-    return NextResponse.json(school)
-  } catch {
+
+    // Revalidate all cached data for this school
+    revalidateSchoolData(id)
+    
+    console.log("[PUT school features] features guardadas na DB:", school.features)
+
+    return NextResponse.json(school) 
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -58,8 +72,13 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
 
     const { id } = await params
     await prisma.school.delete({ where: { id } })
+
+    // Revalidate school listings after deletion
+    revalidateSchoolData(id)
+
     return NextResponse.json({ success: true })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

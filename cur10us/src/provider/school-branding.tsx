@@ -11,8 +11,13 @@ type SchoolBranding = {
   slogan: string | null
 }
 
-const SchoolBrandingContext = createContext<SchoolBranding>({
+type SchoolBrandingContextType = SchoolBranding & {
+  refresh: () => Promise<void>
+}
+
+const SchoolBrandingContext = createContext<SchoolBrandingContextType>({
   name: null, logo: null, primaryColor: null, secondaryColor: null, slogan: null,
+  refresh: async () => {},
 })
 
 export function useSchoolBranding() {
@@ -63,6 +68,11 @@ export function SchoolBrandingProvider({ children }: { children: React.ReactNode
     } catch { /* ignore */ }
   }, [])
 
+  // Manual refresh function that can be called from components
+  const refresh = useCallback(async () => {
+    await fetchBranding()
+  }, [fetchBranding])
+
   useEffect(() => {
     if (!session?.user?.schoolId) return
     fetchBranding()
@@ -71,7 +81,7 @@ export function SchoolBrandingProvider({ children }: { children: React.ReactNode
   }, [session?.user?.schoolId, fetchBranding])
 
   return (
-    <SchoolBrandingContext.Provider value={branding}>
+    <SchoolBrandingContext.Provider value={{ ...branding, refresh }}>
       {children}
     </SchoolBrandingContext.Provider>
   )

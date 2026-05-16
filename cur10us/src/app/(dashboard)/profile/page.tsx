@@ -1,9 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import Image from "next/image"
+import { useEffect, useState, useRef } from "react"
 import { useSession } from "next-auth/react"
-import { Mail, Phone, MapPin, BookOpen, Users, GraduationCap, Loader2, Pencil, Check, X } from "lucide-react"
+import { Mail, Phone, MapPin, BookOpen, Users, GraduationCap, Loader2, Pencil, Check, X, Camera } from "lucide-react"
 
 const roleLabels: Record<string, string> = {
   super_admin: "Super Admin",
@@ -20,7 +19,11 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [photoError, setPhotoError] = useState("")
+  const [saveError, setSaveError] = useState("")
   const [editForm, setEditForm] = useState({ name: "", phone: "", address: "", gender: "", dateOfBirth: "" })
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     fetch("/api/profile")
@@ -42,6 +45,7 @@ const ProfilePage = () => {
 
   const handleSave = async () => {
     setSaving(true)
+    setSaveError("")
     try {
       const res = await fetch("/api/profile", {
         method: "PUT",
@@ -56,15 +60,17 @@ const ProfilePage = () => {
       })
       if (res.ok) {
         setEditing(false)
-        // Re-fetch profile
-        const data = await fetch("/api/profile").then((r) => r.json())
-        setProfile(data)
         // Update session name
         if (editForm.name && editForm.name !== session?.user?.name) {
           await updateSession({ name: editForm.name })
         }
+      } else {
+        const errData = await res.json().catch(() => ({ error: "Erro ao salvar perfil" }))
+        setSaveError(errData.error || "Erro ao salvar perfil")
       }
-    } catch { /* ignore */ }
+    } catch {
+      setSaveError("Erro de conexão")
+    }
     setSaving(false)
   }
 
@@ -74,6 +80,47 @@ const ProfilePage = () => {
         <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
       </div>
     )
+  }
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setPhotoError("")
+
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setPhotoError("Formato inválido. Use JPEG, PNG ou WebP")
+      return
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setPhotoError("Ficheiro demasiado grande. Máximo 2MB")
+      return
+    }
+
+    setUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append("file", file)
+      const res = await fetch("/api/profile/photo", { method: "POST", body: formData })
+      const data = await res.json()
+      if (!res.ok) {
+        setPhotoError(data.error || "Erro ao enviar foto")
+        return
+      }
+      // Update local state
+      setProfile((prev: any) => ({
+        ...prev,
+        user: { ...prev.user, image: data.url },
+        ...(prev.teacher ? { teacher: { ...prev.teacher, foto: data.url } } : {}),
+        ...(prev.student ? { student: { ...prev.student, foto: data.url } } : {}),
+        ...(prev.parent ? { parent: { ...prev.parent, foto: data.url } } : {}),
+      }))
+      await updateSession()
+    } catch {
+      setPhotoError("Erro de conexão")
+    } finally {
+      setUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ""
+    }
   }
 
   if (!profile?.user) return null
@@ -88,13 +135,37 @@ const ProfilePage = () => {
       {/* Profile Card */}
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-          <Image
-            src={user.image || "/avatar.png"}
-            alt="Avatar"
-            width={96}
-            height={96}
-            className="rounded-full object-cover border-4 border-zinc-200 dark:border-zinc-700"
-          />
+          <div className="relative group">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={user.image || "/avatar.png"}
+              alt="Avatar"
+              width={96}
+              height={96}
+              className="rounded-full object-cover border-4 border-zinc-200 dark:border-zinc-700 w-24 h-24"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer disabled:cursor-wait"
+            >
+              {uploading ? (
+                <Loader2 size={20} className="text-white animate-spin" />
+              ) : (
+                <Camera size={20} className="text-white" />
+              )}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handlePhotoUpload}
+              className="hidden"
+            />
+            {photoError && (
+              <p className="absolute -bottom-6 left-0 right-0 text-xs text-red-500 text-center whitespace-nowrap">{photoError}</p>
+            )}
+          </div>
           <div className="flex-1 text-center sm:text-left">
             <div className="flex items-center gap-2 justify-center sm:justify-start">
               <h1 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100">
@@ -126,6 +197,11 @@ const ProfilePage = () => {
       {/* Edit Form */}
       {editing && (
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
+          {saveError && (
+            <div className="mb-4 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 text-sm text-rose-600 dark:text-rose-400">
+              {saveError}
+            </div>
+          )}
           <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 mb-4 uppercase tracking-wider">Editar Perfil</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>

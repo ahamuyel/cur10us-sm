@@ -41,7 +41,8 @@ export async function GET(req: Request) {
     }))
 
     return NextResponse.json({ data: mapped, total, page, totalPages: Math.ceil(total / limit) })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -59,6 +60,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
     }
 
+    // Verificar que o curso global existe
+    const globalCourse = await prisma.globalCourse.findUnique({
+      where: { id: parsed.data.globalCourseId },
+    })
+    if (!globalCourse) {
+      return NextResponse.json({ error: "Curso global não encontrado. Use o catálogo global." }, { status: 404 })
+    }
+
     const existing = await prisma.course.findFirst({
       where: { name: parsed.data.name, schoolId },
     })
@@ -66,19 +75,29 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Este curso já existe nesta escola" }, { status: 409 })
     }
 
-    const { subjectIds, ...courseData } = parsed.data
+    const { subjectIds, globalCourseId, ...courseData } = parsed.data
 
-    const course = await prisma.course.create({
-      data: {
-        ...courseData,
-        schoolId,
-        courseSubjects: subjectIds?.length
-          ? { create: subjectIds.map((subjectId) => ({ subjectId })) }
-          : undefined,
-      },
-    })
+    // Criar curso local + mapeamento escola↔global
+    const [course] = await prisma.$transaction([
+      prisma.course.create({
+        data: {
+          ...courseData,
+          globalCourseId,
+          schoolId,
+          courseSubjects: subjectIds?.length
+            ? { create: subjectIds.map((subjectId) => ({ subjectId })) }
+            : undefined,
+        },
+      }),
+      prisma.schoolCourse.upsert({
+        where: { globalCourseId_schoolId: { globalCourseId, schoolId } },
+        update: { active: true, localName: courseData.name !== globalCourse.name ? courseData.name : null },
+        create: { globalCourseId, schoolId, localName: courseData.name !== globalCourse.name ? courseData.name : null },
+      }),
+    ])
     return NextResponse.json(course, { status: 201 })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

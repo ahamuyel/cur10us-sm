@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requirePermission } from "@/lib/api-auth"
 import { sendEnrollmentComplete } from "@/lib/email"
+import { broadcastToUser } from "@/lib/ws-broadcast"
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -16,7 +17,8 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     try {
       const body = await _req.json()
       classId = body.classId || undefined
-    } catch {
+    } catch (error) {
+    console.error(`[API Error] ${error}`)
       // No body or invalid JSON — classId remains undefined
     }
 
@@ -148,8 +150,18 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       console.error("Email error:", e)
     }
 
+    // Notify the user's session to refresh immediately
+    if (user) {
+      try {
+        broadcastToUser(user.id, "session-update", {})
+      } catch {
+        // WebSocket server may not be available
+      }
+    }
+
     return NextResponse.json({ success: true })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

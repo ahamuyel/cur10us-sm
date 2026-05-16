@@ -5,7 +5,7 @@ import { createSubjectSchema } from "@/lib/validations/academic"
 
 export async function GET(req: Request) {
   try {
-    const { error: authError, session } = await requirePermission(["school_admin"], "canManageSubjects", { requireSchool: true })
+    const { error: authError, session } = await requirePermission(["school_admin", "teacher"], "canManageSubjects", { requireSchool: true })
     if (authError) return authError
 
     const schoolId = getSchoolId(session!)
@@ -14,8 +14,26 @@ export async function GET(req: Request) {
     const limit = parseInt(searchParams.get("limit") || "10")
     const search = searchParams.get("search") || ""
 
+    let teacherFilter = {}
+    if (session!.user.role === "teacher") {
+      const teacher = await prisma.teacher.findFirst({
+        where: { userId: session!.user.id, schoolId },
+        select: { id: true },
+      })
+      if (teacher) {
+        const teacherSubjectIds = await prisma.teacherSubject.findMany({
+          where: { teacherId: teacher.id },
+          select: { subjectId: true },
+        })
+        teacherFilter = {
+          id: { in: teacherSubjectIds.map((ts) => ts.subjectId) },
+        }
+      }
+    }
+
     const where = {
       schoolId,
+      ...teacherFilter,
       ...(search
         ? { name: { contains: search, mode: "insensitive" as const } }
         : {}),
@@ -32,7 +50,8 @@ export async function GET(req: Request) {
     ])
 
     return NextResponse.json({ data, total, page, totalPages: Math.ceil(total / limit) })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -50,6 +69,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
     }
 
+    // Verificar que a disciplina global existe
+    const globalSubject = await prisma.globalSubject.findUnique({
+      where: { id: parsed.data.globalSubjectId },
+    })
+    if (!globalSubject) {
+      return NextResponse.json({ error: "Disciplina global não encontrada. Use o catálogo global." }, { status: 404 })
+    }
+
     const existing = await prisma.subject.findFirst({
       where: { name: parsed.data.name, schoolId },
     })
@@ -57,11 +84,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Esta disciplina já existe nesta escola" }, { status: 409 })
     }
 
-    const subject = await prisma.subject.create({
-      data: { ...parsed.data, schoolId },
-    })
+    // Criar disciplina local + mapeamento escola↔global
+    const [subject] = await prisma.$transaction([
+      prisma.subject.create({
+        data: { name: parsed.data.name, globalSubjectId: parsed.data.globalSubjectId, schoolId },
+      }),
+      prisma.schoolSubject.upsert({
+        where: { globalSubjectId_schoolId: { globalSubjectId: parsed.data.globalSubjectId, schoolId } },
+        update: { active: true, localName: parsed.data.name !== globalSubject.name ? parsed.data.name : null },
+        create: { globalSubjectId: parsed.data.globalSubjectId, schoolId, localName: parsed.data.name !== globalSubject.name ? parsed.data.name : null },
+      }),
+    ])
     return NextResponse.json(subject, { status: 201 })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

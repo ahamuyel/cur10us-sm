@@ -1,76 +1,86 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { getToken } from "next-auth/jwt"
 
-const authPages = ["/signin", "/signup", "/forgot-password", "/reset-password", "/registar-escola"]
+const authPages = ["/signin", "/signup", "/forgot-password", "/registar-escola"]
+// Pages that should be accessible by both authenticated and unauthenticated users
+const alwaysAccessible = ["/reset-password", "/verify-email", "/signin/verify-2fa"]
 const publicPaths = ["/", "/aplicacao", "/aplicacao/status", "/maintenance"]
-
-// Paths accessible even during maintenance (login so super_admin can authenticate)
-const maintenanceExemptPaths = ["/maintenance", "/signin", "/api/platform/status", "/api/auth"]
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
-  // === Maintenance Mode Gate ===
-  const isMaintenanceExempt = maintenanceExemptPaths.some(
-    (p) => pathname === p || pathname.startsWith(p + "/")
-  )
-
-  if (!isMaintenanceExempt) {
-    // Decode JWT (fast, no DB call) — null if not logged in
-    const jwt = await getToken({ req, secret: process.env.AUTH_SECRET })
-
-    // Only check maintenance for non-super_admin users
-    if (jwt?.role !== "super_admin") {
-      try {
-        const statusUrl = new URL("/api/platform/status", req.url)
-        const statusRes = await fetch(statusUrl, { cache: "no-store" })
-        const { maintenanceMode } = await statusRes.json()
-
-        if (maintenanceMode) {
-          if (pathname.startsWith("/api/")) {
-            return NextResponse.json(
-              { error: "Plataforma em manutenção" },
-              { status: 503 }
-            )
-          }
-          return NextResponse.redirect(new URL("/maintenance", req.url))
-        }
-      } catch {
-        // If status check fails, allow through gracefully
-      }
-    }
-  }
-
-  // === Normal Auth Logic ===
   // Public paths — always accessible
-  if (publicPaths.includes(pathname) || pathname.startsWith("/api/")) {
+  if (publicPaths.includes(pathname)) {
     return NextResponse.next()
   }
 
-  // Check for session token cookie (set by Auth.js)
-  const sessionCookie =
-    req.cookies.get("authjs.session-token")?.value ||
-    req.cookies.get("__Secure-authjs.session-token")?.value
-
-  const isLoggedIn = !!sessionCookie
-
-  // Auth pages — redirect to dashboard if already logged in
-  if (authPages.some((p) => pathname.startsWith(p))) {
-    if (isLoggedIn) {
-      return NextResponse.redirect(new URL("/dashboard", req.url))
+  // API routes — auth is enforced per-route via requireRole/requirePermission
+  // Only allow explicitly public API endpoints without session check
+  const publicApiPrefixes = ["/api/auth/", "/api/applications/status", "/api/platform/status", "/api/schools/public"]
+  if (pathname.startsWith("/api/")) {
+    if (publicApiPrefixes.some((p) => pathname.startsWith(p))) {
+      return NextResponse.next()
+    }
+    // For protected API routes, check session cookie existence as a first gate
+    const hasSession =
+      req.cookies.has("authjs.session-token") ||
+      req.cookies.has("next-auth.session-token")
+    if (!hasSession) {
+      return NextResponse.json({ error: "Não autenticado" }, { status: 401 })
     }
     return NextResponse.next()
   }
 
-  // Dashboard pages — redirect to signin if not logged in
-  if (!isLoggedIn) {
-    return NextResponse.redirect(new URL("/signin", req.url))
+  // Always accessible pages (e.g., reset-password)
+  if (alwaysAccessible.some((p) => pathname.startsWith(p))) {
+    return NextResponse.next()
   }
 
+  // Check for session cookie existence (not the full session, to avoid Edge + Prisma issue)
+  // Auth.js v5 uses "authjs.session-token" by default
+  // Fallback to legacy "next-auth.session-token" if needed
+  const hasSessionCookie =
+    req.cookies.has("authjs.session-token") ||
+    req.cookies.has("next-auth.session-token")
+
+  // Auth pages — redirect to minha-area if already logged in
+  if (authPages.some((p) => pathname.startsWith(p))) {
+    if (hasSessionCookie) {
+      // Check if there's a stored callback URL from OAuth flow (priority over default redirect)
+      const storedCallbackUrl = req.cookies.get("next-auth-callback-url")?.value
+      if (storedCallbackUrl && isValidRedirect(storedCallbackUrl)) {
+        const response = NextResponse.redirect(new URL(storedCallbackUrl, req.url))
+        // Clear the cookie after using it
+        response.cookies.set("next-auth-callback-url", "", { maxAge: 0, path: "/" })
+        return response
+      }
+      return NextResponse.redirect(new URL("/minha-area", req.url))
+    }
+    return NextResponse.next()
+  }
+
+  // Not logged in — redirect to signin
+  if (!hasSessionCookie) {
+    const signinUrl = new URL("/signin", req.url)
+    signinUrl.searchParams.set("callbackUrl", pathname)
+    return NextResponse.redirect(signinUrl)
+  }
+
+  // For authenticated users, let server-side handling take over
+  // (session validation happens in API routes and page components)
   return NextResponse.next()
 }
 
+// Safe redirect validation — prevents open redirect vulnerabilities
+function isValidRedirect(url: string): boolean {
+  if (!url.startsWith("/")) return false
+  if (url.startsWith("//")) return false
+  if (url.includes("@")) return false
+  if (url.includes("..")) return false
+  return true
+}
+
+// Update matcher to ensure middleware doesn't interfere with Next.js internals
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.png$|.*\\.svg$).*)"],
+  matcher: ["/((?!_next/static|_next/image|_next/data|_next/font|favicon.ico|.*\\.png$|.*\\.svg$).*)"],
 }

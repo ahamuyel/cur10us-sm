@@ -1,11 +1,38 @@
 import { NextResponse } from "next/server"
-import { compare, hash } from "bcryptjs"
+import { hashPassword, comparePassword } from "@/lib/password"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { changePasswordSchema } from "@/lib/validations/auth"
+import { withCsrf } from "@/lib/csrf"
+import { rateLimit } from "@/lib/rate-limit"
+
+const changePasswordLimiter = rateLimit({ maxRequests: 5, windowMs: 15 * 60 * 1000 }) // 5 per 15 min
+
+function getIp(req: Request): string {
+  return (
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    req.headers.get("x-real-ip") ||
+    "unknown"
+  )
+}
 
 export async function POST(req: Request) {
+  return withCsrf(handleChangePassword)(req, {})
+}
+
+async function handleChangePassword(req: Request) {
   try {
+    const ip = getIp(req)
+    const limit = await changePasswordLimiter(ip)
+
+    if (!limit.success) {
+      const resetSec = Math.ceil((limit.resetAt.getTime() - Date.now()) / 1000)
+      return NextResponse.json(
+        { error: `Muitas tentativas. Tente novamente em ${resetSec} segundos.` },
+        { status: 429, headers: { "Retry-After": String(resetSec) } }
+      )
+    }
+
     const session = await auth()
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Não autenticado" }, { status: 401 })
@@ -27,14 +54,33 @@ export async function POST(req: Request) {
       where: { id: session.user.id },
     })
 
-    if (!user || !user.hashedPassword) {
+    if (!user) {
+      return NextResponse.json({ error: "Utilizador não encontrado" }, { status: 404 })
+    }
+
+    // Social user without password — set initial password (currentPassword not required)
+    if (!user.hashedPassword) {
+      const hashedPassword = await hashPassword(newPassword)
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          hashedPassword,
+          provider: user.provider === "google" ? "both" : user.provider || "credentials",
+          mustChangePassword: false,
+          sessionVersion: { increment: 1 },
+        },
+      })
+      return NextResponse.json({ success: true, isNewAccount: true })
+    }
+
+    // Existing password user — verify current password
+    if (!currentPassword) {
       return NextResponse.json(
-        { error: "Conta sem palavra-passe definida" },
+        { error: "Palavra-passe actual é obrigatória" },
         { status: 400 }
       )
     }
-
-    const isValid = await compare(currentPassword, user.hashedPassword)
+    const isValid = await comparePassword(currentPassword, user.hashedPassword)
     if (!isValid) {
       return NextResponse.json(
         { error: "Palavra-passe actual incorrecta" },
@@ -42,15 +88,16 @@ export async function POST(req: Request) {
       )
     }
 
-    const hashedPassword = await hash(newPassword, 12)
+    const hashedPassword = await hashPassword(newPassword)
 
     await prisma.user.update({
       where: { id: user.id },
-      data: { hashedPassword, mustChangePassword: false },
+      data: { hashedPassword, mustChangePassword: false, sessionVersion: { increment: 1 } },
     })
 
     return NextResponse.json({ success: true })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json(
       { error: "Erro interno do servidor" },
       { status: 500 }

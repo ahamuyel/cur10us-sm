@@ -44,7 +44,7 @@ const ResultForm = ({ mode, initialData, onSuccess, onCancel }: Props) => {
     examId: initialData?.examId || "",
     assignmentId: initialData?.assignmentId || "",
     trimester: initialData?.trimester || "",
-    academicYear: initialData?.academicYear || "2025/2026",
+    academicYear: initialData?.academicYear || "",
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)

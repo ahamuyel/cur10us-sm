@@ -1,10 +1,39 @@
 import { NextResponse } from "next/server"
-import { hash } from "bcryptjs"
+import { randomUUID } from "crypto"
+import { hashPassword } from "@/lib/password"
 import { prisma } from "@/lib/prisma"
 import { registerSchoolSchema } from "@/lib/validations/register-school"
+import { sendVerificationEmail } from "@/lib/email"
+import { withCsrf } from "@/lib/csrf"
+import { rateLimit } from "@/lib/rate-limit"
+
+const registerSchoolLimiter = rateLimit({ maxRequests: 3, windowMs: 60 * 60 * 1000 }) // 3 per hour
+
+function getIp(req: Request): string {
+  return (
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    req.headers.get("x-real-ip") ||
+    "unknown"
+  )
+}
 
 export async function POST(req: Request) {
+  return withCsrf(handleRegisterSchool)(req, {})
+}
+
+async function handleRegisterSchool(req: Request) {
   try {
+    const ip = getIp(req)
+    const limit = await registerSchoolLimiter(ip)
+
+    if (!limit.success) {
+      const resetSec = Math.ceil((limit.resetAt.getTime() - Date.now()) / 1000)
+      return NextResponse.json(
+        { error: `Muitas tentativas. Tente novamente em ${resetSec} segundos.` },
+        { status: 429, headers: { "Retry-After": String(resetSec) } }
+      )
+    }
+
     const body = await req.json()
     const parsed = registerSchoolSchema.safeParse(body)
 
@@ -46,7 +75,7 @@ export async function POST(req: Request) {
       )
     }
 
-    const hashedPassword = await hash(adminPassword, 12)
+    const hashedPassword = await hashPassword(adminPassword)
 
     // Create school + admin user in a single transaction
     await prisma.$transaction(async (tx) => {
@@ -64,7 +93,7 @@ export async function POST(req: Request) {
         },
       })
 
-      await tx.user.create({
+      const user = await tx.user.create({
         data: {
           name: adminName,
           email: adminEmail,
@@ -72,14 +101,30 @@ export async function POST(req: Request) {
           provider: "credentials",
           role: "school_admin",
           isActive: false,
+          emailVerified: false,
           profileComplete: true,
           schoolId: school.id,
         },
       })
+
+      // Create email verification token
+      const token = randomUUID()
+      await tx.emailVerificationToken.create({
+        data: {
+          token,
+          userId: user.id,
+          expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        },
+      })
+
+      // Send verification email (non-blocking)
+      const verifyUrl = `${process.env.AUTH_URL || "http://localhost:3000"}/verify-email?token=${token}`
+      sendVerificationEmail(adminEmail, adminName, verifyUrl).catch((e) => console.error("[Email Error]", e))
     })
 
     return NextResponse.json({ success: true }, { status: 201 })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json(
       { error: "Erro interno do servidor" },
       { status: 500 }

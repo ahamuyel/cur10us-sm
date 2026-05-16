@@ -2,10 +2,11 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requirePermission, getSchoolId } from "@/lib/api-auth"
 import { createExamSchema } from "@/lib/validations/academic"
+import { getOrDefaultAcademicYearId } from "@/lib/academic-year"
 
 export async function GET(req: Request) {
   try {
-    const { error: authError, session } = await requirePermission(["school_admin", "teacher", "student", "parent"], undefined, { requireSchool: true })
+    const { error: authError, session } = await requirePermission(["school_admin", "teacher", "student", "parent"], "canManageExams", { requireSchool: true })
     if (authError) return authError
 
     const schoolId = getSchoolId(session!)
@@ -37,7 +38,8 @@ export async function GET(req: Request) {
     ])
 
     return NextResponse.json({ data, total, page, totalPages: Math.ceil(total / limit) })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
@@ -56,6 +58,7 @@ export async function POST(req: Request) {
     }
 
     const { title, date, subjectId, classId, teacherId } = parsed.data
+    const academicYearId = await getOrDefaultAcademicYearId(schoolId, body.academicYearId)
 
     const exam = await prisma.exam.create({
       data: {
@@ -64,11 +67,13 @@ export async function POST(req: Request) {
         subjectId,
         classId,
         teacherId,
+        academicYearId: academicYearId || null,
         schoolId,
       },
     })
     return NextResponse.json(exam, { status: 201 })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

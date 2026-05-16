@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireRole } from "@/lib/api-auth"
+import { revalidateSchoolData } from "@/lib/revalidate"
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -32,11 +33,15 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       }),
     ])
 
+    // Revalidate school data
+    revalidateSchoolData(id)
+
     return NextResponse.json({
       school: updated,
       usersDeactivated: deactivated.count,
     })
-  } catch {
+  } catch (error) {
+    console.error(`[API Error] ${error}`)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
